@@ -5,7 +5,7 @@
 ##Links
 NA.Clim <- file.path("D:", "NA_NORM_8110_Bioclim_ASCII")
 NA.Ref <- file.path("D:", "NA_Reference_files_ASCII")
-data.dir <- file.path("data")
+data.dir <- file.path("D:/", "Dropbox","winTor_aux" , "data")
 worldClim <- file.path("D:", "WorldClim", "bclim")
 ## libraries
 library(raster); library(rgdal)
@@ -19,7 +19,7 @@ rm(mat, mat.corrected) # clean
 
 ## October - April Layer #Static layer
 NA.raster <- raster(file.path(NA.Ref, "ClimateNA_ID.asc"))
-lcc.proj <- proj4string(NA.raster)
+lcc.proj <- "+proj=lcc +lat_1=49 +lat_2=77 +lat_0=0 +lon_0=-95 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs"
   #reclassify to static value
 m <- c(-Inf,-1,NA,0,
        cellStats(NA.raster, max),182)
@@ -65,16 +65,16 @@ writeRaster(northing, filename = "data/NA_northing.tif", format = "GTiff", overw
 
 
 ## Make a new one because fuck it
-frost <- raster("data/NA_nFrostyDays.tif")
+frost <- raster(file.path(data.dir,"NA_nFrostyDays.tif"))
 dd0 <- raster(file.path(NA.Clim, "DD_0.asc"))
 proj4string(dd0) <- lcc.proj
 dd0.proj <- projectRaster(dd0, frost )
-dd0.days <- calc(dd0.proj,  fun = function(x) 365-(x/10000)*365)
+dd0.days <- calc(dd0.proj,  fun = function(x) ((x/10000)*365))
 names(dd0.days) <- "nDaysFreeze"
-writeRaster(dd0.days, filename = "data/NA_nDaysFreeze.tif", format = "GTiff", overwrite = T)
+writeRaster(dd0.days, filename = file.path(data.dir,"NA_nDaysFreeze.tif"), format = "GTiff", overwrite = T)
 frost.freeze <- stack(frost, dd0.days)
 
 frostFreeze <- calc(frost.freeze,
                     function(x) x[[2]]+ .5*(x[[1]] - x[[2]]))
 names(frostFreeze) <- "NA_frostFreeze"
-writeRaster(frostFreeze, "data/NA_frostFreeze.tif", format = "GTiff")
+writeRaster(frostFreeze, file.path(data.dir,"NA_frostFreeze.tif"), format = "GTiff", overwrite = T)

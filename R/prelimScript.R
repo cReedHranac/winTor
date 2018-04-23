@@ -4,7 +4,7 @@ library(raster);library(tidyverse)
 library(lubridate)
 
 #link to external
-win.link <- "D://Dropbox/winTor_aux"
+win.link <- "D://Dropbox/winTor_aux/data"
 
 dat <- read.csv("data/durationData.csv") #read data
 dat$ID <- 1:nrow(dat)
@@ -14,7 +14,7 @@ dat$End<- as.Date(dat$End,"%d-%h")
 
 for(i in 1:nrow(dat)){ # work around for duration 
   ifelse(is.na(dat$Duration[[i]]), 
-         dat$Duration[[i]] <- dat$Start[[i]]- dat$End[[i]],
+         dat$Duration[[i]] <- 365 - (dat$Start[[i]]- dat$End[[i]]),
          dat$Duration[[i]] <- dat$Duration[[i]])  
 }
 
@@ -22,7 +22,7 @@ for(i in 1:nrow(dat)){ # work around for duration
 coordinates(dat) <- ~ lat + long
 
 #load all the rasters
-env <- stack(file.path("data/", list.files("data/", pattern = "*.tif")))
+env <- stack(list.files(win.link, pattern = "NA_*", full.names = T))
 #extract estimations for locations
 env.dat <- raster::extract(env, dat, cellnumber = T, df = T)
 
@@ -51,7 +51,7 @@ summary(d1.freeze)
 #aic Table
 d1.res <- aictab(list(d1.frost, d1.grow, d1.north, d1.static, d1.FF, d1.freeze),
        modnames = c("frost", "grow", "north", "static", "frost.freeze", "freeze"))
-write.csv(d1.res,file =  file.path(win.link, "Results", 'd1AICtable.csv'), row.names = F)
+write.csv(d1.res,file =  file.path("D://", "Dropbox", 'winTor_aux', "Results", 'd1AICtable.csv'), row.names = F)
 
 
 ## Two Variables
@@ -76,7 +76,7 @@ summary(d2.north.freeze)
 #AIC Table
 d2.res <- aictab(list(d2.north.frost, d2.north.grow, d2.north.static, d2.north.dem, d2.north.ff, d2.north.freeze),
        modnames = c("frost", "grow", "static", "dem", "frost.freeze", "freeze"))
-write.csv(d2.res, file = file.path(win.link, "Results", "d2AICtable.csv"), row.names = F)
+write.csv(d2.res, file = file.path("D://", "Dropbox", 'winTor_aux', "Results", "d2AICtable.csv"), row.names = F)
 
 ## Three Variables
 d3.north.dem.frost <- lm(formula = Duration ~ NA_nFrostyDays + NA_northing + NA_dem, data = env.df)
@@ -116,21 +116,14 @@ summary(d3i.north.dem.freeze)
 aictab(list(d2i.north.dem, d3i.north.dem.ff, d3i.north.dem.frost, d3i.north.dem.grow, d3i.north.dem.freeze),
        modnames = c("dem","frostFreeze", "frost", "grow", "freeze"))
 
-## I reckon that d2i.north.dem is the ticket?
-#this might be how to do it?
-env$NA_northing <- mask(env$NA_northing, env$NA_dem)
-writeRaster(env$NA_northing, "data/NA_northing.tif", format = "GTiff", overwrite = T)
-stk <- stack(env$NA_northing, env$NA_dem)
-north.dem <- calc(stk, function(x){d2i.north.dem$coefficients[[1]] + x[[2]]*d2i.north.dem$coefficients[[2]]
-  + x[[1]]*d2i.north.dem$coefficients[[3]] + x[[1]]*x[[2]]*d2i.north.dem$coefficients[[4]]})
+#### Predicting ####
 
-## i don't think that's right...
-stk.df <- as.data.frame(stk) # make to dataframe
-stk.df$cell <- 1:nrow(stk.df)
-df.predict <- predict.lm(d2i.north.dem, newdata = stk.df, interval = "predict", type = "response")
-res.df <- cbind(stk.df, df.predict)
-res.df$fit[res.df$fit > 365] <- 365 #limit max
-res.df$fit[res.df$fit < 0] <- 0 #limit min
+##d1.freeze
+frz.df <- as.data.frame(env$NA_nDaysFreeze) # make to dataframe
+frz.df$cell <- 1:nrow(frz.df)
+df.predict <- predict.lm(d1.freeze, newdata = frz.df, interval = "predict", type = "response")
+summary(df.predict)
+res.df <- cbind(frz.df, df.predict)
 
 
 #lets get this back into a raster
@@ -139,8 +132,3 @@ empty.raster[] <- NA_real_
 
 empty.raster[res.df$cell] <- res.df$fit
 plot(empty.raster)
-m <- matrix(data = c(cellStats(empty.raster,min),cellStats(empty.raster, max),
-                     0,365,
-                     0,365),
-            nrow = 2)
-doink <- reclassify(empty.raster, m)
