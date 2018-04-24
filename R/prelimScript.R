@@ -1,11 +1,24 @@
 ## Preliminary modeling for winTor
 
 library(raster);library(tidyverse)
-library(lubridate)
+library(lubridate); library(broom)
 
 #link to external
 win.link <- "D://Dropbox/winTor_aux/data"
 
+#### Funcitons ####
+scrapeResults <- function(x){
+  ### FUnction for creating an easy results table 
+  results <- tidy(x)
+  tidy.table <- results[which(results$term != "(Intercept)"),]
+  bonus.cols <- cbind(intercept.est = results[which(results$term == "(Intercept)"), "estimate"],
+                      intercept.Pval = results[which(results$term == "(Intercept)"), "p.value"],
+                      r.squared = summary(x)$r.squared)
+  res.out <- cbind(tidy.table, bonus.cols)
+  return(res.out)
+}
+
+#### Data ####
 dat <- read.csv("data/durationData.csv") #read data
 dat$ID <- 1:nrow(dat)
 
@@ -29,7 +42,7 @@ env.dat <- raster::extract(env, dat, cellnumber = T, df = T)
 env.df <- left_join(as.data.frame(dat), env.dat, by = "ID")
 
 library(AICcmodavg)
-## Single Variables
+#### Single Variables ####
 d1.frost <- lm(formula = Duration ~ NA_nFrostyDays, data = env.df)
 summary(d1.frost)
 
@@ -48,10 +61,31 @@ summary(d1.FF)
 d1.freeze <- lm(formula = Duration ~ NA_nDaysFreeze, data = env.df)
 summary(d1.freeze)
 
-#aic Table
-d1.res <- aictab(list(d1.frost, d1.grow, d1.north, d1.static, d1.FF, d1.freeze),
-       modnames = c("frost", "grow", "north", "static", "frost.freeze", "freeze"))
+d1.dem <- lm(formula = Duration ~ NA_dem, data = env.df)
+summary(d1.dem)
+
+
+#Results Tables
+d1.res <- aictab(list(d1.north, d1.dem, d1.grow, d1.freeze,d1.frost, d1.FF ),
+       modnames = c("north", "dem", "grow", "freeze", "frost", "frost.freeze"))
+
 write.csv(d1.res,file =  file.path("D://", "Dropbox", 'winTor_aux', "Results", 'd1AICtable.csv'), row.names = F)
+
+d1.scrape <- lapply(list(d1.north, d1.dem, d1.grow, d1.freeze,d1.frost, d1.FF ),
+                    scrapeResults)
+d1.scrape.df <- do.call(rbind, d1.scrape)
+
+write.csv(d1.scrape.df,file =  file.path("D://", "Dropbox", 'winTor_aux', "Results", 'd1Results.csv'), row.names = F)
+
+
+#Create prediction rasters
+new.df <- as.data.frame(env) # make to dataframe
+new.df$cell <- 1:nrow(new.df)
+
+mods <- list(d1.north, d1.dem, d1.grow, d1.freeze,d1.frost, d1.FF)
+
+predict.rasters <- lapply(mods, FUN = raster::predict, object = env)
+
 
 
 ## Two Variables
@@ -119,9 +153,9 @@ aictab(list(d2i.north.dem, d3i.north.dem.ff, d3i.north.dem.frost, d3i.north.dem.
 #### Predicting ####
 
 ##d1.freeze
-frz.df <- as.data.frame(env$NA_nDaysFreeze) # make to dataframe
-frz.df$cell <- 1:nrow(frz.df)
-df.predict <- predict.lm(d1.freeze, newdata = frz.df, interval = "predict", type = "response")
+new.df <- as.data.frame(env) # make to dataframe
+new.df$cell <- 1:nrow(new.df)
+df.predict <- predict.lm(d1.freeze, newdata = new.df, interval = "predict", type = "response")
 summary(df.predict)
 res.df <- cbind(frz.df, df.predict)
 
