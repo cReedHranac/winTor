@@ -85,9 +85,11 @@ new.df$cell <- 1:nrow(new.df)
 mods <- list(d1.north, d1.dem, d1.grow, d1.freeze,d1.frost, d1.FF)
 
 predict.rasters <- lapply(mods, FUN = raster::predict, object = env)
-
-
-
+pred.stk <- stack(predict.rasters)
+names(pred.stk) <- c("North", "DEM", "Grow", "Freeze", "Frost", "FrostFreeze")
+writeRaster(pred.stk, filename = file.path("D:", "Dropbox", "winTor_aux","Results", "pred"), format = "GTiff",
+            bylayer = T, suffix = "names")
+  
 ## Two Variables
 d2.north.frost <- lm(formula = Duration ~ NA_nFrostyDays + NA_northing, data = env.df)
 summary(d2.north.frost)
@@ -150,19 +152,5 @@ summary(d3i.north.dem.freeze)
 aictab(list(d2i.north.dem, d3i.north.dem.ff, d3i.north.dem.frost, d3i.north.dem.grow, d3i.north.dem.freeze),
        modnames = c("dem","frostFreeze", "frost", "grow", "freeze"))
 
-#### Predicting ####
-
-##d1.freeze
-new.df <- as.data.frame(env) # make to dataframe
-new.df$cell <- 1:nrow(new.df)
-df.predict <- predict.lm(d1.freeze, newdata = new.df, interval = "predict", type = "response")
-summary(df.predict)
-res.df <- cbind(frz.df, df.predict)
 
 
-#lets get this back into a raster
-empty.raster <- env$NA_dem
-empty.raster[] <- NA_real_
-
-empty.raster[res.df$cell] <- res.df$fit
-plot(empty.raster)
