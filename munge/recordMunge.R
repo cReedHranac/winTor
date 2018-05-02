@@ -30,6 +30,10 @@ geoManager <- function(x){
   ## Work with UTM
   utm.dat <- geo.dat %>%
     dplyr::filter(zone != "")
+  ## Fix character issues
+  utm.dat$northing <- as.numeric(utm.dat$northing)
+  utm.dat$easting <- as.numeric(utm.dat$easting)
+  
   zones <- unique(utm.dat$zone)
   
   utm.list <- list()
@@ -59,7 +63,7 @@ geoManager <- function(x){
 }
 
 ## process
-dat.geo <- geoManager(x = dirt)
+dat.geo <- geoManager(x = dirt.NA)
 
 ## Which don't have any info on spatial
 v<- dat.geo %>%
@@ -70,27 +74,41 @@ dat.pts <- dat.geo %>%
 
 ## Subset to the useful catagories for the analysis
 dat.sub <- dat.pts %>%
-  select(id, lat, long, nWinterFlights, winterSpecies, LDH, lastFall,
-         firstSpring, nMaxEmerging, nMaxSpring, LDE)
+  select(id, lat, long, nWinterFlights, LDH, lastFall,
+         firstSpring, nMaxEmerging, nMaxSpring, LDE, elevation)
 
 ## set up dates
 library(lubridate)
-dat.sub$LDH
+dat.sub$LDH <-  as.Date(dat.sub$LDH, "%d/%m/%Y") 
+dat.sub$LDE <- as.Date(dat.sub$LDE, "%d/%m/%Y")
+dat.sub$firstSpring <- as.Date(dat.sub$firstSpring, "%d/%m/%Y")
+dat.sub$lastFall <- as.Date(dat.sub$lastFall, "%d/%m/%Y")
+
+## duration of witner
+dat.sub$winter.duration <- as.numeric(dat.sub$LDE - dat.sub$LDH)
+hist(dat.sub$winter.duration)
+
+#   ## 2 entries are negative when they should be postitive. 
+# dat.sub[which(dat.sub$winter.duration < 0),] # 29 & 76 ## Changed in source file
+
+#   ## Make sure years are around the correct way
+# dat.sub[which(year(dat.sub$LDE) - year(dat.sub$LDH) < 0),]
 
 
+## differences between the firt of spring and LDE
+dat.sub$spring.diff <- as.numeric(dat.sub$firstSpring - dat.sub$LDE)
+hist(dat.sub$spring.diff)
 
-## freq table
+#   ## Adressing the clear outliers
+# dat.sub[which(abs(dat.sub$spring.diff)>100), ] #144 ## Corrected in source
 
-table(!is.na(dat.sub$LDH) & dat.sub$LDH != "ND", !is.na(dat.sub$LDE) & dat.sub$LDE != "ND")
+## difference betweeen last of falll and LDH
+dat.sub$fall.diff <- as.numeric(dat.sub$LDH - dat.sub$lastFall)
+hist(dat.sub$fall.diff)
 
-dat.NA <- dat.sub %>%
-  mutate_all(function(x)gsub(pattern = "ND", replacement = NA, x))
-skim(dat.NA)
-coordinates(dat.pts) <- ~ long + lat
-proj4string(dat.pts) <- "+proj=longlat +ellps=WGS84 +datum=WGS84"
-mapview(dat.pts)
-dirt$LDH
+#   ##addressing outlyiers again
+# dat.sub[which(abs(dat.sub$fall.diff)>100),] ## 29 and 76 ## corrected in source
 
-rm(list = ls())
-skim(dirt$northing)
-str
+
+## writeout
+write.csv(dat.sub, "data/winDurationClean.csv", row.names = F)
