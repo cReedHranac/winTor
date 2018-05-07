@@ -7,7 +7,7 @@
 ## libraries
 library(raster);library(tidyverse)
 library(lubridate); library(broom)
-library(visreg)
+library(AICcmodavg)
 
 ## Extra Paths
 if (!exists('base.path')) {
@@ -36,9 +36,12 @@ scrapeResults <- function(x){
 rapid.lm <- function(x){
  ###function for lapplying lm
   f1.lm <- lm(formula = x$mod, data = x$dat)
-  plots <- visreg(f1.lm, xvar = "winter.duration", gg= T)
-  out <- list(f1.lm, plots)
-  return(out)
+  pdf(file = file.path(win.res,paste0(replace(x$mod[length(x$mod)], "+", "_"),".pdf")))
+  par(mfrow = c(3,2))
+  plot(f1.lm, which = 1:6, main = x$mod[[length(x$mod)]], ask = F)
+  dev.off()
+  
+  return(f1.lm)
 }
 
 wintorContour <- function(x, id, res.agg = 25,  save = F, ...){
@@ -157,13 +160,6 @@ for(i in 1:length(mod.formulas)){
 ## models
 f1.mod <- lapply(f1.list, rapid.lm)
 
-## plots
-  ## add some trickery to split the plots and the models
-f1.plots <- list()
-for(i in 1:length(f1.mod)){
-  f1.plots[[i]] <- f1.mod[[i]][[2]]
-  f1.mod[[i]] <- f1.mod[[i]][[1]]
-}
 
 ## summaries
 f1.sum <- lapply(f1.mod, summary.lm)
@@ -219,14 +215,6 @@ f2.mod <- lapply(f2.list, rapid.lm)
 
 ## summaries
 f2.sum <- lapply(f2.mod, summary.lm)
-
-## plots
-## add some trickery to split the plots and the models
-f2.plots <- list()
-for(i in 1:length(f2.mod)){
-  f2.plots[[i]] <- f2.mod[[i]][[2]]
-  f2.mod[[i]] <- f2.mod[[i]][[1]]
-} # in order to view you need to call plot on the items
 
 ## AIC table
 f2.res <- aictab(f2.mod, 
