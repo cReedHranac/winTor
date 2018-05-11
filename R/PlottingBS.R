@@ -1,11 +1,61 @@
-### Plotting the residuals spatially 
-env.df
-env.df$Resid <- frosty$residuals #extracted f3 model object
+### Plotting 
 
-## data layer
-frosty.rast <- raster(file.path(win.res, "f3Pred_frost.tif"))
+## libraries
+library(raster);library(tidyverse)
+library(lubridate); library(broom)
+library(AICcmodavg); library(gridExtra)
+
+## Extra Paths
+if (!exists('base.path')) {
+  if(.Platform$"OS.type" == "windows"){
+    base.path = file.path("D:", "Dropbox", "wintor_aux")
+  } else {
+    base.path = "~/Dropbox/winTor_aux"
+  }
+}
+
+win.dat <- file.path(base.path, "data")
+win.res <- file.path(base.path, "Results")
+
+
+#### Functions ####
+wintTorHighRes <- function(x, save, id,  ...){
+  ## Function for plotting high resolution maps of models results
+  m <- rbind(c(-1000, 0, 0),
+             c(365, 1000, 365))
+  x.clean <- reclassify(x, rcl = m)
+  x.pts <- data.frame(rasterToPoints(x.clean))
+  colnames(x.pts) <- c("long", "lat", "Winter")
+  
+  win.plot <- ggplot(x.pts) +
+    aes(x = long, y = lat) +
+    coord_fixed(xlim = extent(x)[1:2],ylim=extent(x)[3:4])+
+    #border lines
+    borders("world",
+            xlim=extent(x)[1:2],ylim=extent(x)[3:4],
+            colour = "grey20",
+            fill = "grey80")+
+    #Raster fill
+    geom_raster(data = x.pts, aes(fill = Winter),  interpolate = T) +
+    scale_fill_gradientn("Winter\nLength\n(days)",
+                         colors = c("#e66101", "#fdb863","#ffffff", "#b2abd2", "#5e3c99")) + #purp low orange hi
+    ggtitle(names(x)) + 
+    scale_x_continuous(expand = c(0,0))+
+    scale_y_continuous(expand = c(0,0))+
+    theme_bw()
+  
+  if(save == T){
+    ggsave(filename = file.path(win.res, id),
+           win.plot, ...)
+    
+    return(win.plot)
+  }
+  
+}
 
 wintorResid <- function(x, id, res.agg = 25,  save = F, ...){
+  ## Function to plot the residuals across on the map
+  
   ## Create DataFrame
   if(!is.null(res.agg)){ #aggratetion bits
     x.ag <- raster::aggregate(x, res.agg)
@@ -55,43 +105,114 @@ wintorResid <- function(x, id, res.agg = 25,  save = F, ...){
   return(g.winTor)
 }
 
+#### Plot data occurence ####
+NA.extent <- c(-160,-52,23.5,66.5)
+aspect.ratio <- (NA.extent[[2]] - NA.extent[[1]])/(NA.extent[[4]] - NA.extent[[3]])
+
+env.df <- as_tibble(fread("data/modleingDataFrame.csv"))
+
+lit.dat <- env.df[1:7,]
+rae.dat <- env.df[8:nrow(env.df),]
+
+##Lit points
+lit.points <- ggplot() +
+  aes(x = long, y = lat) +
+  coord_fixed(xlim = extent(NA.extent)[1:2],ylim=extent(NA.extent)[3:4])+
+ 
+  #border lines
+  borders("world",
+          xlim=extent(NA.extent)[1:2],ylim=extent(NA.extent)[3:4],
+          colour = "grey20",
+          fill = "grey80")+
+  geom_text(data= lit.dat, aes(x=long, y=lat, label = winter.duration), size = 4) +
+  theme_bw()+
+  ggtitle("Literature Points")
+
+ggsave(filename = file.path(win.res, "litPoints.png"),
+       plot = lit.points, device = "png", 
+       height = 7/aspect.ratio, width = 7, units = "in")
+
+## Rae points
+
+rae.wide <- ggplot() +
+  aes(x = long, y = lat) +
+  coord_cartesian(xlim = extent(NA.extent)[1:2],ylim=extent(NA.extent)[3:4])+
+  #border lines
+  borders("world",
+          xlim=extent(NA.extent)[1:2],ylim=extent(NA.extent)[3:4],
+          colour = "grey20",
+          fill = "grey80")+
+  geom_point(data= rae.dat, aes(x=long, y=lat)) +
+  theme_bw()+
+  ggtitle("WCS Points")
+
+summary(rae.dat[,c("long", "lat")])
+rae.ext <- c(-135, -110, 47.5,60)
+
+rae.zoom <- ggplot() +
+  aes(x = long, y = lat) +
+  coord_cartesian(xlim = extent(rae.ext)[1:2],ylim=extent(rae.ext)[3:4])+
+  #border lines
+  borders("world",
+          xlim=extent(rae.ext)[1:2],ylim=extent(rae.ext)[3:4],
+          colour = "grey20",
+          fill = "grey80")+
+  geom_text(data= rae.dat, aes(x=long, y=lat, label = winter.duration), size = 2.5) +
+  theme_bw()+
+  ggtitle("WCS Points (Zoom)")
+
+rae.points <- grid.arrange(rae.wide, rae.zoom)
+
+ggsave(filename = file.path(win.res, "WCSPoints.png"),
+      plot = rae.points, device = "png", 
+      height = 2*(7/aspect.ratio), width = 7, units = "in")
+
+#### Plot differences in top 5 predictions ####
+top.5 <- list("f3Pred_frost",
+              "f2Pred_frostFreeze",
+              "f3Pred_frostFreeze",
+              "f2Pred_freeze",
+              "f2Pred_frost",
+              "OG1k")
+
+## Get old data layer to same res and such WATCH OUT RAM KILLER
+# old.layer <- raster("D://Dropbox/WNS2/parameterFiles/wxnightsUS.asc")
+# old.nights <- raster::shift(old.layer,x= -360)
+# proj4string(old.nights) <- proj4string(t5.raw)
+# old.year <- calc(old.nights, function(x) x*365)
+# old.crop <- crop(old.year, t5.raw)
+# ##
+# old.1k <- projectRaster(old.crop, t5.raw)
+# names(old.1k) <- "OG_Winter"
+# ## crop and mask again 
+# OG.1k <- mask(crop(old.1k, t5.raw),t5.raw)
+# writeRaster(OG.1k, filename = file.path(win.res, "OG1k.tif"), format = "GTiff")
+
+t5.raw <- stack(file.path(win.res, paste0(top.5,".tif")))
+
+
+## clean of values that are too loud
+m <- rbind(c(-1000, 0, 0),
+           c(365, 1000, 365))
+t5.stk <- reclassify(t5.raw, rcl = m)
+
+
+
+env.df <- read.csv("data/modleingDataFrame.csv")
+frosty <- lm(formula = winter.duration ~ NA_northing + NA_dem + NA_nFrostyDays, data = env.df)
+
+env.df$Resid <- frosty$residuals #extracted f3 model object
+
+## data layer
+frosty.rast <- raster(file.path(win.res, "f3Pred_frost.tif"))
+extent(frosty.rast)
+
 frsty.pic <- wintorResid(x = frosty.rast, id = NULL)
 frsty.pic + geom_text(data = env.df, aes(x= long, y = lat, label = round(Resid))) + 
   coord_cartesian(xlim = c(-138, -110), 
                   ylim = c(45, 60))
 
-wintTorHighRes <- function(x, save, id,  ...){
-  m <- rbind(c(-1000, 0, 0),
-             c(365, 1000, 365))
-  x.clean <- reclassify(x, rcl = m)
-  x.pts <- data.frame(rasterToPoints(x.clean))
-  colnames(x.pts) <- c("long", "lat", "Winter")
-  
-  win.plot <- ggplot(x.pts) +
-    aes(x = long, y = lat) +
-    coord_fixed(xlim = extent(x)[1:2],ylim=extent(x)[3:4])+
-    #border lines
-    borders("world",
-            xlim=extent(x)[1:2],ylim=extent(x)[3:4],
-            colour = "grey20",
-            fill = "grey80")+
-    #Raster fill
-    geom_raster(data = x.pts, aes(fill = Winter),  interpolate = T) +
-    scale_fill_gradientn("Winter\nLength\n(days)",
-                         colors = c("#e66101", "#fdb863","#ffffff", "#b2abd2", "#5e3c99")) + #purp low orange hi
-    ggtitle(names(x)) + 
-    scale_x_continuous(expand = c(0,0))+
-    scale_y_continuous(expand = c(0,0))+
-    theme_bw()
-  
-  if(save == T){
-    ggsave(filename = file.path(win.res, id),
-           win.plot, ...)
-    
-    return(win.plot)
-  }
-  
-}
 
 
-wintTorHighRes(x = frosty.rast, save = T, id = "f3Frost.tif", device = "pdf")
+
+wintTorHighRes(x = frosty.rast, save = T, id = "f3Frost", device = "pdf")
