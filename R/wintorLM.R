@@ -7,7 +7,7 @@
 ## libraries
 library(raster);library(tidyverse)
 library(lubridate); library(broom)
-library(AICcmodavg)
+library(AICcmodavg); library(maptools)
 
 ## Extra Paths
 if (!exists('base.path')) {
@@ -86,8 +86,11 @@ wintorContour <- function(x, id, res.agg = 25,  save = F, ...){
     theme_bw()
   
   if(save == T){
+    ex <- as.vector(extent(x))
+    aspect.ratio <- (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])
     ggsave(filename = file.path(win.res, paste0(id, names(x))),
-           g.winTor, ...)
+           g.winTor, width = 7, height = 7/aspect.ratio,
+           ...)
   }
   
   return(g.winTor)
@@ -133,7 +136,7 @@ proj4string(dat)  <- wgs84
 
 ## Co-variates
 env.names <- c("NA_dem", "NA_northing", "NA_nFrostyDays",
-               "NA_nonGrowingDays", "NA_nDaysFreeze", "NA_frostFreeze")
+               "NA_nonGrowingDays", "NA_nDaysFreeze", "NA_frostFreeze", "NA_OG1k")
 env.stk <- raster::subset(stack(list.files(win.dat, pattern = "NA_*", full.names = T)), env.names)
 
 ## extract data from locations
@@ -149,7 +152,8 @@ mod.formulas <- list(winter.duration ~ NA_dem,
                      winter.duration ~ NA_nFrostyDays,
                      winter.duration ~ NA_nonGrowingDays,
                      winter.duration ~ NA_nDaysFreeze,
-                     winter.duration ~ NA_frostFreeze)
+                     winter.duration ~ NA_frostFreeze,
+                     winter.duration ~ NA_OG1k)
 
 ## args list
 f1.list <- list()
@@ -172,15 +176,16 @@ f1.res <- aictab(f1.mod,
                               "frost",
                               "growing",
                               "freeze",
-                              "frostFreeze"))
+                              "frostFreeze",
+                              "OG"))
 ##write
-# write.csv(f1.res,file =  file.path(win.res, 'f1AICtable.csv'), row.names = F)
+write.csv(f1.res,file =  file.path(win.res, 'f1AICtable.csv'), row.names = F)
 
 ## results table
 f1.scrape <- lapply(f1.mod, scrapeResults)
 f1.scrape.df <- do.call(rbind, f1.scrape)
 
-# write.csv(f1.scrape.df, file = file.path(win.res, 'f1Results.csv'), row.names = F)
+write.csv(f1.scrape.df, file = file.path(win.res, 'f1Results.csv'), row.names = F)
 
 ##Create prediction rasters
 
@@ -191,9 +196,10 @@ names(pred.stk) <- c("dem",
                      "frost",
                      "growing",
                      "freeze",
-                     "frostFreeze")
-# writeRaster(pred.stk, filename = file.path(win.res, "f1Pred"),
-            # format = "GTiff", bylayer = T, suffix = "names")
+                     "frostFreeze",
+                     "OG")
+writeRaster(pred.stk, filename = file.path(win.res, "f1Pred"),
+  format = "GTiff", bylayer = T, suffix = "names", overwrite = T)
 
 #### Level 2 models ####
 
@@ -202,7 +208,8 @@ mod.formulas2 <- list(winter.duration ~ NA_northing + NA_dem,
                      winter.duration ~ NA_northing + NA_nFrostyDays,
                      winter.duration ~ NA_northing + NA_nonGrowingDays,
                      winter.duration ~ NA_northing + NA_nDaysFreeze,
-                     winter.duration ~ NA_northing + NA_frostFreeze)
+                     winter.duration ~ NA_northing + NA_frostFreeze,
+                     winter.duration ~ NA_northing + NA_OG1k)
 
 ## args list
 f2.list <- list()
@@ -222,15 +229,16 @@ f2.res <- aictab(f2.mod,
                               "frost",
                               "growing",
                               "freeze",
-                              "frostFreeze"))
+                              "frostFreeze",
+                              "OG"))
 #write
-# write.csv(f2.res,file =  file.path(win.res, 'f2AICtable.csv'), row.names = F)
+write.csv(f2.res,file =  file.path(win.res, 'f2AICtable.csv'), row.names = F)
 
 ## results table
 f2.scrape <- lapply(f2.mod, scrapeResults)
 f2.scrape.df <- do.call(rbind, f2.scrape)
-# 
-# write.csv(f2.scrape.df, file = file.path(win.res, 'f2Results.csv'), row.names = F)
+
+write.csv(f2.scrape.df, file = file.path(win.res, 'f2Results.csv'), row.names = F)
 
 ## Create prediction rasters
 
@@ -240,9 +248,10 @@ names(pred.stk2) <- c("dem",
                      "frost",
                      "growing",
                      "freeze",
-                     "frostFreeze")
-# writeRaster(pred.stk2, filename = file.path(win.res, "f2Pred"),
-#             format = "GTiff", bylayer = T, suffix = "names")
+                     "frostFreeze",
+                     "OG")
+writeRaster(pred.stk2, filename = file.path(win.res, "f2Pred"),
+            format = "GTiff", bylayer = T, suffix = "names", overwrite = T)
 
 #### Level 3 models ####
 
@@ -250,7 +259,8 @@ names(pred.stk2) <- c("dem",
 mod.formulas3 <- list(winter.duration ~ NA_northing + NA_nFrostyDays + NA_dem,
                       winter.duration ~ NA_northing + NA_nonGrowingDays + NA_dem,
                       winter.duration ~ NA_northing + NA_nDaysFreeze + NA_dem,
-                      winter.duration ~ NA_northing + NA_frostFreeze + NA_dem)
+                      winter.duration ~ NA_northing + NA_frostFreeze + NA_dem,
+                      winter.duration ~ NA_northing + NA_OG1k + NA_dem)
 
 f3.list <- list()
 for(i in 1:length(mod.formulas3)){
@@ -263,28 +273,21 @@ f3.mod <- lapply(f3.list, rapid.lm)
 ## Summaries
 f3.sum <- lapply(f3.mod, summary.lm)
 
-## plots
-## add some trickery to split the plots and the models
-f3.plots <- list()
-for(i in 1:length(f3.mod)){
-  f3.plots[[i]] <- f3.mod[[i]][[2]]
-  f3.mod[[i]] <- f3.mod[[i]][[1]]
-} # in order to view you need to call plot on the items
-
 ## AIC table
 f3.res <- aictab(f3.mod, 
                  modnames = c("frost",
                               "growing",
                               "freeze",
-                              "frostFreeze"))
+                              "frostFreeze",
+                              "OG"))
 ##write
-# write.csv(f3.res,file =  file.path(win.res, 'f3AICtable.csv'), row.names = F)
+write.csv(f3.res,file =  file.path(win.res, 'f3AICtable.csv'), row.names = F)
 
 ## results table
 f3.scrape <- lapply(f3.mod, scrapeResults)
 f3.scrape.df <- do.call(rbind, f3.scrape)
 
-# write.csv(f3.scrape.df, file = file.path(win.res, 'f3Results.csv'), row.names = F)
+write.csv(f3.scrape.df, file = file.path(win.res, 'f3Results.csv'), row.names = F)
 
 ## Create prediction rasters
 
@@ -293,9 +296,10 @@ pred.stk3 <- do.call(stack, f3Pred.rasters)
 names(pred.stk3) <- c("frost",
                       "growing",
                       "freeze",
-                      "frostFreeze")
-# writeRaster(pred.stk2, filename = file.path(win.res, "f3Pred"),
-            # format = "GTiff", bylayer = T, suffix = "names")
+                      "frostFreeze",
+                      "OG")
+writeRaster(pred.stk2, filename = file.path(win.res, "f3Pred"),
+            format = "GTiff", bylayer = T, suffix = "names", overwrite = T)
 
 #### making a bunch of pretty figures ####
 major.table <- aictab(c(f1.mod, f2.mod, f3.mod), 
@@ -305,37 +309,40 @@ major.table <- aictab(c(f1.mod, f2.mod, f3.mod),
                                    "growing",
                                    "freeze",
                                    "frostFreeze",
+                                   "OG",
                                    "north + dem",
                                    "north + frost",
                                    "north + growing",
                                    "north + freeze",
                                    "north + frostFreeze",
+                                   "north + OG",
                                    "north + dem + frost",
                                    "north + dem + growing",
                                    "north + dem + freeze",
-                                   "north + dem + frostFreeze"))
-# write.csv(major.table, file =  file.path(win.res, 'allModelAICtable.csv'), row.names = F)
+                                   "north + dem + frostFreeze",
+                                   "north + dem + OG"))
+write.csv(major.table, file =  file.path(win.res, 'allModelAICtable.csv'), row.names = F)
 
-# win.maps <- lapply(unstack(pred.stk),
-#                    wintorContour,
-#                    res.agg = NULL,
-#                    save = T,
-#                    id = "f1",
-#                    device = "pdf")
-# 
-# win.maps2 <- lapply(unstack(pred.stk2),
-#                    wintorContour,
-#                    res.agg = NULL,
-#                    save = T,
-#                    id = "f2",
-#                    device = "pdf")
-# 
-# win.maps3 <- lapply(unstack(pred.stk3),
-#                    wintorContour,
-#                    res.agg = NULL,
-#                    save = T,
-#                    id = "f3",
-#                    device = "pdf")
+win.maps <- lapply(unstack(pred.stk),
+                   wintorContour,
+                   res.agg = NULL,
+                   save = T,
+                   id = "f1",
+                   device = "pdf")
+
+win.maps2 <- lapply(unstack(pred.stk2),
+                   wintorContour,
+                   res.agg = NULL,
+                   save = T,
+                   id = "f2",
+                   device = "pdf")
+
+win.maps3 <- lapply(unstack(pred.stk3),
+                   wintorContour,
+                   res.agg = NULL,
+                   save = T,
+                   id = "f3",
+                   device = "pdf")
 
 
 write.csv(env.df, "data/modleingDataFrame.csv", row.names = F)

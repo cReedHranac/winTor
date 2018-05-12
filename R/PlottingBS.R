@@ -14,6 +14,7 @@ if (!exists('base.path')) {
   }
 }
 
+
 win.dat <- file.path(base.path, "data")
 win.res <- file.path(base.path, "Results")
 
@@ -173,20 +174,9 @@ top.5 <- list("f3Pred_frost",
               "f3Pred_frostFreeze",
               "f2Pred_freeze",
               "f2Pred_frost",
-              "OG1k")
+              "NA_OG1k")
 
-## Get old data layer to same res and such WATCH OUT RAM KILLER
-# old.layer <- raster("D://Dropbox/WNS2/parameterFiles/wxnightsUS.asc")
-# old.nights <- raster::shift(old.layer,x= -360)
-# proj4string(old.nights) <- proj4string(t5.raw)
-# old.year <- calc(old.nights, function(x) x*365)
-# old.crop <- crop(old.year, t5.raw)
-# ##
-# old.1k <- projectRaster(old.crop, t5.raw)
-# names(old.1k) <- "OG_Winter"
-# ## crop and mask again 
-# OG.1k <- mask(crop(old.1k, t5.raw),t5.raw)
-# writeRaster(OG.1k, filename = file.path(win.res, "OG1k.tif"), format = "GTiff")
+
 
 t5.raw <- stack(file.path(win.res, paste0(top.5,".tif")))
 
@@ -195,10 +185,99 @@ t5.raw <- stack(file.path(win.res, paste0(top.5,".tif")))
 m <- rbind(c(-1000, 0, 0),
            c(365, 1000, 365))
 t5.stk <- reclassify(t5.raw, rcl = m)
+t5.agg <- aggregate(t5.stk, fact = 25)
+rm(t5.raw, t5.stk)
+
+## plot combine and display
+t5.dat <- data.frame(rasterToPoints(t5.agg))
+colnames(t5.dat) <- c( "long", "lat", top.5)
+res.long <- tidyr::gather(data = t5.dat, key = "Model", value = "Winter.Length", -c(long, lat), factor_key = T)
+NA.extent <- c( -172.3 ,-52,23.5,66.5)
+aspect.ratio <- (NA.extent[[2]] - NA.extent[[1]])/(NA.extent[[4]] - NA.extent[[3]])
+
+##Plot ### Needs more ram...
+ggplot(res.long, aes(x = long, y = lat))+
+  coord_cartesian(xlim = NA.extent[1:2], 
+                  ylim = NA.extent[3:4]) +
+  #border lines
+  borders("world",
+          xlim=NA.extent[1:2],ylim=NA.extent[3:4],
+          colour = "grey20",
+          fill = "grey80")+
+  #Raster fill
+  geom_raster( aes(fill = Winter.Length),  interpolate = T) +
+  scale_fill_gradientn("Winter\nLength\n(days)",
+                       colors = c("#e66101", "#fdb863","#ffffff", "#b2abd2", "#5e3c99")) + #purp low orange hi
+  scale_x_continuous(expand = c(0,0))+
+  scale_y_continuous(expand = c(0,0))+
+  theme_bw() +
+  facet_wrap(~ Model, ncol = 2)
+
+rm(list = ls())
+#### Infection Maps ####
+## mylu dat
+my.dat <- stack(file.path(win.res, c("myluR_max.inf.tif", "myluR_max.null.tif")))
+top.5 <- list("f3Pred_frost",
+              "f2Pred_frostFreeze",
+              "f3Pred_frostFreeze",
+              "f2Pred_freeze",
+              "f2Pred_frost",
+              "NA_OG1k")
+
+t5.raw <- stack(file.path(win.res, paste0(top.5,".tif")))
+m <- rbind(c(-1000, 0, 0),
+           c(365, 1000, 365))
+t5.stk <- reclassify(t5.raw, rcl = m)
+names(t5.stk) <- top.5
+rm(t5.raw)
+
+surv.list <- list()
+
+for(i in 1:2){
+  for(j in 1:nlayers(t5.stk)){
+    foo <- my.dat[[i]] - t5.stk[[j]]
+    names(foo) <- paste0(names(t5.stk[[j]]),"_", substring(names(my.dat[[i]]), 11,13))
+    surv.list <- append(surv.list, foo)
+  }
+}
+surv.stk <- do.call(stack, surv.list)
+rm(surv.list)
+stk.agg <- aggregate(surv.stk, fact = 25)
+names(stk.agg) <- names(surv.stk);rm(surv.stk)
+surv.dat <- data.frame(rasterToPoints(stk.agg))
+colnames(surv.dat) <- c( "long", "lat", names(stk.agg))
+
+
+res.long <- tidyr::gather(data = surv.dat, key = "Model", value = "Survival", -c(long, lat), factor_key = T)
+NA.extent <- c( -172.3 ,-52,23.5,66.5)
+aspect.ratio <- (NA.extent[[2]] - NA.extent[[1]])/(NA.extent[[4]] - NA.extent[[3]])
+res.long$Model <- as.string(res.long$Model)
+
+
+ggplot(res.long, aes(x = long, y = lat))+
+  coord_cartesian(xlim = NA.extent[1:2], 
+                  ylim = NA.extent[3:4]) +
+  #border lines
+  borders("world",
+          xlim=NA.extent[1:2],ylim=NA.extent[3:4],
+          colour = "grey20",
+          fill = "grey80")+
+  #Raster fill
+  geom_raster( aes(fill = Survival),  interpolate = T) +
+  scale_fill_gradientn("Survial \nCapacity \n(days)",
+                       colors = c("#e66101", "#fdb863","#ffffff", "#b2abd2", "#5e3c99")) + #purp low orange hi
+  scale_x_continuous(expand = c(0,0))+
+  scale_y_continuous(expand = c(0,0))+
+  theme_bw() +
+  facet_wrap(~ Model, ncol = 4)
+
+#### Working on histograms ####
 
 
 
-env.df <- read.csv("data/modleingDataFrame.csv")
+
+
+
 frosty <- lm(formula = winter.duration ~ NA_northing + NA_dem + NA_nFrostyDays, data = env.df)
 
 env.df$Resid <- frosty$residuals #extracted f3 model object
@@ -209,8 +288,7 @@ extent(frosty.rast)
 
 frsty.pic <- wintorResid(x = frosty.rast, id = NULL)
 frsty.pic + geom_text(data = env.df, aes(x= long, y = lat, label = round(Resid))) + 
-  coord_cartesian(xlim = c(-138, -110), 
-                  ylim = c(45, 60))
+  
 
 
 

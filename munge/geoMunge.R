@@ -78,3 +78,17 @@ frostFreeze <- calc(frost.freeze,
                     function(x) x[[2]]+ .5*(x[[1]] - x[[2]]))
 names(frostFreeze) <- "NA_frostFreeze"
 writeRaster(frostFreeze, file.path(data.dir,"NA_frostFreeze.tif"), format = "GTiff", overwrite = T)
+
+## Doesn't run as is but how I created the NA_OG1k layer
+## Get old data layer to same res and such WATCH OUT RAM KILLER
+# old.layer <- raster("D://Dropbox/WNS2/parameterFiles/wxnightsUS.asc")
+# old.nights <- raster::shift(old.layer,x= -360)
+# proj4string(old.nights) <- proj4string(t5.raw)
+# old.year <- calc(old.nights, function(x) x*365)
+# old.crop <- crop(old.year, t5.raw)
+# ##
+# old.1k <- projectRaster(old.crop, t5.raw)
+# names(old.1k) <- "OG_Winter"
+# ## crop and mask again 
+# OG.1k <- mask(crop(old.1k, t5.raw),t5.raw)
+# writeRaster(OG.1k, filename = file.path(win.res, "OG1k.tif"), format = "GTiff")
