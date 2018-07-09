@@ -109,6 +109,74 @@ hist(dat.sub$fall.diff)
 #   ##addressing outlyiers again
 # dat.sub[which(abs(dat.sub$fall.diff)>100),] ## 29 and 76 ## corrected in source
 
-
 ## writeout
 write.csv(dat.sub, "data/winDurationClean.csv", row.names = F)
+
+
+
+#### Combine with literature data ####
+library(raster);library(tidyverse)
+library(lubridate); library(broom)
+library(AICcmodavg); library(maptools)
+
+## Extra Paths
+if (!exists('base.path')) {
+  if(.Platform$"OS.type" == "windows"){
+    base.path = file.path("D:", "Dropbox", "wintor_aux")
+  } else {
+    base.path = "~/Dropbox/winTor_aux"
+  }
+}
+
+win.dat <- file.path(base.path, "data")
+win.res <- file.path(base.path, "Results")
+
+
+## literature data
+lit.dat <- as_tibble(read.csv("data/durationData.csv"))
+lit.dat$id <- paste0("L", 1:nrow(lit.dat)) ## add id
+
+## determine duration 
+lit.dat$Start <- as.Date(lit.dat$Start, '%d-%h')
+lit.dat$End <- as.Date(lit.dat$End, '%d-%h')
+
+
+for(i in 1:nrow(lit.dat)){ # Create duration since there's no years in the df
+  ifelse(is.na(lit.dat$Duration[[i]]), 
+         lit.dat$Duration[[i]] <- 365 - (lit.dat$Start[[i]]- lit.dat$End[[i]]),
+         lit.dat$Duration[[i]] <- lit.dat$Duration[[i]])  
+}
+
+lit.sub <- lit.dat %>%
+  dplyr::select(id, long, lat, Duration) %>%
+  rename(winter.duration = Duration)
+
+
+## recorder data
+rec.dat <- as_tibble(read.csv("data/winDurationClean.csv"))
+
+rec.sub <- rec.dat %>%
+  dplyr::select(id, long, lat, winter.duration) %>%
+  filter(!is.na(winter.duration))
+
+## join 
+dat <- bind_rows(lit.sub, rec.sub)
+dat$ID <- 1:nrow(dat)
+
+## add spatial orientation
+wgs84 <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84")
+coordinates(dat) <- ~ long + lat
+proj4string(dat)  <- wgs84
+
+## Co-variates
+env.names <- c("NA_dem", "NA_northing", "NA_nFrostyDays",
+               "NA_nonGrowingDays", "NA_nDaysFreeze", "NA_frostFreeze", "NA_OG1k")
+env.stk <- raster::subset(stack(list.files(win.dat, pattern = "NA_*", full.names = T)), env.names)
+
+## extract data from locations
+env.dat <- raster::extract(env.stk, dat, cellnumber = T, df = T)
+
+env.df <- as_tibble(left_join(as.data.frame(dat), env.dat, by = "ID"))
+
+## write out complete dataframe to 
+write.csv(env.df, file.path("data/", "modelingDataFrame.csv"), row.names = F)

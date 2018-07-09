@@ -4,6 +4,8 @@
 
 ## Reed Hranac, 02/May/2018
 
+## update 09/July/2018
+
 ## libraries
 library(raster);library(tidyverse)
 library(lubridate); library(broom)
@@ -23,7 +25,7 @@ win.res <- file.path(base.path, "Results")
 
 #### Functions ####
 scrapeResults <- function(x){
-  ### FUnction for creating an easy results table 
+  ### Function for creating an easy results table 
   results <- tidy(x)
   tidy.table <- results[which(results$term != "(Intercept)"),]
   bonus.cols <- cbind(intercept.est = results[which(results$term == "(Intercept)"), "estimate"],
@@ -98,52 +100,44 @@ wintorContour <- function(x, id, res.agg = 25,  save = F, ...){
 
 #### Data ####
 
-## literature data
-lit.dat <- as_tibble(read.csv("data/durationData.csv"))
-lit.dat$id <- paste0("L", 1:nrow(lit.dat)) ## add id
-
-  ## determine duration 
-lit.dat$Start <- as.Date(lit.dat$Start, '%d-%h')
-lit.dat$End <- as.Date(lit.dat$End, '%d-%h')
-
-
-for(i in 1:nrow(lit.dat)){ # Create duration since there's no years in the df
-  ifelse(is.na(lit.dat$Duration[[i]]), 
-         lit.dat$Duration[[i]] <- 365 - (lit.dat$Start[[i]]- lit.dat$End[[i]]),
-         lit.dat$Duration[[i]] <- lit.dat$Duration[[i]])  
-}
-
-lit.sub <- lit.dat %>%
-  dplyr::select(id, long, lat, Duration) %>%
-  rename(winter.duration = Duration)
-
-
-  ## recorder data
-rec.dat <- as_tibble(read.csv("data/winDurationClean.csv"))
-
-rec.sub <- rec.dat %>%
-  dplyr::select(id, long, lat, winter.duration) %>%
-  filter(!is.na(winter.duration))
-
-## join 
-dat <- bind_rows(lit.sub, rec.sub)
-dat$ID <- 1:nrow(dat)
-
-## add spatial orientation
-wgs84 <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84")
-coordinates(dat) <- ~ long + lat
-proj4string(dat)  <- wgs84
+env.df <- read.csv("data/modelingDataFrame.csv")
 
 ## Co-variates
 env.names <- c("NA_dem", "NA_northing", "NA_nFrostyDays",
                "NA_nonGrowingDays", "NA_nDaysFreeze", "NA_frostFreeze", "NA_OG1k")
 env.stk <- raster::subset(stack(list.files(win.dat, pattern = "NA_*", full.names = T)), env.names)
 
-## extract data from locations
-env.dat <- raster::extract(env.stk, dat, cellnumber = T, df = T)
-
-env.df <- as_tibble(left_join(as.data.frame(dat), env.dat, by = "ID"))
-
+# ## explore data
+# NA.extent <- c(-172.3, -52,23.5,66.5) #extent of NA from artic circle to tropics
+# 
+# point.map <- ggplot() +
+#   borders("world",
+#           xlim=extent(NA.extent)[1:2],ylim=extent(NA.extent)[3:4],
+#           colour = "grey20",
+#           fill = "grey80")+ 
+#   geom_point(data = dat,
+#              aes(x = long, y = lat, color = winter.duration))+
+#   coord_equal(xlim=extent(NA.extent)[1:2],
+#                   ylim=extent(NA.extent)[3:4],
+#                   expand = F)+
+#   theme_bw()
+# ## points are obvious clustered. lets see what we can do.
+# # create study extent as owin 
+# n.america <- raster(file.path(win.dat, "NA_dem.tif"))
+# NA.poly <- rasterToPolygons(n.america, fun = function(x){x==1}, dissolve = T)
+# plot(NA.poly)
+# library(spatstat)
+# regions <- slot(NA.poly, "polygons")
+# regions <- lapply(regions, function(x) { SpatialPolygons(list(x)) })
+# windows <- lapply(regions, as.owin)
+# #clean
+# rm( regions)
+# 
+# ## points as a ppp
+# dat.ppp <- ppp(x = dat$long, y = dat$lat,
+#                window = windows[[1]],
+#                marks = dat[,4:ncol(dat)])
+# plot(dat.ppp)
 #### Models ####
 
 ## formulas
@@ -343,6 +337,3 @@ win.maps3 <- lapply(unstack(pred.stk3),
                    save = T,
                    id = "f3",
                    device = "pdf")
-
-
-write.csv(env.df, "data/modleingDataFrame.csv", row.names = F)
