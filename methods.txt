@@ -1,0 +1,41 @@
+## Note Document for winTor Project##
+
+## Research question:
+
+Q1: How do we define winter length (the obligate period over which a species must 
+hibernate)?
+
+Q2: Do traits (such as body fat) vary spatially to account for local differences in 
+hibernation need?
+
+## Q1
+#Data required
+- hibernation length data (durationData.csv)
+	-literature
+	-grey literature
+	-data from collaborators
+		-winter duration part 1 from Jason/ Cori
+		-"winter length of far northwest NA.xls"
+	*Notes:
+		* many people have activity data for when bats leave maternity roost for the year, 
+		can we take that and assume that they go into hibernation then or do they go 
+		to swarming. If so, is that a relatively predicable length of time?		
+		* There are commonly unmatched data (and entry or exit point is missing), is there
+		a way to interpret that missing data either through nearest neighbour or some 
+		other mechanism?
+- Spatial Layers:
+	-Estimations of winter length
+	-Elevation, Northing covariates
+		
+##Process
+- Clean records for Jason
+	-munge/recordMunge 
+	*winterDurationClean.csv
+- Create spatial co-variate layers to 1k and match resolution and projection 
+	-munge/geoMunge
+	*wintor_aux files. 
+- Linear Regressions [wintorLM.R]
+	-f1 contains only one of the potential covariates
+	-f2 Northing plus covariates
+	-f3 Northing plus DEM plus covariates
+	-model selection through AIC
