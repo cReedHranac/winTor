@@ -17,6 +17,7 @@ if (!exists('base.path')) {
 
 win.dat <- file.path(base.path, "data")
 win.res <- file.path(base.path, "Results")
+shapes <- file.path("D:/", "Dropbox", "batwintor_aux", "paramFiles", "ShapeFiles")
 
 
 #### Functions ####
@@ -214,6 +215,18 @@ ggplot(res.long, aes(x = long, y = lat))+
   facet_wrap(~ Model, ncol = 2)
 
 rm(list = ls())
+#### Create Mylu layers ####
+library(batwintor)
+my.mod <- fread("D://Dropbox/CanadaY2/data/myluMod.csv")
+mat <- raster(file.path(win.dat, "NA_mat.tif"))
+rh <- raster(file.path(win.dat, "NA_relativeHumidity.tif"))
+
+myluR <- survivalRaster(mod.df = my.mod,
+                        pct.rh.rast = rh,
+                        temp.rast = mat)
+plot(myluR)
+
+
 #### Infection Maps ####
 ## mylu dat
 my.dat <- stack(file.path(win.res, c("myluR_max.inf.tif", "myluR_max.null.tif")))
@@ -235,7 +248,7 @@ surv.list <- list()
 
 for(i in 1:2){
   for(j in 1:nlayers(t5.stk)){
-    foo <- my.dat[[i]] - t5.stk[[j]]
+    foo <- my.dat[[i]] - t5.stk[[j]] 
     names(foo) <- paste0(names(t5.stk[[j]]),"_", substring(names(my.dat[[i]]), 11,13))
     surv.list <- append(surv.list, foo)
   }
@@ -249,9 +262,10 @@ colnames(surv.dat) <- c( "long", "lat", names(stk.agg))
 
 
 res.long <- tidyr::gather(data = surv.dat, key = "Model", value = "Survival", -c(long, lat), factor_key = T)
+res.long$Model <- as.character(res.long$Model)
 NA.extent <- c( -172.3 ,-52,23.5,66.5)
 aspect.ratio <- (NA.extent[[2]] - NA.extent[[1]])/(NA.extent[[4]] - NA.extent[[3]])
-res.long$Model <- as.string(res.long$Model)
+
 
 
 ggplot(res.long, aes(x = long, y = lat))+
@@ -272,9 +286,41 @@ ggplot(res.long, aes(x = long, y = lat))+
   facet_wrap(~ Model, ncol = 4)
 
 #### Working on histograms ####
+## Same set up as prior to the plotting step above
+mylu.map <- readOGR(shapes, "myotis_lucifugus")
+surv.crop <- mask(crop(stk.agg, mylu.map), mylu.map)
+surv.dat <- data.frame(rasterToPoints(surv.crop))
+colnames(surv.dat) <- c( "long", "lat", names(stk.agg))
+
+hist.list <- list()
+
+for(i in 1:length(top.5)){
+  set <- surv.dat %>%
+    dplyr::select(long, lat ,paste0(top.5[[i]], c("_nul", "_inf"))) %>%
+    tidyr::gather(key = "Model", value = "Survival", -c(long, lat), factor_key = T)
+  
+  median.info <- set %>%
+    group_by(Model)%>%
+    summarise(median.value = median(Survival))
+  
+  hist.list[[i]] <- ggplot(set, aes(x = Survival, fill = Model, color = Model)) +
+    ##histograms
+    geom_histogram(binwidth=30, alpha=.5, position="identity")+
+    ##Median info
+    geom_vline(data = median.info, aes(xintercept = median.value, colour = Model),
+               linetype = "dashed", size = 1) +
+    geom_vline(xintercept = 0) +
+    ## Color bits
+    scale_color_manual(values=c("#5e3c99", "#e66101"),labels = c("Null", "Inf")) +
+    scale_fill_manual(values=c("#5e3c99", "#e66101"),labels = c("Null", "Inf")) +
+    ## Extras
+    scale_y_continuous(expand = c(0,0))+
+    ggtitle(top.5[[i]])+
+    theme_bw()
+}
 
 
-
+hist.list
 
 
 

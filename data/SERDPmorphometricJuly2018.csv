@@ -1,0 +1,996 @@
+Site Name,State,Latitude,Longitude,Bat Species,Bat ID,Mass (prior resp),Sex,Age,Date Captured,Forearm Length
+Old Dry Wolf,MT,47.016711,-110.498023,Corynorhinus townsendii,COTO31,9.5,Male,Adult,14/02/2017,43.7
+Old Dry Wolf,MT,47.016711,-110.498023,Eptesicus fuscus,EPFU1,10,Male,Adult,14/02/2017,45.3
+Old Dry Wolf,MT,47.016711,-110.498023,Eptesicus fuscus,EPFU2,14.9,Male,Adult,14/02/2017,47
+Old Dry Wolf,MT,47.016711,-110.498023,Eptesicus fuscus,EFFU3,15.4,Male,Adult,14/02/2017,44.8
+Old Dry Wolf,MT,47.016711,-110.498023,Eptesicus fuscus,EPFU4,14.7,Male,Adult,14/02/2017,47.8
+Old Dry Wolf,MT,47.016711,-110.498023,Eptesicus fuscus,EPFU5,15.3,Male,Adult,14/02/2017,47.8
+Old Dry Wolf,MT,47.016711,-110.498023,Myotis ciliolabrum,MYCI40,6.4,Female,Adult,13/02/2018,35.8
+Old Dry Wolf,MT,47.016711,-110.498023,Eptesicus fuscus,EPFU8,14.1,Male,Adult,13/02/2018,44.5
+Old Dry Wolf,MT,47.016711,-110.498023,Eptesicus fuscus,EPFU9,15.8,Male,Adult,13/02/2018,49.9
+Old Dry Wolf,MT,47.016711,-110.498023,Eptesicus fuscus,EPFU10,17.3,Male,Adult,13/02/2018,47.6
+Old Dry Wolf,MT,47.016711,-110.498023,Eptesicus fuscus,EPFU11,14.6,Male,Adult,13/02/2018,46.4
+Old Dry Wolf,MT,47.016711,-110.498023,Eptesicus fuscus,EPFU12,13.8,Male,Adult,13/02/2018,45.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis thysanodes,MYTH1,9.3,Male,Adult,18/09/2017,40.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis thysanodes,MYTH2,10.6,Female,Adult,19/09/2017,45.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis thysanodes,MYTH3,9,Male,Adult,19/09/2017,41
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis thysanodes,MYTH4,9.9,Male,Adult,20/09/2017,42.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis thysanodes,MYTH5,8.3,Male,Adult,20/09/2017,39.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis thysanodes,MYTH6,10.6,Male,Adult,20/09/2017,43.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis thysanodes,MYTH7,7.7,Male,Adult,25/09/2017,41.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis thysanodes,MYTH8,7.3,Male,Adult,25/09/2017,42
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis thysanodes,MYTH10,8.6,Male,Adult,27/09/2017,41.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis thysanodes,MYTH11,9.7,Male,Adult,27/09/2017,40.8
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis thysanodes,MYTH12,9,Male,Adult,27/09/2017,41.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis thysanodes,MYTH13,10.9,Male,Adult,27/09/2017,41.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis thysanodes,MYTH14,10.4,Male,Adult,27/09/2017,42.9
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis thysanodes,MYTH16,10.6,Male,Adult,28/09/2017,41.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis thysanodes,MYTH17,10.3,Male,Adult,28/09/2017,42.7
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis thysanodes,MYTH18,9.8,Male,Adult,28/09/2017,42.6
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis thysanodes,MYTH19,8.8,Female,Adult,28/09/2017,42.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis thysanodes,MYTH20,10.1,Male,Adult,28/09/2017,42.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis thysanodes,MYTH21,8.7,Male,Young of the Year,28/09/2017,40.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis thysanodes,MYTH22,9.3,Male,Adult,28/09/2017,42.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU1,8.1,Female,Adult,17/02/2017,40
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU2,6.5,Male,Adult,17/02/2017,35.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU3,6.4,Male,Adult,17/02/2017,36.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO1,7.5,Male,Adult,17/02/2017,38.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU4,6.4,Male,Adult,17/02/2017,35.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO2,8.8,Female,Adult,17/02/2017,40.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO3,8.1,Male,Adult,17/02/2017,37.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU5,6.3,Male,Adult,17/02/2017,36.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU6,6.5,Male,Adult,17/02/2017,38.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU7,6,Male,Adult,17/02/2017,36.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU8,6.3,Female,Adult,17/02/2017,37
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU10,8.4,Female,Adult,17/02/2017,38.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU9,5.5,Female,Adult,17/02/2017,34.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU11,7.9,Female,Adult,17/02/2017,37.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU12,5.6,Male,Adult,17/02/2017,35.8
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO4,6.5,Male,Adult,17/02/2017,38
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO5,6.8,Male,Adult,17/02/2017,36.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU13,6.5,Female,Adult,17/02/2017,37.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU14,8.1,Male,Adult,17/02/2017,39.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU15,6.9,Male,Adult,17/02/2017,37.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU16,6.1,Male,Adult,17/02/2017,36
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU17,6.4,Female,Adult,17/02/2017,36.6
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU18,6.5,Male,Adult,17/02/2017,36
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU19,6,Male,Adult,17/02/2017,36.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV2,7.3,Male,Adult,18/09/2017,38.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV3,7.4,Female,Adult,18/09/2017,39.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV4,7.1,Male,Adult,18/09/2017,38.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV5,6.8,Male,Adult,18/09/2017,38
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV6,8.9,Male,Adult,18/09/2017,38.7
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV7,6.6,Male,Adult,18/09/2017,38.8
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV8,6.9,Male,Adult,18/09/2017,39
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV9,7.7,Male,Adult,18/09/2017,39.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV10,7.8,Male,Adult,18/09/2017,39.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV11,7.5,Male,Adult,18/09/2017,38.9
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV12,6.9,Male,Adult,18/09/2017,38.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV13,7.8,Male,Adult,18/09/2017,37.8
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV14,6.8,Male,Adult,18/09/2017,38.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV15,7.8,Male,Adult,18/09/2017,39.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV16,8.3,Male,Adult,18/09/2017,39.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV17,7.1,Male,Adult,18/09/2017,38.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV18,7.5,Male,Adult,18/09/2017,35.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV19,7.8,Male,Adult,18/09/2017,38
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV20,8,Male,Adult,18/09/2017,39
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV21,6.6,Male,Adult,18/09/2017,38.9
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV22,7.9,Male,Adult,18/09/2017,38.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV23,7.5,Male,Adult,18/09/2017,37.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV24,8,Male,Adult,18/09/2017,36.7
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV25,7.8,Male,Adult,18/09/2017,37
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV26,8.1,Male,Adult,18/09/2017,38.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV1,7.3,Male,Adult,18/09/2017,37.9
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV27,7.5,Male,Adult,18/09/2017,38.8
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV28,6.2,Male,Adult,18/09/2017,37.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV29,8,Male,Adult,18/09/2017,38.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV30,7.7,Male,Adult,18/09/2017,38.6
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV31,6,Male,Adult,18/09/2017,38.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV32,6.5,Male,Adult,20/09/2017,38.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV33,8,Male,Adult,20/09/2017,35.7
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV34,6.9,Male,Adult,20/09/2017,37.9
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV35,6.7,Male,Adult,20/09/2017,35.6
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV36,6.9,Male,Adult,25/09/2017,38.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV37,7.1,Male,Adult,25/09/2017,37.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV38,7.1,Male,Adult,25/09/2017,38.8
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV39,7.3,Female,Young of the Year,25/09/2017,39.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV40,5.9,Male,Young of the Year,25/09/2017,35.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV41,7.5,Male,Adult,25/09/2017,39.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV42,7,Male,Adult,25/09/2017,38.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV43,7.7,Male,Young of the Year,25/09/2017,39.7
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV44,7.8,Male,Adult,25/09/2017,38.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV45,7,Male,Adult,25/09/2017,38.9
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV46,6.6,Male,Adult,25/09/2017,39.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV47,8.7,Male,Adult,27/09/2017,40.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV48,8,Male,Adult,27/09/2017,37.8
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV49,8,Male,Adult,27/09/2017,38.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV50,7,Male,Adult,27/09/2017,36.9
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV51,7.2,Male,Adult,27/09/2017,39.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV52,8.2,Male,Adult,27/09/2017,39.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV53,8.1,Male,Adult,27/09/2017,38.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV54,7.6,Male,Adult,27/09/2017,38.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV55,7.8,Male,Adult,27/09/2017,38.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV56,7.5,Male,Adult,27/09/2017,38
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV57,7.5,Female,Adult,27/09/2017,40.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV58,7.2,Male,Adult,27/09/2017,36.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV59,7.9,Male,Adult,27/09/2017,38
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV60,7.7,Male,Adult,27/09/2017,39
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV61,7,Male,Adult,27/09/2017,37.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV62,6.9,Male,Adult,27/09/2017,37.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV63,7.1,Male,Adult,27/09/2017,39.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV64,8,Male,Adult,27/09/2017,39.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV65,7.1,Male,Adult,27/09/2017,37.6
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV66,8.2,Male,Adult,27/09/2017,39.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV67,7.6,Male,Adult,27/09/2017,38.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV68,7.7,Male,Adult,27/09/2017,38.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV69,7.4,Male,Adult,27/09/2017,38.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV70,7.7,Male,Adult,27/09/2017,39.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV71,7.6,Male,Adult,27/09/2017,38.9
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV72,7.4,Male,Adult,27/09/2017,37.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV73,7.7,Male,Adult,27/09/2017,37.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV74,7.1,Male,Adult,27/09/2017,38.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV75,8,Male,Adult,27/09/2017,39.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV76,6.8,Male,Adult,27/09/2017,36.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV79,7.6,Male,Adult,27/09/2017,38.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV80,6.6,Male,Adult,27/09/2017,37.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV81,6.9,Male,Adult,27/09/2017,36.9
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV82,7.7,Male,Adult,27/09/2017,38.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV83,8,Male,Adult,27/09/2017,38.7
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV84,7.3,Male,Adult,28/09/2017,36.7
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV85,8.6,Male,Adult,28/09/2017,40.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV86,7.2,Female,Young of the Year,28/09/2017,39.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV87,7.1,Male,Adult,28/09/2017,38.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV88,7.6,Male,Adult,28/09/2017,38.9
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV89,8.8,Male,Adult,28/09/2017,38.6
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV90,8.2,Male,Adult,28/09/2017,38.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV91,7.8,Male,Adult,28/09/2017,38
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV92,7.6,Male,Adult,28/09/2017,38.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV93,7.5,Male,Adult,28/09/2017,38.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV94,8.3,Male,Adult,28/09/2017,38.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV95,6.4,Male,Adult,28/09/2017,37.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV96,7,Male,Adult,28/09/2017,38.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV97,8.4,Male,Adult,28/09/2017,38.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV98,8.1,Male,Adult,28/09/2017,38.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV99,7.6,Male,Adult,28/09/2017,36.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV100,8.3,Male,Adult,28/09/2017,39.7
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV101,8,Male,Adult,28/09/2017,37.6
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV102,7.8,Male,Adult,28/09/2017,37.6
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV103,7.2,Male,Young of the Year,28/09/2017,36.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV104,8.1,Male,Adult,28/09/2017,39.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV105,7.5,Male,Adult,28/09/2017,38.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV106,8.2,Male,Adult,28/09/2017,39.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV107,6.4,Male,Adult,19/09/2017,37.9
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV108,6.9,Male,Adult,19/09/2017,36.7
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU20,7.2,Male,Young of the Year,18/09/2017,36.9
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU21,7.2,Male,Adult,18/09/2017,38.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU22,7.6,Male,Adult,18/09/2017,37.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU23,7.9,Male,Adult,18/09/2017,37.6
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU24,6.4,Male,Adult,18/09/2017,35.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU25,8.6,Male,Adult,18/09/2017,37.9
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU26,9.1,Male,Adult,18/09/2017,38.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU27,8.6,Male,Adult,20/09/2017,35.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU28,8.1,Male,Adult,20/09/2017,37.7
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU29,8.7,Male,Adult,20/09/2017,39.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU30,8.7,Male,Adult,20/09/2017,37.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU31,7.7,Male,Adult,20/09/2017,37
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU32,10.4,Male,Adult,20/09/2017,39.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU33,6.4,Male,Adult,25/09/2017,35.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU34,8.3,Male,Adult,25/09/2017,35.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU35,8.3,Male,Adult,25/09/2017,37.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU36,7.7,Male,Young of the Year,25/09/2017,38.8
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU37,8.5,Male,Young of the Year,25/09/2017,37.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU38,8.1,Male,Adult,25/09/2017,36.9
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU39,8.7,Male,Adult,25/09/2017,36.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU40,7.3,Male,Adult,25/09/2017,36.9
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU41,8.5,Male,Adult,25/09/2017,35.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU42,7.4,Male,Adult,25/09/2017,37.7
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU43,8.3,Male,Adult,25/09/2017,37.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU44,7.9,Male,Adult,25/09/2017,38.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU45,8,Male,Adult,25/09/2017,37
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU46,7.3,Male,Young of the Year,27/09/2017,37
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU47,6.4,Female,Adult,27/09/2017,36.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU48,7.4,Male,Young of the Year,27/09/2017,39
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU49,7.7,Male,Adult,27/09/2017,37.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU50,7.9,Male,Adult,27/09/2017,36.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU51,6.9,Male,Adult,27/09/2017,38.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU52,9.7,Male,Adult,27/09/2017,38.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU53,9.7,Male,Adult,27/09/2017,37.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU54,8.9,Male,Adult,27/09/2017,36.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU55,7.7,Male,Young of the Year,27/09/2017,26.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU56,7.6,Male,Young of the Year,27/09/2017,35.9
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU57,9.3,Male,Adult,27/09/2017,37.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU58,9,Male,Adult,27/09/2017,36.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU59,7.7,Male,Adult,27/09/2017,35.6
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU60,8.6,Male,Adult,27/09/2017,36.9
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU61,8.6,Male,Adult,28/09/2017,37.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU62,9.4,Male,Adult,28/09/2017,36.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU63,7,Male,Adult,28/09/2017,38.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU64,9,Male,Adult,28/09/2017,37.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU65,8,Male,Adult,28/09/2017,35.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU66,8.8,Male,Adult,28/09/2017,38.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU67,8,Male,Adult,28/09/2017,38.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU68,9.6,Male,Adult,28/09/2017,38.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU69,8,Male,Adult,28/09/2017,35.6
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU70,7.1,Male,Adult,28/09/2017,37.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU71,8.2,Male,Adult,28/09/2017,37.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU72,7.2,Male,Adult,28/09/2017,37.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU73,8.1,Male,Adult,28/09/2017,38.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU74,8.9,Male,Adult,28/09/2017,36.8
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU75,8.7,Male,Adult,28/09/2017,36.7
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU76,9.6,Male,Adult,28/09/2017,39.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU77,7.2,Male,Adult,28/09/2017,37
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU78,8.2,Male,Adult,28/09/2017,38.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU79,8.1,Male,Adult,28/09/2017,38.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU80,10.5,Male,Adult,28/09/2017,37.8
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU81,8.1,Male,Adult,28/09/2017,38.6
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU82,9.8,Male,Adult,28/09/2017,38.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU83,9.5,Male,Adult,28/09/2017,36.9
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU84,8.2,Male,Adult,28/09/2017,37.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU85,8.2,Male,Young of the Year,19/09/2017,37
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU86,7.5,Male,Adult,19/09/2017,36.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU87,8.6,Male,Adult,19/09/2017,28.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU88,8.6,Male,Adult,19/09/2017,36.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU89,8.1,Male,Adult,19/09/2017,36
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU90,7.4,Male,Adult,19/09/2017,36.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU91,7,Male,Young of the Year,19/09/2017,36.6
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU92,8.3,Male,Adult,19/09/2017,37.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU93,9.5,Male,Adult,19/09/2017,38.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO6,8.9,Male,Adult,18/09/2017,39
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO7,8.8,Male,Adult,18/09/2017,38.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO8,7.9,Male,Adult,18/09/2017,38.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO9,5.7,Male,Adult,18/09/2017,38.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO10,7.6,Male,Adult,18/09/2017,39.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO11,8.2,Male,Adult,18/09/2017,39.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO12,7.8,Male,Adult,18/09/2017,37.6
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO13,7.6,Male,Adult,18/09/2017,38.9
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO14,9.3,Male,Adult,18/09/2017,40.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO15,8.6,Male,Adult,18/09/2017,38.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO16,8.7,Male,Adult,18/09/2017,34.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO17,8.5,Male,Adult,18/09/2017,40
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO18,8,Male,Adult,18/09/2017,38.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO19,10,Male,Adult,18/09/2017,39.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO20,8.1,Male,Adult,18/09/2017,37.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO21,7.9,Male,Adult,18/09/2017,38.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO22,8.5,Male,Adult,18/09/2017,39.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO23,9.3,Male,Adult,20/09/2017,38.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO24,7,Male,Adult,25/09/2017,39.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO25,8.4,Male,Adult,25/09/2017,37.7
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO26,8.5,Male,Adult,25/09/2017,38.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO27,9.5,Male,Adult,25/09/2017,40.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO28,9.3,Male,Adult,25/09/2017,39
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO29,8.4,Male,Adult,25/09/2017,39.7
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO30,10.3,Female,Adult,25/09/2017,39.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO31,7.5,Male,Young of the Year,25/09/2017,38.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO32,8.5,Male,Adult,27/09/2017,39.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO33,8.4,Male,Adult,27/09/2017,38.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO34,9.6,Male,Adult,27/09/2017,39
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO35,9.4,Male,Adult,27/09/2017,40.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO36,8.4,Male,Adult,27/09/2017,37.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO37,8.9,Male,Adult,27/09/2017,39.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO38,10,Male,Adult,27/09/2017,39.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO39,7.6,Male,Adult,27/09/2017,38
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO40,9,Male,Adult,27/09/2017,39.9
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO41,6.3,Male,Young of the Year,27/09/2017,37.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO42,8.6,Male,Adult,27/09/2017,38.6
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO43,8.6,Male,Adult,27/09/2017,37.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO44,9.4,Male,Adult,27/09/2017,38.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO45,8.6,Male,Adult,27/09/2017,38.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO46,8.2,Male,Adult,27/09/2017,38.6
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO47,8.9,Male,Adult,28/09/2017,37.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO48,9.5,Male,Adult,28/09/2017,37.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO49,9.8,Male,Adult,28/09/2017,37.6
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO50,8,Male,Adult,28/09/2017,37.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO51,9,Male,Adult,28/09/2017,39.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO52,9.9,Male,Adult,28/09/2017,39
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO53,8.7,Male,Adult,28/09/2017,38.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO54,7.9,Male,Adult,19/09/2017,38.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO55,8.1,Male,Adult,19/09/2017,39.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO56,9.5,Male,Adult,28/09/2017,38.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU99,6.2,Female,Adult,22/02/2018,35.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU100,8.6,Female,Adult,22/02/2018,37.1
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU101,6,Male,Adult,22/02/2018,36
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU102,7.5,Female,Adult,22/02/2018,38.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU103,8.4,Female,Adult,22/02/2018,38.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU104,7.1,Male,Adult,22/02/2018,37.3
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU105,6.6,Male,Adult,22/02/2018,37.7
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU106,8,Female,Adult,22/02/2018,38
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU107,7.6,Male,Adult,22/02/2018,36.6
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU108,7,Male,Adult,22/02/2018,39.9
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU109,6.8,Male,Adult,22/02/2018,37
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU110,7.1,Male,Adult,22/02/2018,35.8
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU111,6.1,Male,Adult,22/02/2018,36.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU112,6.6,Male,Adult,22/02/2018,38.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU113,6.9,Male,Adult,22/02/2018,38.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU114,6.6,Male,Adult,22/02/2018,37.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU115,6,Male,Adult,22/02/2018,36.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU116,6.5,Male,Adult,22/02/2018,36.7
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU117,7.9,Male,Adult,22/02/2018,37.9
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU118,7.4,Male,Adult,22/02/2018,36.6
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU119,6.3,Male,Adult,22/02/2018,36.6
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU120,7.2,Male,Adult,22/02/2018,37
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU121,6.9,Male,Adult,22/02/2018,37.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis lucifugus,MYLU122,6.5,Male,Adult,22/02/2018,37.6
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO59,7.7,Male,Adult,22/02/2018,38.4
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO60,8.1,Male,Adult,22/02/2018,40.2
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO61,7.5,Male,Adult,22/02/2018,39
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO62,7.2,Female,Adult,22/02/2018,38.5
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis volans,MYVO63,6.6,Male,Adult,22/02/2018,39
+Lick Creek Cave,MT,47.12429,-111.006973,Myotis evotis,MYEV110,6,Male,Adult,22/02/2018,38.1
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO3,9.3,Female,Adult,7/02/2017,42.5
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO4,9.3,Female,Adult,7/02/2017,45
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO5,9.3,Female,Adult,7/02/2017,42
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO6,9.1,Female,Adult,7/02/2017,44.3
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO7,9.5,Female,Adult,7/02/2017,45.3
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO8,9.7,Female,Adult,7/02/2017,44.6
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO9,10.2,Male,Adult,7/02/2017,42.3
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO10,9.5,Female,Adult,7/02/2017,43.4
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO11,9.7,Female,Adult,7/02/2017,43.8
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO12,9.2,Female,Adult,7/02/2017,43.2
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO13,9,Female,Adult,7/02/2017,42.6
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO14,10,Female,Adult,7/02/2017,45.9
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO15,9,Female,Adult,7/02/2017,42.8
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO16,8.6,Female,Adult,7/02/2017,42.2
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO17,8.6,Male,Adult,7/02/2017,43.8
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO18,8.6,Female,Adult,7/02/2017,43.4
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO19,10.3,Female,Adult,7/02/2017,45.9
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO20,9.6,Female,Adult,7/02/2017,42.7
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO21,9.1,Female,Adult,7/02/2017,44.5
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO22,8.5,Female,Adult,7/02/2017,43.1
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO23,8.3,Male,Adult,7/02/2017,42.8
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO24,7.3,Male,Adult,7/02/2017,42.3
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO25,7.4,Male,Adult,7/02/2017,40.4
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO26,9.5,Female,Adult,7/02/2017,45.1
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO27,7.3,Male,Adult,7/02/2017,42.1
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO28,7.9,Male,Adult,7/02/2017,42
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO29,11.3,Female,Adult,7/02/2017,45
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO30,9.7,Female,Adult,7/02/2017,44.8
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO1,8.3,Male,Adult,7/02/2017,44.2
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO2,9.7,Female,Adult,7/02/2017,42.4
+Paradox Mine,CO,38.433,-108.954,Corynorhinus townsendii,COTO185,10.7,Female,Adult,13/10/2017,43.9
+Paradox Mine,CO,38.433,-108.954,Myotis ciliolabrum,MYCI25,5.5,Female,Adult,13/10/2017,34.6
+Paradox Mine,CO,38.433,-108.954,Myotis thysanodes,MYTH24,9.1,Male,Adult,13/10/2017,42.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU1,4.9,Male,Adult,28/01/2017,35.7
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU2,4.8,Female,Adult,28/01/2017,34.7
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU3,5.9,Female,Adult,28/01/2017,33.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU4,5.5,Female,Adult,28/01/2017,34.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU5,5.1,Male,Adult,28/01/2017,33.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU6,4.9,Male,Adult,28/01/2017,33.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU7,5.2,Female,Adult,28/01/2017,33.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU8,5.2,Male,Adult,28/01/2017,34.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU9,5.4,Female,Adult,28/01/2017,33.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU10,5.4,Female,Adult,28/01/2017,33.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU11,5.1,Female,Adult,28/01/2017,33.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU12,6.2,Female,Adult,28/01/2017,35.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU13,5.6,Female,Adult,28/01/2017,34.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU14,5.3,Female,Adult,28/01/2017,33.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU15,4.9,Male,Adult,28/01/2017,34.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU16,4.9,Female,Adult,28/01/2017,34
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU17,5.2,Male,Adult,28/01/2017,32.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU18,5.3,Male,Adult,28/01/2017,34.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU19,6,Male,Adult,28/01/2017,35
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU20,6.8,Female,Adult,28/01/2017,34.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE1,13.1,Female,Adult,25/02/2017,45.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE2,12.5,Male,Adult,25/02/2017,45.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE3,12.6,Male,Adult,25/02/2017,46.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE4,12.1,Female,Adult,25/02/2017,44.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE5,10.7,Female,Adult,25/02/2017,47.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE6,12.6,Female,Adult,25/02/2017,44
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE7,12.1,Female,Adult,25/02/2017,45.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE8,11.7,Female,Adult,25/02/2017,44
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE9,12.6,Female,Adult,25/02/2017,44.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE10,12.7,Male,Adult,25/02/2017,45.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE11,11.1,Male,Adult,25/02/2017,45.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE12,13.8,Male,Adult,25/02/2017,46.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE13,11,Male,Adult,25/02/2017,45
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE14,12.3,Female,Adult,25/02/2017,45.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE15,11.3,Male,Adult,25/02/2017,44.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE16,11.6,Female,Adult,25/02/2017,46
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE17,12.5,Female,Adult,25/02/2017,46.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE18,12.1,Female,Adult,25/02/2017,45
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE19,11.8,Female,Adult,25/02/2017,45.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE20,12.8,Female,Adult,25/02/2017,46.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE21,12.7,Female,Adult,25/02/2017,45.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE22,12.5,Male,Adult,25/02/2017,45.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE23,14.6,Female,Adult,25/02/2017,48.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE24,11.3,Female,Adult,25/02/2017,46.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE25,11.1,Female,Adult,25/02/2017,45.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE26,12.9,Female,Adult,25/02/2017,47.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE27,10.8,Male,Adult,25/02/2017,44.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE28,11.9,Male,Adult,25/02/2017,43.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE29,12.9,Male,Adult,25/02/2017,45.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE30,10.6,Male,Adult,25/02/2017,43.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU21,5.7,Male,Adult,28/01/2017,32.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU22,6.2,Female,Adult,28/01/2017,34.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU23,5.3,Female,Adult,28/01/2017,33.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU24,5.8,Female,Adult,28/01/2017,37.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU25,6.2,Female,Adult,28/01/2017,34
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU26,7,Female,Adult,28/01/2017,34.7
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU27,6,Female,Adult,28/01/2017,34.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU28,5.4,Male,Adult,28/01/2017,35.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU29,5.4,Female,Adult,28/01/2017,33.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU30,5.4,Male,Adult,28/01/2017,34.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU31,5.2,Male,Adult,28/01/2017,33.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Corynorhinus townsendii,COTO186,13,Female,Adult,29/10/2017,43
+Selman Living Lab Cave,OK,36.712692,-99.258184,Eptesicus fuscus,EPFU7,25.6,Male,Adult,29/10/2017,47.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU32,6.1,Male,Adult,30/10/2017,34.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU33,6.4,Male,Adult,30/10/2017,33.7
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU34,7.3,Female,Adult,30/10/2017,33.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU35,7.8,Female,Adult,30/10/2017,35.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU36,7.6,Female,Adult,30/10/2017,34.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU37,7.1,Male,Adult,30/10/2017,34.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU38,6.9,Male,Adult,30/10/2017,34
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU39,6.3,Male,Adult,30/10/2017,34.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU40,7.3,Male,Adult,30/10/2017,33.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU41,7.8,Female,Adult,30/10/2017,35.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU42,7,Female,Adult,30/10/2017,33.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU43,6.8,Male,Adult,30/10/2017,34.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU44,6.4,Male,Adult,30/10/2017,33.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU45,7.2,Male,Adult,30/10/2017,35.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU46,6.5,Female,Adult,30/10/2017,33.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU47,6.5,Male,Adult,30/10/2017,33.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU48,7.7,Male,Adult,30/10/2017,34.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU49,7.4,Female,Adult,30/10/2017,34
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU50,7.2,Female,Adult,30/10/2017,32.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU51,7.4,Female,Adult,30/10/2017,34.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU52,7.2,Female,Adult,30/10/2017,34.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU53,7.5,Female,Adult,30/10/2017,35.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU54,7.1,Male,Adult,30/10/2017,33.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE31,14.4,Female,Adult,29/10/2017,47.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE32,13.5,Female,Adult,29/10/2017,44.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE33,12.1,Male,Adult,29/10/2017,42.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE34,11.9,Male,Adult,29/10/2017,42.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE35,12.7,Male,Adult,29/10/2017,42.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE36,12.2,Male,Adult,29/10/2017,41.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE37,12.8,Male,Adult,29/10/2017,44.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE38,12.8,Male,Adult,29/10/2017,46.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE39,15.3,Male,Adult,29/10/2017,44.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE40,14,Male,Adult,29/10/2017,44.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE41,16.8,Female,Adult,29/10/2017,44.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE42,13.9,Male,Adult,29/10/2017,45.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE43,14,Male,Adult,29/10/2017,43.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE44,13.6,Male,Adult,29/10/2017,42.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE45,14.5,Female,Adult,29/10/2017,44.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE46,16.2,Female,Adult,29/10/2017,44.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE47,14.4,Female,Adult,29/10/2017,43.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE48,16.3,Female,Adult,29/10/2017,45.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE49,15.6,Male,Adult,29/10/2017,43
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE50,13.7,Male,Adult,29/10/2017,44.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE51,15,Male,Adult,29/10/2017,45.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE52,14.3,Male,Adult,29/10/2017,43.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE53,14.8,Female,Adult,29/10/2017,45
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE54,13.7,Male,Adult,29/10/2017,43.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE55,13.8,Male,Adult,29/10/2017,45.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE56,12.4,Male,Adult,29/10/2017,42.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE57,15,Female,Adult,29/10/2017,43.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE58,16.4,Male,Adult,29/10/2017,45.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE59,13.8,Male,Adult,29/10/2017,42.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE60,13.3,Male,Adult,29/10/2017,44.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE61,13.5,Male,Adult,29/10/2017,44.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE62,13.8,Male,Adult,29/10/2017,44.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE63,17.2,Female,Adult,29/10/2017,46.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE64,15.2,Male,Adult,29/10/2017,44.7
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE65,16,Female,Adult,29/10/2017,45.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE66,15,Male,Adult,29/10/2017,44.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE67,15.3,Female,Adult,29/10/2017,44.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE68,15.4,Female,Adult,29/10/2017,44.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE69,16.5,Male,Adult,29/10/2017,42.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE70,16.5,Female,Adult,29/10/2017,46.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE71,16.1,Female,Adult,29/10/2017,46.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE72,14.5,Male,Adult,29/10/2017,36.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE73,16.9,Female,Adult,29/10/2017,44.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE74,13.9,Female,Adult,29/10/2017,44.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE75,15.9,Female,Adult,29/10/2017,43.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE76,13.2,Male,Adult,29/10/2017,42.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE77,17.2,Male,Adult,29/10/2017,43.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE78,15.5,Female,Adult,29/10/2017,43.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE79,15,Female,Adult,30/10/2017,45.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE80,15.9,Female,Adult,30/10/2017,44
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE81,15.3,Female,Adult,30/10/2017,43.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE82,14.6,Female,Adult,30/10/2017,44.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE83,15,Female,Adult,30/10/2017,45
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE84,16.6,Female,Adult,30/10/2017,46.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE85,14.6,Male,Adult,30/10/2017,43.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE86,14.3,Female,Adult,30/10/2017,44.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE87,15.3,Female,Adult,30/10/2017,45.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE88,13.4,Male,Adult,30/10/2017,43
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE89,15.2,Female,Adult,30/10/2017,46.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE90,13.8,Female,Adult,30/10/2017,44.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE91,13.4,Female,Adult,1/11/2017,45.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE92,14.9,Female,Adult,1/11/2017,43.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE93,14.6,Female,Adult,1/11/2017,45.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE94,13.8,Male,Adult,1/11/2017,45.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE95,16.2,Female,Adult,1/11/2017,45.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE96,12.3,Male,Adult,1/11/2017,45.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE97,13.8,Male,Adult,1/11/2017,44.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE98,15.6,Male,Adult,1/11/2017,45.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE99,15.4,Female,Adult,1/11/2017,45.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE100,16.5,Female,Adult,1/11/2017,47.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE101,15.1,Female,Adult,1/11/2017,45.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE102,15.8,Female,Adult,1/11/2017,45
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE103,14.1,Female,Adult,1/11/2017,46.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE104,15,Male,Adult,1/11/2017,44.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE105,16,Male,Adult,1/11/2017,46.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE106,15,Female,Adult,1/11/2017,43.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE107,13.3,Male,Adult,1/11/2017,45.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE108,15.6,Female,Adult,1/11/2017,45.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE109,17.3,Female,Adult,1/11/2017,45.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE110,14.6,Female,Adult,1/11/2017,44.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE111,14.5,Female,Adult,1/11/2017,44.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE112,14.2,Male,Adult,1/11/2017,43.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE113,15.1,Female,Adult,1/11/2017,45.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE114,15.4,Male,Adult,1/11/2017,36.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE115,16.5,Female,Adult,1/11/2017,46
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE116,17.6,Male,Adult,1/11/2017,46
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE117,16.1,Female,Adult,1/11/2017,44.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE118,16.1,Female,Adult,1/11/2017,44
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE119,14.4,Female,Adult,1/11/2017,44.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE120,13.3,Female,Adult,1/11/2017,45.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE121,15,Female,Adult,1/11/2017,45
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE122,15.5,Female,Adult,1/11/2017,44.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE123,13.3,Female,Adult,1/11/2017,48.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE124,15.1,Male,Adult,1/11/2017,44.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE125,12.2,Male,Adult,1/11/2017,44.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE126,17.4,Female,Adult,1/11/2017,47
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE127,13.5,Male,Adult,1/11/2017,44.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE128,15.5,Female,Adult,1/11/2017,47.7
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE129,14.5,Female,Adult,1/11/2017,44
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE130,14.9,Female,Adult,1/11/2017,44.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE131,14,Male,Adult,1/11/2017,43.7
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE132,15.5,Female,Adult,1/11/2017,46.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE133,14.3,Male,Adult,1/11/2017,45.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE134,14.5,Female,Adult,1/11/2017,46.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE135,16.4,Female,Adult,1/11/2017,47.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE136,14.9,Female,Adult,1/11/2017,45.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE137,16,Female,Adult,1/11/2017,46.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE138,15.1,Female,Adult,1/11/2017,44.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE139,14.3,Female,Adult,1/11/2017,46.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE140,14.1,Male,Adult,1/11/2017,42.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE141,14.6,Female,Adult,1/11/2017,46
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE142,16.5,Female,Adult,1/11/2017,46
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE143,15.5,Male,Adult,1/11/2017,46.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE144,16,Female,Adult,1/11/2017,46.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE145,16.5,Female,Adult,1/11/2017,46
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE146,14.5,Male,Adult,1/11/2017,46.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE147,17.1,Female,Adult,1/11/2017,47.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE148,16.1,Female,Adult,1/11/2017,46.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE149,14.7,Female,Adult,1/11/2017,44.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE150,16.1,Female,Adult,1/11/2017,46.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE151,14.5,Female,Adult,1/11/2017,44.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE152,14,Female,Adult,1/11/2017,43.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE153,12.8,Male,Adult,1/11/2017,45.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU55,6.7,Male,Adult,30/10/2017,33.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU56,6.6,Male,Adult,30/10/2017,34.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU57,7.3,Female,Adult,30/10/2017,36.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU58,6,Male,Adult,30/10/2017,33.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU59,7.2,Female,Adult,30/10/2017,33.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU60,7.7,Male,Adult,30/10/2017,33.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU61,6.8,Female,Adult,30/10/2017,33.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU62,7.8,Female,Adult,30/10/2017,34.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU63,6.5,Female,Adult,30/10/2017,36.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU64,5.9,Male,Adult,30/10/2017,34.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU65,6,Female,Adult,30/10/2017,34.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU66,6.6,Female,Adult,30/10/2017,33.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU67,7.6,Female,Adult,30/10/2017,34.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU68,8.1,Female,Adult,30/10/2017,33.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU69,7.3,Female,Adult,30/10/2017,34.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU70,7.4,Male,Adult,30/10/2017,33.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU71,6.9,Female,Adult,30/10/2017,34
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU72,7,Male,Adult,30/10/2017,34
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU73,7.4,Female,Adult,30/10/2017,35.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU74,6.1,Male,Adult,30/10/2017,33.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU75,7.1,Male,Adult,30/10/2017,34.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU76,6.3,Female,Adult,30/10/2017,34.7
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU77,6.6,Female,Adult,30/10/2017,32.7
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU78,7.2,Female,Adult,30/10/2017,34.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU79,6.3,Male,Adult,30/10/2017,34
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU80,6.4,Female,Adult,30/10/2017,36.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU81,6.6,Male,Adult,30/10/2017,32.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU82,6.1,Male,Adult,30/10/2017,32.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU83,6.3,Female,Adult,30/10/2017,33.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU84,8.3,Female,Adult,30/10/2017,34.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU85,7,Female,Adult,30/10/2017,33.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU86,6.6,Female,Adult,30/10/2017,33.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU87,8.4,Female,Adult,30/10/2017,32.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU88,7.6,Female,Adult,3/11/2017,33.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU89,6.3,Male,Adult,3/11/2017,35.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU90,6.8,Female,Adult,3/11/2017,33.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU91,6.3,Male,Adult,3/11/2017,34.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU92,7.2,Male,Adult,3/11/2017,34.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU93,7.1,Male,Adult,3/11/2017,35.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU94,5.7,Male,Adult,3/11/2017,39.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU95,6.8,Female,Adult,3/11/2017,35.7
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU96,8.4,Female,Adult,3/11/2017,34.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU97,6,Male,Adult,3/11/2017,33.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU98,8,Female,Adult,3/11/2017,34.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU99,7.3,Female,Adult,3/11/2017,34.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU100,6.7,Male,Adult,3/11/2017,34.7
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU101,7,Female,Adult,3/11/2017,34.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU102,6,Male,Adult,3/11/2017,32.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU103,7.1,Male,Adult,3/11/2017,33.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU104,5.7,Female,Adult,3/11/2017,33.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE154,15.3,Female,Adult,3/11/2017,46.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE155,15.1,Female,Adult,3/11/2017,47
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE156,15.1,Female,Adult,3/11/2017,45.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE157,15.8,Female,Adult,3/11/2017,44.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE158,14.1,Male,Adult,3/11/2017,44.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE159,14.2,Male,Adult,3/11/2017,44.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE160,13.8,Male,Adult,3/11/2017,43.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE161,14.5,Male,Adult,3/11/2017,44.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE162,14.9,Female,Adult,3/11/2017,45.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE163,14.6,Female,Adult,3/11/2017,45.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE164,14.4,Male,Adult,3/11/2017,44.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE165,13,Female,Adult,3/11/2017,43.7
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE166,14.6,Male,Adult,3/11/2017,46.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE167,15.3,Female,Adult,3/11/2017,46.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE168,13.9,Female,Adult,3/11/2017,46.7
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE169,14,Male,Adult,3/11/2017,45.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE170,15,Female,Adult,3/11/2017,44.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE171,17,Female,Adult,3/11/2017,47.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE172,15.3,Female,Adult,3/11/2017,43.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE173,13.9,Male,Adult,3/11/2017,45.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE174,14.2,Female,Adult,3/11/2017,44
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE175,14.1,Female,Adult,3/11/2017,44.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE176,18.6,Male,Adult,3/11/2017,46
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE177,15.1,Female,Adult,3/11/2017,44.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE178,13.5,Male,Adult,3/11/2017,43.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE179,15.1,Female,Adult,3/11/2017,44.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE180,15.5,Male,Adult,3/11/2017,44.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE181,13,Female,Adult,3/11/2017,45.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE182,16,Female,Adult,3/11/2017,45.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE183,15.5,Male,Adult,3/11/2017,46.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE184,15.2,Female,Adult,3/11/2017,44.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE185,13.3,Male,Adult,3/11/2017,45.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE186,14.5,Female,Adult,3/11/2017,45.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE187,15,Male,Adult,3/11/2017,47
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE188,15.8,Female,Adult,3/11/2017,46.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE189,14.5,Female,Adult,3/11/2017,43.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE190,14.9,Female,Adult,3/11/2017,43.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE191,14.3,Male,Adult,3/11/2017,45.7
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE192,16.5,Female,Adult,3/11/2017,45.7
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE193,15.7,Female,Adult,3/11/2017,47
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE194,14.8,Male,Adult,3/11/2017,44
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE195,15.3,Female,Adult,3/11/2017,45.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE196,15.1,Male,Adult,3/11/2017,45.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE197,13.2,Female,Adult,3/11/2017,45.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE198,15.5,Female,Adult,3/11/2017,44.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE199,14.8,Female,Adult,3/11/2017,46.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE200,12.8,Female,Adult,3/11/2017,44.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE201,14.6,Female,Adult,3/11/2017,43.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE202,14.8,Female,Adult,3/11/2017,47
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE203,13.8,Male,Adult,3/11/2017,46.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE204,12.5,Female,Adult,3/11/2017,43.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE205,15.3,Female,Adult,3/11/2017,45.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE206,13.9,Female,Adult,3/11/2017,44.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE207,16.3,Female,Adult,3/11/2017,46.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE208,13.2,Male,Adult,3/11/2017,43.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE209,13.2,Female,Adult,3/11/2017,45.6
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE210,14.1,Female,Adult,3/11/2017,43.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE211,15.9,Female,Adult,3/11/2017,46.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE212,15.6,Female,Adult,3/11/2017,45.7
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE213,13.3,Male,Adult,3/11/2017,44.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE214,14.3,Female,Adult,3/11/2017,46
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE215,14.5,Female,Adult,3/11/2017,44.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE216,13.7,Female,Adult,3/11/2017,44.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE217,15.3,Female,Adult,3/11/2017,45.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE218,15.2,Female,Adult,3/11/2017,47.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE219,14.5,Female,Adult,3/11/2017,46.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE220,15.3,Female,Adult,3/11/2017,44.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE221,14.2,Female,Adult,3/11/2017,43.9
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE222,15.1,Female,Adult,3/11/2017,46.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Myotis velifer,MYVE223,15.2,Female,Adult,3/11/2017,47.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU105,5.4,Male,Adult,13/01/2018,34.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU106,5.2,Male,Adult,13/01/2018,32.4
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU107,6.7,Female,Adult,13/01/2018,34.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU108,6.2,Female,Adult,13/01/2018,35.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU109,5.7,Male,Adult,13/01/2018,36
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU110,5,Male,Adult,13/01/2018,34.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU111,5.3,Female,Adult,13/01/2018,33.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU112,6.1,Female,Adult,13/01/2018,35.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU113,5.4,Male,Adult,13/01/2018,33.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU114,5.1,Male,Adult,13/01/2018,33.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU115,6.3,Female,Adult,13/01/2018,35.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU116,5.6,Male,Adult,13/01/2018,34.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU117,5.3,Male,Adult,13/01/2018,35.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU118,5.3,Male,Adult,13/01/2018,34.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU119,5.5,Male,Adult,13/01/2018,34.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU120,5.4,Male,Adult,13/01/2018,34.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU121,6.4,Female,Adult,13/01/2018,33.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU122,5.9,Female,Adult,13/01/2018,34.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU123,5.4,Male,Adult,13/01/2018,34.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU124,6.5,Female,Adult,13/01/2018,33.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU125,5.1,Male,Adult,13/01/2018,33.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU126,5.2,Male,Adult,13/01/2018,33.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU127,6.5,Male,Adult,13/01/2018,33.8
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU128,6,Female,Adult,13/01/2018,33.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU129,6.1,Male,Adult,13/01/2018,34.2
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU130,7.4,Male,Adult,13/01/2018,35.5
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU131,6.5,Female,Adult,13/01/2018,34.1
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU132,6,Female,Adult,13/01/2018,33.7
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU133,5.5,Male,Adult,13/01/2018,35.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU134,6,Female,Adult,13/01/2018,36.3
+Selman Living Lab Cave,OK,36.712692,-99.258184,Perimyotis subflavus,PESU135,5.7,Male,Adult,13/01/2018,34.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO32,8.1,Male,Adult,2/10/2017,40.9
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO33,13,Female,Adult,2/10/2017,44.7
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO34,12,Female,Adult,2/10/2017,45.8
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO35,9.9,Female,Adult,2/10/2017,44.8
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO36,8.2,Male,Adult,2/10/2017,42.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO37,9,Male,Adult,2/10/2017,44.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO38,8.4,Male,Adult,2/10/2017,43.9
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO39,8.1,Male,Adult,2/10/2017,41.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO40,8.9,Male,Adult,2/10/2017,41.4
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO41,12.3,Female,Adult,2/10/2017,44.7
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO42,11.9,Female,Adult,2/10/2017,44.9
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO43,8.5,Male,Adult,2/10/2017,42
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO44,8.9,Male,Adult,2/10/2017,43.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO45,7.5,Male,Young of the Year,2/10/2017,42.8
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO46,8.3,Male,Young of the Year,2/10/2017,43.9
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO47,11.4,Female,Adult,2/10/2017,43.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO48,8.2,Male,Adult,2/10/2017,42.4
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO49,11.1,Female,Adult,2/10/2017,43.4
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO50,11.6,Female,Adult,2/10/2017,43
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO51,9.7,Female,Adult,2/10/2017,45.4
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO52,11,Female,Adult,2/10/2017,43.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO53,11.8,Female,Adult,2/10/2017,43.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO54,10.2,Female,Adult,2/10/2017,44.4
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO55,9.2,Male,Young of the Year,2/10/2017,42.4
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO56,11.4,Female,Adult,2/10/2017,43.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO57,11.5,Female,Adult,2/10/2017,45.4
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO58,10.4,Female,Adult,2/10/2017,43.8
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO59,10.9,Female,Adult,2/10/2017,42.9
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO60,11,Female,Adult,2/10/2017,44.8
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO61,10.9,Female,Adult,2/10/2017,44.2
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO62,9.7,Female,Adult,2/10/2017,44
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO63,11.2,Female,Adult,2/10/2017,45.9
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO64,10.5,Female,Adult,2/10/2017,43.8
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO65,10.8,Female,Adult,2/10/2017,43.9
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO66,10.8,Female,Adult,2/10/2017,44.9
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO67,8.5,Male,Adult,2/10/2017,43
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO68,9.1,Male,Adult,2/10/2017,42.6
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO69,8.6,Male,Adult,2/10/2017,44.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO70,11.7,Female,Adult,2/10/2017,45.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO71,8.8,Male,Adult,2/10/2017,42.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO72,11,Female,Adult,2/10/2017,45.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO73,10.6,Female,Adult,2/10/2017,45.2
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO74,9.7,Female,Adult,2/10/2017,42.2
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO75,11.5,Female,Adult,2/10/2017,45.2
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO76,9.7,Female,Adult,2/10/2017,45.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO77,10.9,Female,Adult,2/10/2017,46.4
+Logan Cave,UT,41.814193,-111.6242,Myotis lucifugus,MYLU94,6.3,Male,Adult,2/10/2017,36.4
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO78,8.6,Male,Adult,3/10/2017,42.2
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO79,12.5,Female,Adult,3/10/2017,44.4
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO80,8.3,Male,Young of the Year,3/10/2017,43.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO81,8.7,Male,Adult,3/10/2017,42.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO82,11.9,Female,Adult,3/10/2017,46.7
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO83,11.7,Female,Adult,3/10/2017,46
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO84,8.5,Male,Adult,3/10/2017,43.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO85,11.5,Female,Adult,3/10/2017,45.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO86,9.1,Male,Adult,3/10/2017,44.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO87,9.5,Male,Adult,3/10/2017,44.5
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO88,10.7,Female,Adult,3/10/2017,44.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO89,13.5,Female,Adult,3/10/2017,46.2
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO90,7.7,Male,Adult,3/10/2017,45.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO91,9.1,Female,Adult,3/10/2017,45.9
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO92,11.4,Female,Adult,3/10/2017,44.6
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO93,9.3,Female,Adult,3/10/2017,42.9
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO94,10.9,Female,Adult,3/10/2017,45.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO95,12.6,Female,Adult,3/10/2017,45.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO96,9,Female,Adult,3/10/2017,45.7
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO97,9.5,Female,Young of the Year,3/10/2017,40.2
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO98,11.4,Female,Adult,3/10/2017,44.8
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO99,8.1,Male,Adult,3/10/2017,43.4
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO100,10.8,Female,Adult,3/10/2017,43
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO101,11.8,Female,Adult,3/10/2017,45.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO102,11.9,Female,Adult,3/10/2017,45.2
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO103,10.1,Female,Adult,3/10/2017,44.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO104,8.7,Male,Adult,3/10/2017,42.9
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO105,10.9,Female,Adult,3/10/2017,44.2
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO106,9,Female,Adult,3/10/2017,43
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO107,11.2,Female,Adult,3/10/2017,45.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO108,11.2,Female,Adult,3/10/2017,45.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO109,11.7,Female,Adult,3/10/2017,44.6
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO110,10.5,Female,Adult,3/10/2017,43.4
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO111,11.3,Female,Adult,3/10/2017,45.7
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO112,9.4,Male,Adult,3/10/2017,42.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO113,8.7,Male,Adult,3/10/2017,41.5
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO114,8,Female,Adult,3/10/2017,43.6
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO115,11,Female,Adult,3/10/2017,42.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO116,9.6,Male,Adult,3/10/2017,44
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO117,10.5,Female,Adult,3/10/2017,44
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO118,9.8,Female,Adult,3/10/2017,45.8
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO119,12.5,Female,Adult,3/10/2017,45.5
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO120,11.2,Female,Adult,3/10/2017,44.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO121,10.7,Female,Adult,3/10/2017,44.5
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO122,7.9,Male,Adult,3/10/2017,44.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO123,11.5,Female,Adult,3/10/2017,44.2
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO124,12.4,Female,Adult,3/10/2017,45.2
+Logan Cave,UT,41.814193,-111.6242,Myotis evotis,MYEV109,5.5,Male,Adult,3/10/2017,37.3
+Logan Cave,UT,41.814193,-111.6242,Myotis thysanodes,MYTH23,10.1,Male,Adult,3/10/2017,42
+Logan Cave,UT,41.814193,-111.6242,Myotis lucifugus,MYLU95,8,Male,Adult,3/10/2017,37.2
+Logan Cave,UT,41.814193,-111.6242,Myotis lucifugus,MYLU96,6.4,Male,Adult,3/10/2017,36.2
+Logan Cave,UT,41.814193,-111.6242,Myotis lucifugus,MYLU97,7.4,Male,Adult,3/10/2017,38.7
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO153,8.6,Male,Adult,11/10/2017,43.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO154,8.8,Male,Young of the Year,11/10/2017,42.9
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO155,10.8,Female,Adult,11/10/2017,44.2
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO156,9.5,Male,Adult,11/10/2017,43.7
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO157,8.5,Male,Adult,11/10/2017,43.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO158,9.5,Female,Adult,11/10/2017,44
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO159,10.5,Female,Adult,11/10/2017,44.4
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO160,7.7,Male,Young of the Year,11/10/2017,43.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO161,9.9,Female,Adult,11/10/2017,44.4
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO162,12.3,Female,Adult,11/10/2017,45.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO163,9.4,Female,Adult,11/10/2017,44.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO164,9.5,Male,Adult,11/10/2017,43.9
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO165,9.8,Female,Adult,11/10/2017,45.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO166,8.9,Male,Adult,11/10/2017,45.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO167,9.8,Female,Adult,11/10/2017,44.7
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO168,8.2,Male,Adult,11/10/2017,43
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO169,8.7,Male,Adult,11/10/2017,43.7
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO170,11.6,Female,Adult,11/10/2017,46.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO171,11.5,Female,Adult,11/10/2017,44
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO172,8.2,Male,Young of the Year,11/10/2017,43.2
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO173,9.4,Male,Adult,11/10/2017,42.8
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO174,9.3,Female,Adult,11/10/2017,45.5
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO175,8.7,Female,Adult,11/10/2017,41.6
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO176,8.2,Male,Adult,11/10/2017,41.5
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO177,9.9,Male,Young of the Year,11/10/2017,43.8
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO178,8.7,Male,Adult,11/10/2017,42
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO179,8,Male,Adult,11/10/2017,42.6
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO180,8.8,Female,Young of the Year,11/10/2017,44.7
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO181,11.8,Female,Adult,11/10/2017,44.5
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO182,11,Female,Adult,11/10/2017,44
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO183,11.1,Female,Adult,11/10/2017,43.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO184,8.7,Male,Adult,11/10/2017,43.5
+Logan Cave,UT,41.814193,-111.6242,Myotis ciliolabrum,MYCI24,6.1,Male,Adult,11/10/2017,33.6
+Logan Cave,UT,41.814193,-111.6242,Eptesicus fuscus,EPFU6,18.9,Male,Adult,11/10/2017,47.9
+Logan Cave,UT,41.814193,-111.6242,Myotis lucifugus,MYLU98,5.5,Male,Adult,11/10/2017,35.2
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO187,10.8,Male,Adult,23/01/2018,44.8
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO188,10.5,Female,Adult,23/01/2018,44.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO189,10.2,Female,Adult,23/01/2018,4.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO190,9.5,Female,Adult,23/01/2018,45.5
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO191,11.2,Female,Adult,23/01/2018,43.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO192,10.8,Female,Adult,23/01/2018,43.6
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO193,9.1,Male,Adult,23/01/2018,42.7
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO194,10.8,Female,Adult,23/01/2018,44.9
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO195,11.8,Female,Adult,23/01/2018,43.2
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO196,9.3,Male,Adult,23/01/2018,43.6
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO197,9,Male,Adult,23/01/2018,41.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO198,9.7,Male,Adult,23/01/2018,43.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO199,10.7,Female,Adult,23/01/2018,45
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO200,11,Female,Adult,23/01/2018,43.4
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO201,9,Male,Adult,23/01/2018,42.2
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO202,9.1,Male,Adult,23/01/2018,41.6
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO203,9.3,Male,Adult,23/01/2018,43.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO204,11.1,Female,Adult,23/01/2018,44.9
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO205,10.9,Female,Adult,23/01/2018,47
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO206,11.9,Female,Adult,23/01/2018,44.5
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO207,9.2,Male,Adult,23/01/2018,44.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO208,9.7,Male,Adult,23/01/2018,43
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO209,9,Male,Adult,23/01/2018,42.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO210,9.5,Male,Adult,23/01/2018,44.8
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO211,9.1,Male,Adult,23/01/2018,44.1
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO212,9.3,Male,Adult,23/01/2018,43.9
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO213,10.8,Female,Adult,23/01/2018,46
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO214,8.4,Male,Adult,23/01/2018,42.3
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO215,11.8,Female,Adult,23/01/2018,46
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO216,9.2,Female,Adult,23/01/2018,43.6
+Logan Cave,UT,41.814193,-111.6242,Corynorhinus townsendii,COTO217,9.7,Male,Adult,23/01/2018,41.7
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI1,5.5,Male,Adult,7/10/2017,33.4
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI2,5.6,Male,Adult,7/10/2017,33.1
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI3,5.7,Male,Adult,7/10/2017,31.8
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI4,5.7,Male,Adult,7/10/2017,31.6
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI5,5.7,Male,Adult,7/10/2017,31.3
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI6,5.6,Male,Adult,7/10/2017,31.7
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI7,5.7,Male,Adult,7/10/2017,31.1
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI8,5.5,Male,Adult,7/10/2017,33.8
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI9,5.8,Male,Adult,7/10/2017,33.9
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI10,6.2,Male,Adult,7/10/2017,32.5
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI11,5.8,Male,Adult,7/10/2017,31
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI12,5.9,Female,Adult,7/10/2017,34.2
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI13,6.2,Female,Adult,7/10/2017,34.9
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI14,5.7,Male,Adult,7/10/2017,31.2
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI15,6.1,Male,Adult,7/10/2017,34.1
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI16,6.1,Male,Adult,7/10/2017,33.2
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI17,5.7,Male,Adult,7/10/2017,32.9
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI18,6.1,Male,Adult,7/10/2017,33.7
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI19,6.1,Male,Adult,7/10/2017,32.7
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI20,6.1,Male,Adult,7/10/2017,32.7
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI21,5.8,Female,Adult,7/10/2017,34.9
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI22,5.2,Male,Adult,7/10/2017,32.4
+Piermont Mine,NV,39.485795,-114.550516,Myotis ciliolabrum,MYCI23,5.6,Male,Adult,7/10/2017,32.7
+Piermont Mine,NV,39.485795,-114.550516,Myotis volans,MYVO57,10.3,Male,Adult,7/10/2017,38.2
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO140,11.7,Female,Adult,8/10/2017,46
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO141,11.3,Female,Adult,8/10/2017,44.9
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO125,12.2,Female,Adult,7/10/2017,46.5
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO126,11,Female,Adult,7/10/2017,43.9
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO127,10.2,Male,Adult,7/10/2017,44.6
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO128,9.5,Male,Adult,7/10/2017,43.3
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO129,11.9,Female,Adult,7/10/2017,46.1
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO130,8.4,Male,Adult,7/10/2017,42.7
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO131,9.2,Male,Adult,7/10/2017,43.4
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO132,11.3,Female,Adult,7/10/2017,46.6
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO133,9.1,Male,Adult,7/10/2017,45
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO134,11.8,Female,Adult,7/10/2017,45.4
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO135,8.9,Male,Adult,7/10/2017,42.5
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO136,8.4,Male,Adult,7/10/2017,44.3
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO137,10.2,Male,Adult,7/10/2017,45.2
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO138,9.3,Male,Adult,7/10/2017,43.3
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO139,10.4,Male,Adult,7/10/2017,44.6
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO142,12,Female,Adult,8/10/2017,45.3
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO143,11,Female,Adult,8/10/2017,45.7
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO144,12,Female,Adult,8/10/2017,44.2
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO145,12.7,Female,Adult,8/10/2017,46.5
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO146,11.8,Female,Adult,8/10/2017,44.5
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO147,10.6,Female,Adult,8/10/2017,44.3
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO148,8.6,Male,Adult,8/10/2017,43
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO149,9.3,Male,Adult,8/10/2017,45
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO150,9.9,Female,Adult,8/10/2017,45.3
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO151,9.1,Male,Adult,8/10/2017,43.1
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO152,10.3,Female,Adult,8/10/2017,43.1
+Piermont Mine,NV,39.485795,-114.550516,Myotis volans,MYVO58,9.7,Male,Adult,8/10/2017,37.8
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO218,9,Male,Adult,29/01/2018,43.7
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO219,9,Male,Adult,29/01/2018,43.5
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO220,9.6,Male,Adult,29/01/2018,43.7
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO221,8.4,Male,Adult,29/01/2018,42.3
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO222,10.8,Female,Adult,29/01/2018,45
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO223,9.5,Male,Adult,29/01/2018,42.9
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO224,10.6,Female,Adult,29/01/2018,45.9
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO225,11,Female,Adult,29/01/2018,45.7
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO226,8.1,Male,Adult,29/01/2018,43.1
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO227,8,Male,Adult,29/01/2018,43.6
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO228,10.2,Female,Adult,29/01/2018,45.9
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO229,9.2,Female,Adult,29/01/2018,44.3
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO230,8.2,Male,Adult,29/01/2018,45
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO231,8.8,Male,Adult,29/01/2018,44.8
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO232,8.9,Male,Adult,29/01/2018,44
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO233,8.1,Male,Adult,29/01/2018,40.7
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO234,9.2,Male,Adult,29/01/2018,44.8
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO235,9,Female,Adult,29/01/2018,43.1
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO236,8.9,Female,Adult,29/01/2018,44.2
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO237,8.1,Male,Adult,29/01/2018,44.4
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO238,9.8,Female,Adult,29/01/2018,44.2
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO239,8.8,Male,Adult,29/01/2018,44.5
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO240,8.1,Female,Adult,29/01/2018,41.8
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO241,8.6,Female,Adult,29/01/2018,44.5
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO242,8.7,Female,Adult,29/01/2018,44.9
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO243,8.9,Male,Adult,29/01/2018,45.1
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO244,8.9,Male,Adult,29/01/2018,43.6
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO245,11.1,Female,Adult,29/01/2018,46.1
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO246,10.2,Female,Adult,29/01/2018,46.6
+Piermont Mine,NV,39.485795,-114.550516,Corynorhinus townsendii,COTO247,9.1,Male,Adult,29/01/2018,44
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO248,8.9,Male,Adult,1/02/2018,44.8
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO249,8.6,Female,Adult,1/02/2018,44.8
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO250,9.5,Female,Adult,1/02/2018,43.9
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO251,10.2,Female,Adult,1/02/2018,45.5
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO252,9.1,Male,Adult,1/02/2018,44.6
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO253,8.3,Male,Adult,1/02/2018,43.1
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO254,9.7,Female,Adult,1/02/2018,45.1
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO255,9.3,Male,Adult,1/02/2018,44.9
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO256,9.2,Female,Adult,1/02/2018,44.5
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO257,9.3,Female,Adult,1/02/2018,42.6
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO258,9.1,Male,Adult,1/02/2018,43
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO259,8.3,Male,Adult,1/02/2018,43.1
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO260,9.5,Female,Adult,1/02/2018,44.7
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO261,8.9,Male,Adult,1/02/2018,44.9
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO262,9.9,Female,Adult,1/02/2018,46.4
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO263,7.9,Male,Adult,1/02/2018,42.9
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO264,9.2,Female,Adult,1/02/2018,45.5
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO265,8.4,Male,Adult,1/02/2018,43.2
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO266,10.3,Female,Adult,1/02/2018,45
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO267,9.4,Female,Adult,1/02/2018,44.1
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO268,8.6,Male,Adult,1/02/2018,42.9
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO269,9,Male,Adult,1/02/2018,44.9
+Big Chief Mine,NV,0,0,Corynorhinus townsendii,COTO270,9.1,Male,Adult,1/02/2018,46.1
+Big Chief Mine,NV,0,0,Myotis ciliolabrum,MYCI26,5.2,Female,Adult,1/02/2018,34.4
+Big Chief Mine,NV,0,0,Myotis ciliolabrum,MYCI27,5.6,Female,Adult,1/02/2018,33.2
+Big Chief Mine,NV,0,0,Myotis ciliolabrum,MYCI28,4.6,Female,Adult,1/02/2018,32.1
+Big Chief Mine,NV,0,0,Myotis ciliolabrum,MYCI29,4.8,Female,Adult,1/02/2018,35.1
+Big Chief Mine,NV,0,0,Myotis ciliolabrum,MYCI30,4.4,Male,Adult,1/02/2018,32.5
+Big Chief Mine,NV,0,0,Myotis ciliolabrum,MYCI31,5.1,Female,Adult,1/02/2018,33.1
+Big Chief Mine,NV,0,0,Myotis ciliolabrum,MYCI32,4.7,Female,Adult,1/02/2018,34.5
+Big Chief Mine,NV,0,0,Myotis ciliolabrum,MYCI33,4.9,Female,Adult,1/02/2018,34.7
+Big Chief Mine,NV,0,0,Myotis ciliolabrum,MYCI34,4.8,Female,Adult,1/02/2018,32.9
+Big Chief Mine,NV,0,0,Myotis ciliolabrum,MYCI35,4.7,Female,Adult,1/02/2018,34.4
+Big Chief Mine,NV,0,0,Myotis ciliolabrum,MYCI36,4.5,Male,Adult,1/02/2018,32.9
+Big Chief Mine,NV,0,0,Myotis ciliolabrum,MYCI37,4.1,Male,Adult,1/02/2018,32.8
+Big Chief Mine,NV,0,0,Myotis ciliolabrum,MYCI38,4.1,Male,Adult,1/02/2018,31.7
+Big Chief Mine,NV,0,0,Myotis ciliolabrum,MYCI39,4.3,Male,Adult,1/02/2018,31.4
