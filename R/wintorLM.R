@@ -292,7 +292,7 @@ names(pred.stk3) <- c("frost",
                       "freeze",
                       "frostFreeze",
                       "OG")
-writeRaster(pred.stk2, filename = file.path(win.res, "f3Pred"),
+writeRaster(pred.stk3, filename = file.path(win.res, "f3Pred"),
             format = "GTiff", bylayer = T, suffix = "names", overwrite = T)
 
 #### making a bunch of pretty figures ####

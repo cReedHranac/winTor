@@ -1,7 +1,4 @@
-#### Finding the center of witner? ####
-  ## intro section lifted from record munge ###
-#### Recorder Munge ####
-library(tidyverse);library(skimr); library(rgdal)
+
 
 ## Dirty data frame
 dirt <- read.csv("data/WinterDurationP1.csv", stringsAsFactors = F)
@@ -14,55 +11,6 @@ dirt.NA <- dirt %>%
   mutate_all(function(x)gsub(pattern = "Insufficient Number Recordings", replacement = NA, x)) %>%
   mutate_all(function(x)gsub(pattern = "ND", replacement = NA, x))
 
-## Split off the location info and work on it
-
-geoManager <- function(x){
-  ### Function to clean up, convert and standarize all georeferencing in the data
-  
-  ## Subsection off the geo components
-  geo.dat <- x %>%
-    select(id, siteName, zone, northing, easting, lat, long, elevation)
-  
-  ## Fix all the Long values
-  ll.dat <- geo.dat %>%
-    dplyr::filter(long != "")
-  x$long[match(ll.dat$id, x$id)] <- -1 * as.numeric(substr(ll.dat$long, 3, nchar(ll.dat$long)))
-  
-  
-  ## Work with UTM
-  utm.dat <- geo.dat %>%
-    dplyr::filter(zone != "")
-  ## Fix character issues
-  utm.dat$northing <- as.numeric(utm.dat$northing)
-  utm.dat$easting <- as.numeric(utm.dat$easting)
-  
-  zones <- unique(utm.dat$zone)
-  
-  utm.list <- list()
-  for( i in 1:length(zones)){
-    #Select Subset
-    utm.zone <- utm.dat %>%
-      dplyr::filter(zone == zones[[i]])
-    #define
-    coordinates(utm.zone) <- ~ northing +  easting
-    wgs84.utm <- paste0("+proj=utm +zone=",zones[[i]]," + datum=WGS84")
-    proj4string(utm.zone) <- CRS(wgs84.utm)
-    #re-project
-    zoneLatLong <- spTransform(utm.zone,  CRS("+proj=longlat +ellps=WGS84 +datum=WGS84"))
-    #manage for write out
-    zone.df <- as.data.frame(zoneLatLong)
-    zone.df$long <- zone.df$northing
-    zone.df$lat <- zone.df$easting
-    
-    utm.list[[i]] <- zone.df
-  }
-  utm.df <- do.call(rbind, utm.list)
-  
-  x$long[match(utm.df$id, x$id)] <- utm.df$long 
-  x$lat[match(utm.df$id, x$id)] <- utm.df$lat 
-  x$long <- as.numeric(x$long)
-  return(x)
-}
 
 ## process
 dat.geo <- geoManager(x = dirt.NA)
@@ -91,17 +39,6 @@ dat.sub$winter.duration <- as.numeric(dat.sub$LDE - dat.sub$LDH)
 hist(dat.sub$winter.duration)
 
 
-## Extra Paths
-if (!exists('base.path')) {
-  if(.Platform$"OS.type" == "windows"){
-    base.path = file.path("D:", "Dropbox", "wintor_aux")
-  } else {
-    base.path = "~/Dropbox/winTor_aux"
-  }
-}
-
-win.dat <- file.path(base.path, "data")
-win.res <- file.path(base.path, "Results")
 
 
 ## literature data
