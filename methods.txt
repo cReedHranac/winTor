@@ -8,6 +8,8 @@ hibernate)?
 Q2: Do traits (such as body fat) vary spatially to account for local differences in 
 hibernation need?
 
+Q3: Can we create spatially varrying start and end of winter layers to use of cropping of witner occurence instances?
+
 ## Q1
 #Data required
 - hibernation length data (durationData.csv)
@@ -39,3 +41,19 @@ hibernation need?
 	-f2 Northing plus covariates
 	-f3 Northing plus DEM plus covariates
 	-model selection through AIC
+
+## Q2
+#Data required
+- mass data across space for Mylu
+	-Vertnet acesses
+
+## Q3
+#Data required:
+- hibernation length data (durationData.csv)
+	-Same as Q1
+#Process
+- Clean records through same mechansims as Q1
+- Convert dates to day of year, and modify so we have the annual breakpoint in June rather then
+	December since we need to keep that a continous metric
+- Run the same rapidLM model selection process 
+	=Output in winter_aux files
