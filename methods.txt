@@ -1,5 +1,15 @@
 ## Note Document for winTor Project##
 
+## Potential Journals:
+Proc of the Royal Soc B
+E life
+Journal of Applied Ecology
+Journal of Animal Ecology
+Journal of Mammalogy
+Journal of Thermal Biology
+(any of the British Ecological Soc. Journals)
+
+
 ## Research question:
 
 Q1: How do we define winter length (the obligate period over which a species must 
@@ -57,3 +67,7 @@ Q3: Can we create spatially varrying start and end of winter layers to use of cr
 	December since we need to keep that a continous metric
 - Run the same rapidLM model selection process 
 	=Output in winter_aux files
+
+
+##First bloom/ first leaf
+New layers coming into the mix https://www.usanpn.org/news/spring

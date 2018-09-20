@@ -1,142 +1,50 @@
+#### Finding the center of witner? ####
+library(tidyselect); library(skimr); library(rgdal); library(raster); library(lubridate)
 
-
-## Dirty data frame
-dirt <- read.csv("data/WinterDurationP1.csv", stringsAsFactors = F)
-dirt <- tbl_df(dirt)
-## add ID collumn
-dirt$id <- paste0("id_", 1:nrow(dirt))
-
-## modify ND (No data) into NA
-dirt.NA <- dirt %>%
-  mutate_all(function(x)gsub(pattern = "Insufficient Number Recordings", replacement = NA, x)) %>%
-  mutate_all(function(x)gsub(pattern = "ND", replacement = NA, x))
-
-
-## process
-dat.geo <- geoManager(x = dirt.NA)
-
-## Which don't have any info on spatial
-v<- dat.geo %>%
-  dplyr::filter(is.na(long)) 
-
-dat.pts <- dat.geo %>%
-  filter(!is.na(long))
-
-## Subset to the useful catagories for the analysis
-dat.sub <- dat.pts %>%
-  select(id, lat, long, nWinterFlights, LDH, lastFall,
-         firstSpring, nMaxEmerging, nMaxSpring, LDE, elevation)
-
-## set up dates
-library(lubridate)
-dat.sub$LDH <-  as.Date(dat.sub$LDH, "%d/%m/%Y") 
-dat.sub$LDE <- as.Date(dat.sub$LDE, "%d/%m/%Y")
-dat.sub$firstSpring <- as.Date(dat.sub$firstSpring, "%d/%m/%Y")
-dat.sub$lastFall <- as.Date(dat.sub$lastFall, "%d/%m/%Y")
-
-## duration of witner
-dat.sub$winter.duration <- as.numeric(dat.sub$LDE - dat.sub$LDH)
-hist(dat.sub$winter.duration)
-
-
-
-
-## literature data
-lit.dat <- as_tibble(read.csv("data/durationData.csv"))
-lit.dat$id <- paste0("L", 1:nrow(lit.dat)) ## add id
-
-## determine duration 
-lit.dat$Start <- as.Date(lit.dat$Start, '%d-%h')
-lit.dat$End <- as.Date(lit.dat$End, '%d-%h')
-
-
-for(i in 1:nrow(lit.dat)){ # Create duration since there's no years in the df
-  ifelse(is.na(lit.dat$Duration[[i]]), 
-         lit.dat$Duration[[i]] <- 365 - (lit.dat$Start[[i]]- lit.dat$End[[i]]),
-         lit.dat$Duration[[i]] <- lit.dat$Duration[[i]])  
+#### Extra Paths ####
+if (!exists('base.path')) {
+  if(.Platform$"OS.type" == "windows"){
+    base.path = file.path("D:", "Dropbox", "wintor_aux")
+  } else {
+    base.path = "~/Dropbox/winTor_aux"
+  }
 }
 
-lit.dat
+win.dat <- file.path(base.path, "data")
+win.res <- file.path(base.path, "Results")
 
 
-## sub dataframes and combine
-a.df <- lit.dat %>%
-  select(id, Start, End, Duration) %>%
-  filter(!is.na(Start))
-## modify year
-year(a.df$End) <- 2019
+#### data ####
+dat <- tbl_df(read.csv("data/modelingDataFrame.csv", stringsAsFactors = F))
+# create dates
+dat$Start <- as.Date(dat$Start)
+dat$End <- as.Date(dat$End)
+# remove cells (not needed)
+dat <- dat[,-7]
+#remove L6 (no start or end)
+dat <- dat[-6,]
 
-
-b.df <- dat.sub %>%
-  select(id, LDH, LDE, winter.duration) %>%
-  filter(!is.na(LDH) & !is.na(LDE)) %>%
-  rename( Start = LDH, End = LDE, Duration = winter.duration)
-
-## combine
-df <- rbind(a.df, b.df)
-
-## center of winter
-df.est <- df %>%
-  mutate(win.center = Start + floor(Duration/2)) %>%
-  mutate(y = year(End), #create year col
-         est.End = as.Date(paste0("15/04/",y), "%d/%m/%y"))
-## fix for years...
-year(df.est$est.End) <- df.est$y
-
-#### estimate center m1 ####
-df.est <- df.est %>%
-  mutate( est.Center = est.End - floor(Duration/2),
-          est.Dif = est.Center - win.center,
-          fx.center = as.Date(paste0("15/01/",y), "%d/%m/%y"))
-year(df.est$fx.center) <- df.est$y
-
-df.est <- df.est %>%
-  mutate(fx.Dif = fx.center - win.center)
-
-
-hist(as.numeric(df.est$est.Dif))
-hist(as.numeric(df.est$fx.Dif))
-
-df.est$win.center
-
-#### Estimate winter center through LM methods ####
-## clean data to use 
-m2.df <- df.est %>%
-  select(id, Start, End, Duration, win.center) %>% #Select columns
-  mutate(n.Start = yday(Start) - 182, ##create columns for numerical date of year
+#create center metrics
+dat.center <- dat %>%
+  mutate(win.center = Start + floor(winter.duration/2),
+         n.Start = yday(Start) - 182, ##create columns for numerical date of year
          n.End = yday(End) + 183, 
-         n.center = abs(yday(win.center) - 182)) ## centered on the other side of the year
-## check : duration should remain the same
-all.equal(m2.df$n.End - m2.df$n.Start, m2.df$Duration) ## i appear to be off by one day...
-## ammended n.End to 183 to fix & re-run
+         n.center = abs(yday(win.center) - 182))# %>%
+
+## check : duration should remain the same          
+all.equal(dat.center$n.End - dat.center$n.Start, dat.center$winter.duration)
 ## still not perfect. there appear to be 10 insances of leap years involved... good enough?
 ## yes
+
 ## check to make sure that center is inbetween start and end
-m2.df$n.Start < m2.df$n.center && m2.df$n.center < m2.df$n.End #TRUE
+dat.center$n.Start < dat.center$n.center && dat.center$n.center < dat.center$n.End #TRUE
 
-library(raster);library(rgdal)
-
-## add spatial orientation
-wgs84 <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84")
-coordinates(m2.df) <- ~ long + lat
-proj4string(m2.df)  <- wgs84
-
-## Extract covariates and ammend to df
-## Co-variates
+##Env stack for rasters
 env.names <- c("NA_dem", "NA_northing", "NA_nFrostyDays",
                "NA_nonGrowingDays", "NA_nDaysFreeze", "NA_frostFreeze", "NA_OG1k")
 env.stk <- raster::stack(paste0(win.dat,"/",env.names,".tif"))
 
-## extract data from locations
-env.dat <- raster::extract(env.stk, m2.df, cellnumber = T, df = T)
-
-env.df <- as_tibble(left_join(as.data.frame(m2.df), env.dat, by = "ID"))
-
-
-## begin model
-## attempt winter center
-
-## apply rapid lm
+#### Modeling ####
 scrapeResults <- function(x){
   ### Function for creating an easy results table 
   results <- tidy(x)
@@ -148,19 +56,16 @@ scrapeResults <- function(x){
   return(res.out)
 }
 
-rapid.lm <- function(x){
+rapid.lm <- function(x,name){
   ###function for lapplying lm
   f1.lm <- lm(formula = x$mod, data = x$dat)
-  pdf(file = file.path(win.res,paste0(replace(x$mod[length(x$mod)], "+", "_"),".pdf")))
+  pdf(file = file.path(win.res,paste0(name,replace(x$mod[length(x$mod)], "+", "_"),".pdf")))
   par(mfrow = c(3,2))
   plot(f1.lm, which = 1:6, main = x$mod[[length(x$mod)]], ask = F)
   dev.off()
   
   return(f1.lm)
 }
-
-
-
 
 ## formulas
 mod.formulas <- list(n.center ~ NA_dem,
@@ -172,21 +77,22 @@ mod.formulas <- list(n.center ~ NA_dem,
                      n.center ~ NA_OG1k)
 
 ## args list
-f1.list <- list()
+c1.list <- list()
 for(i in 1:length(mod.formulas)){
-  f1.list[[i]] <- list(mod = mod.formulas[[i]], dat = env.df)
+  c1.list[[i]] <- list(mod = mod.formulas[[i]], dat = dat.center)
 }
 
 ## models
-f1.mod <- lapply(f1.list, rapid.lm)
+c1.mod <- lapply(c1.list, rapid.lm, name = "c1")
 
 
 ## summaries
-f1.sum <- lapply(f1.mod, summary.lm)
+c1.su m<- lapply(c1.mod, summary.lm)
+
 
 ## AIC tab
 library(AICcmodavg)
-f1.res <- aictab(f1.mod, 
+c1.res <- aictab(c1.mod, 
                  modnames = c("dem",
                               "northing",
                               "frost",
@@ -195,18 +101,18 @@ f1.res <- aictab(f1.mod,
                               "frostFreeze",
                               "OG"))
 ##write
-write.csv(f1.res,file =  file.path(win.res, 'f1AICtable.csv'), row.names = F)
+write.csv(c1.res,file =  file.path(win.res, 'c1AICtable.csv'), row.names = F)
 
 ## results table
-f1.scrape <- lapply(f1.mod, scrapeResults)
-f1.scrape.df <- do.call(rbind, f1.scrape)
+c1.scrape <- lapply(c1.mod, scrapeResults)
+c1.scrape.df <- do.call(rbind, c1.scrape)
 
-write.csv(f1.scrape.df, file = file.path(win.res, 'f1Results.csv'), row.names = F)
+write.csv(c1.scrape.df, file = file.path(win.res, 'c1Results.csv'), row.names = F)
 
 ##Create prediction rasters
 
-f1Pred.rasters <- lapply(f1.mod, FUN = raster::predict, object = env.stk)
-pred.stk <- do.call(stack, f1Pred.rasters)
+c1Pred.rasters <- lapply(c1.mod, FUN = raster::predict, object = env.stk)
+pred.stk <- do.call(stack, c1Pred.rasters)
 names(pred.stk) <- c("dem",
                      "northing",
                      "frost",
@@ -214,7 +120,7 @@ names(pred.stk) <- c("dem",
                      "freeze",
                      "frostFreeze",
                      "OG")
-writeRaster(pred.stk, filename = file.path(win.res, "f1Pred"),
+writeRaster(pred.stk, filename = file.path(win.res, "c1Pred"),
             format = "GTiff", bylayer = T, suffix = "names", overwrite = T)
 
 #### Level 2 models ####
@@ -228,19 +134,19 @@ mod.formulas2 <- list(n.center ~ NA_northing + NA_dem,
                       n.center ~ NA_northing + NA_OG1k)
 
 ## args list
-f2.list <- list()
+c2.list <- list()
 for(i in 1:length(mod.formulas2)){
-  f2.list[[i]] <- list(mod = mod.formulas2[[i]], dat = env.df)
+  c2.list[[i]] <- list(mod = mod.formulas2[[i]], dat = dat.center)
 }
 
 ## models
-f2.mod <- lapply(f2.list, rapid.lm)
+c2.mod <- lapply(c2.list, rapid.lm, name = "c2")
 
 ## summaries
-f2.sum <- lapply(f2.mod, summary.lm)
+c2.sum <- lapply(c2.mod, summary.lm)
 
 ## AIC table
-f2.res <- aictab(f2.mod, 
+c2.res <- aictab(c2.mod, 
                  modnames = c("dem",
                               "frost",
                               "growing",
@@ -248,25 +154,25 @@ f2.res <- aictab(f2.mod,
                               "frostFreeze",
                               "OG"))
 #write
-write.csv(f2.res,file =  file.path(win.res, 'f2AICtable.csv'), row.names = F)
+write.csv(c2.res,file =  file.path(win.res, 'c2AICtable.csv'), row.names = F)
 
 ## results table
-f2.scrape <- lapply(f2.mod, scrapeResults)
-f2.scrape.df <- do.call(rbind, f2.scrape)
+c2.scrape <- lapply(c2.mod, scrapeResults)
+c2.scrape.df <- do.call(rbind, c2.scrape)
 
-write.csv(f2.scrape.df, file = file.path(win.res, 'f2Results.csv'), row.names = F)
+write.csv(c2.scrape.df, file = file.path(win.res, 'c2Results.csv'), row.names = F)
 
 ## Create prediction rasters
 
-f2Pred.rasters <- lapply(f2.mod, FUN = raster::predict, object = env.stk)
-pred.stk2 <- do.call(stack, f2Pred.rasters)
+c2Pred.rasters <- lapply(c2.mod, FUN = raster::predict, object = env.stk)
+pred.stk2 <- do.call(stack, c2Pred.rasters)
 names(pred.stk2) <- c("dem",
                       "frost",
                       "growing",
                       "freeze",
                       "frostFreeze",
                       "OG")
-writeRaster(pred.stk2, filename = file.path(win.res, "f2Pred"),
+writeRaster(pred.stk2, filename = file.path(win.res, "c2Pred"),
             format = "GTiff", bylayer = T, suffix = "names", overwrite = T)
 
 #### Level 3 models ####
@@ -278,47 +184,47 @@ mod.formulas3 <- list(n.center ~ NA_northing + NA_nFrostyDays + NA_dem,
                       n.center ~ NA_northing + NA_frostFreeze + NA_dem,
                       n.center ~ NA_northing + NA_OG1k + NA_dem)
 
-f3.list <- list()
+c3.list <- list()
 for(i in 1:length(mod.formulas3)){
-  f3.list[[i]] <- list(mod = mod.formulas3[[i]], dat = env.df)
+  c3.list[[i]] <- list(mod = mod.formulas3[[i]], dat = dat.center)
 }
 
 ## models
-f3.mod <- lapply(f3.list, rapid.lm)
+c3.mod <- lapply(c3.list, rapid.lm, name = "c3")
 
 ## Summaries
-f3.sum <- lapply(f3.mod, summary.lm)
+c3.sum <- lapply(c3.mod, summary.lm)
 
 ## AIC table
-f3.res <- aictab(f3.mod, 
+c3.res <- aictab(c3.mod, 
                  modnames = c("frost",
                               "growing",
                               "freeze",
                               "frostFreeze",
                               "OG"))
 ##write
-write.csv(f3.res,file =  file.path(win.res, 'f3AICtable.csv'), row.names = F)
+write.csv(c3.res,file =  file.path(win.res, 'c3AICtable.csv'), row.names = F)
 
 ## results table
-f3.scrape <- lapply(f3.mod, scrapeResults)
-f3.scrape.df <- do.call(rbind, f3.scrape)
+c3.scrape <- lapply(c3.mod, scrapeResults)
+c3.scrape.df <- do.call(rbind, c3.scrape)
 
-write.csv(f3.scrape.df, file = file.path(win.res, 'f3Results.csv'), row.names = F)
+write.csv(c3.scrape.df, file = file.path(win.res, 'c3Results.csv'), row.names = F)
 
 ## Create prediction rasters
 
-f3Pred.rasters <- lapply(f3.mod, FUN = raster::predict, object = env.stk)
-pred.stk3 <- do.call(stack, f3Pred.rasters)
+c3Pred.rasters <- lapply(c3.mod, FUN = raster::predict, object = env.stk)
+pred.stk3 <- do.call(stack, c3Pred.rasters)
 names(pred.stk3) <- c("frost",
                       "growing",
                       "freeze",
                       "frostFreeze",
                       "OG")
-writeRaster(pred.stk2, filename = file.path(win.res, "f3Pred"),
+writeRaster(pred.stk3, filename = file.path(win.res, "c3Pred"),
             format = "GTiff", bylayer = T, suffix = "names", overwrite = T)
 
 #### making a bunch of pretty figures ####
-major.table <- aictab(c(f1.mod, f2.mod, f3.mod), 
+major.table <- aictab(c(c1.mod, c2.mod, c3.mod), 
                       modnames = c("dem",
                                    "northing",
                                    "frost",
@@ -337,4 +243,6 @@ major.table <- aictab(c(f1.mod, f2.mod, f3.mod),
                                    "north + dem + freeze",
                                    "north + dem + frostFreeze",
                                    "north + dem + OG"))
-write.csv(major.table, file =  file.path(win.res, 'allModelAICtable.csv'), row.names = F)
+write.csv(major.table, file =  file.path(win.res, 'allModelAICtableCenter.csv'), row.names = F)
+
+

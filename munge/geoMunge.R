@@ -3,10 +3,24 @@
   ## Set to North American extent
 
 ##Links
+## Extra Paths
+if (!exists('base.path')) {
+  if(.Platform$"OS.type" == "windows"){
+    base.path = file.path("D:", "Dropbox", "wintor_aux")
+  } else {
+    base.path = "~/Dropbox/winTor_aux"
+  }
+}
+
+win.dat <- file.path(base.path, "data")
+win.res <- file.path(base.path, "Results")
+
 NA.Clim <- file.path("D:", "NA_NORM_8110_Bioclim_ASCII")
 NA.Ref <- file.path("D:", "NA_Reference_files_ASCII")
 data.dir <- file.path("D:/", "Dropbox","winTor_aux" , "data")
 worldClim <- file.path("D:", "WorldClim", "bclim")
+spring <- file.path(file.path(win.dat,"FBI_FLI"))
+
 ## libraries
 library(raster); library(rgdal)
 
@@ -92,3 +106,8 @@ writeRaster(frostFreeze, file.path(data.dir,"NA_frostFreeze.tif"), format = "GTi
 # ## crop and mask again 
 # OG.1k <- mask(crop(old.1k, t5.raw),t5.raw)
 # writeRaster(OG.1k, filename = file.path(win.res, "OG1k.tif"), format = "GTiff")
+
+# ## spring metrics These guys are only for the Continental US...
+# spring.stk <- stack(list.files(file.path(win.dat,"FBI_FLI"), recursive = T, pattern = "*.tif", full.names = T))
+# spring.stk[[1]]
+# plot(spring.stk[[2]])

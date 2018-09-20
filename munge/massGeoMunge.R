@@ -221,8 +221,19 @@ mapview(serdp.sub)
 
 serdp.df <- as.data.frame(serdp.loc)
 
+
+#### Litature data ###
+lit.dat <- fread('data/litData.csv')
+#rename for merge
+lit.df <- lit.dat %>%
+  group_by(Location) %>%
+  select(Location, Lat, Long, Mass) %>%
+  summarise(avgMass = mean(Mass), 
+            Lat = unique(Lat),
+            Long = unique(Long))
+
 #### Bind? ####
-full <- rbind(vert.df, can.df[,-1], serdp.df[,-1])
+full <- rbind(vert.df, can.df[,-1], serdp.df[,-1], lit.df[,-1])
 ## write out
 write.csv(x = full, file = "data/massLocations.csv", row.names = F)
 
