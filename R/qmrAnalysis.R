@@ -61,8 +61,25 @@ library(data.table); library(tidyverse)
 # write.csv(dat.clean,
 #           file = "data/qmrCleaned.csv", row.names = F)
 dat.clean <- fread("data/qmrCleaned.csv")
+## set factors
+dat.clean$sex <- as.factor(dat.clean$sex)
+dat.clean$state <- as.factor(dat.clean$state)
 
 #### Start modleing ####
 lean.state.sex <- lm(lean~state*sex, dat.clean)
-drop1(lean.state.sex)
+summary(lean.state.sex)
+lean.state.sex1 <- update(lean.state.sex, .~. - state:sex)
+summary(lean.state.sex1)
 
+##hsd for differences 
+library(multcomp)
+ph <- glht(lean.state.sex1, linfct=mcp(state="Tukey"))
+summary(ph)
+plot(lean~state, dat.clean)
+## There is a significant differnce between Eastern and Western states in this instance
+
+## Predicting fat from body mass
+fat.body <- lm(fat ~ mass, dat.clean)
+summary(fat.body)
+
+## Create plot
