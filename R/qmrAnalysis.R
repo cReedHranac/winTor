@@ -60,12 +60,19 @@ library(data.table); library(tidyverse)
 # ##Checkpoint
 # write.csv(dat.clean,
 #           file = "data/qmrCleaned.csv", row.names = F)
+
 dat.clean <- fread("data/qmrCleaned.csv")
 ## set factors
 dat.clean$sex <- as.factor(dat.clean$sex)
 dat.clean$state <- as.factor(dat.clean$state)
 
 #### Start modleing ####
+
+## Effect of sex
+
+lean.sex <- lm(lean~sex, dat.clean)
+summary(lean.sex)
+
 lean.state.sex <- lm(lean~state*sex, dat.clean)
 summary(lean.state.sex)
 lean.state.sex1 <- update(lean.state.sex, .~. - state:sex)
@@ -75,11 +82,33 @@ summary(lean.state.sex1)
 library(multcomp)
 ph <- glht(lean.state.sex1, linfct=mcp(state="Tukey"))
 summary(ph)
-plot(lean~state, dat.clean)
 ## There is a significant differnce between Eastern and Western states in this instance
+
+state.lean.plot <- ggplot(data = dat.clean) +
+  geom_boxplot(aes(x = state, y = lean, color = state))
+state.lean.plot
 
 ## Predicting fat from body mass
 fat.body <- lm(fat ~ mass, dat.clean)
 summary(fat.body)
 
 ## Create plot
+
+fat.mass.plot <- ggplot(dat.clean) + 
+  geom_point(aes(x = mass, y = fat, color = state), show.legend = F) + 
+  geom_abline(aes(intercept = fat.body$coefficients[[1]],
+                  slope = fat.body$coefficients[[2]])) +
+  annotate("text",
+           x=7, y = 3.5,
+           label = paste0("Fat Mass = ",round(fat.body$coefficients[[1]],2)," + ",
+                          round(fat.body$coefficients[[2]],2)," * Mass")) +
+  xlab("Mass (g)") +
+  ylab("Fat mass (g)") + 
+  theme_bw()
+
+
+fat.mass.plot
+
+## predict fat mass from our data
+new.df <- data.frame(mass = dat.clean$mass)
+dat.clean$pred.fat <- predict.lm(object = fat.body, newdata = new.df)
