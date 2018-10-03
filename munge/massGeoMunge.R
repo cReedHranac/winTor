@@ -29,7 +29,7 @@ vert.raw$massing[which(vert.raw$massing == 73)] <- 7.3
 
 ## subsetting
 vert.sub <- vert.raw %>%
-  select( occurrenceid, sex, lifestage, reproductivecondition, month, massing,
+  dplyr::select( occurrenceid, sex, lifestage, reproductivecondition, month, massing,
           decimallatitude, decimallongitude, geodeticdatum, coordinateuncertaintyinmeters) %>%
   filter(sex %in% unique(sex)[1:2],
          month %in% 9:11,
@@ -112,7 +112,7 @@ vert.df <- as.data.frame(vert.sp)
 
 vert.loc <- vert.df %>%
   group_by(decimallatitude, decimallongitude) %>%
-  select(decimallongitude, decimallatitude, massing) %>%
+  dplyr::select(decimallongitude, decimallatitude, massing) %>%
   summarise(avgMass = mean(massing)) 
 
 vert.df <- as.data.frame(vert.loc)
@@ -144,7 +144,7 @@ mapview(vert.loc)
 can.raw <- fread("data/WoodbufflowNWT.csv")
 
 can.sub <- can.raw %>%
-  select(Bat_ID, Species, Capture_date, Location, Sex, weight) %>%
+  dplyr::select(Bat_ID, Species, Capture_date, Location, Sex, weight) %>%
   filter( Species == "MYLU",
           Sex %in% c("M", "F"),
           !is.na(weight),
@@ -154,7 +154,7 @@ can.sub$weight <- as.numeric(can.sub$weight)
 
 can.loc <- can.sub %>%
   group_by(Location) %>%
-  select(Location, weight) %>%
+  dplyr::select(Location, weight) %>%
   summarise(avgMass = mean(weight))
 
 
@@ -194,7 +194,7 @@ colnames(can.df)[3:4] <- c("Long", "Lat")
 serdp.raw <- fread("data/SERDPmorphometricJuly2018.csv")
 
 serdp.sub <- serdp.raw %>%
-  select(`Bat ID`, `Bat Species`, `Site Name`, `Date Captured`, Latitude, Longitude, Sex, `Mass (prior resp)`) %>%
+  dplyr::select(`Bat ID`, `Bat Species`, `Site Name`, `Date Captured`, Latitude, Longitude, Sex, `Mass (prior resp)`) %>%
   filter(`Bat Species` == "Myotis lucifugus") %>%
   separate(`Date Captured`,  c("d","m","y")) %>%
   filter(m %in% c("09","10","11")) %>%
@@ -210,14 +210,14 @@ colnames(serdp.sub) <- c("Bat_ID", "Species", "Location", "Day", "Month",
 
 serdp.loc <- serdp.sub %>%
   group_by(Location) %>%
-  select(Location, Lat, Long, Mass) %>%
+  dplyr::select(Location, Lat, Long, Mass) %>%
   summarise(avgMass = mean(Mass),
             Lat = unique(Lat),
             Long = unique(Long))
 
 coordinates(serdp.loc) <- ~ Long + Lat
 proj4string(serdp.loc) <-  CRS("+proj=longlat +ellps=WGS84 +datum=WGS84")
-mapview(serdp.sub)
+mapview(serdp.loc)
 
 serdp.df <- as.data.frame(serdp.loc)
 
@@ -227,13 +227,20 @@ lit.dat <- fread('data/litData.csv')
 #rename for merge
 lit.df <- lit.dat %>%
   group_by(Location) %>%
-  select(Location, Lat, Long, Mass) %>%
+  dplyr::select(Location, Lat, Long, Mass) %>%
   summarise(avgMass = mean(Mass), 
             Lat = unique(Lat),
             Long = unique(Long))
 
-#### Bind? ####
+#### Bind and add grams fat ####
 full <- rbind(vert.df, can.df[,-1], serdp.df[,-1], lit.df[,-1])
+# equation lifted from the qmrAnalysis script
+full$g.fat <- -2.8400 + 0.5932*full$avgMass
+
+
+## Summary for lean and fat mass
+
+
 ## write out
 write.csv(x = full, file = "data/massLocations.csv", row.names = F)
 
