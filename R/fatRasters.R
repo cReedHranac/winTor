@@ -1,0 +1,120 @@
+### Evaluating mass accross the new length of winter scripts
+
+library(batwintor)
+
+#### Extra Paths ####
+if (!exists('base.path')) {
+  if(.Platform$"OS.type" == "windows"){
+    base.path = file.path("D:", "Dropbox", "wintor_aux")
+  } else {
+    base.path = "~/Dropbox/winTor_aux"
+  }
+}
+
+win.dat <- file.path(base.path, "data")
+win.res <- file.path(base.path, "Results")
+
+#### Functions ####
+##were going to need to modify the 
+?batwintor::survivalRaster #to create a layers that describes how much fat would be required instead
+
+library(tidyverse, data.table)
+survivalFat <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
+  #Raster modifications for Kelvin temperatures
+  if(summary(temp.rast)[1] > 200){
+    temp.c <- temp.rast - 273
+  } else{
+    temp.c <- temp.rast
+  }
+  
+  #Creating output raster dimensions
+  out <- raster(pct.rh.rast); values(out) <- NA
+  out.s <- stack(out,out,out); names(out.s) <- c("fat.inf", "fat.null")
+  
+  #Extract data from rasters  to matrix for speed
+  pct.rh <- as.matrix(pct.rh.rast, nrow = nrow(pct.rh.rast), ncol = ncol(pct.rh.rast))
+  temp <- as.matrix(temp.c, nrow = nrow(temp.c), ncol = ncol(temp.c))
+  win <- as.matrix(win.rast, nrow = nrow(win.rast), ncol = ncol(win.rast))
+  
+  ## shifting hours to days
+  mod.dif <- mod.df %>%
+    mutate_(days = ~hour.to.day(time)) 
+  
+  ####Look Up Table ####
+  #Vectors for look up table structure
+  Ta_vals <- unique(mod.dif$Ta)
+  pct.rh_vals <- unique(mod.dif$pct.rh)
+  days_vals <- unique(mod.dif$days)
+  
+  #Look Up Table
+  lut <- array(NA, dim=c(length(Ta_vals), length(pct.rh_vals), length(days_vals),  2)) # 2 for fat.inf and fat.null
+  dimnames(lut)[[1]] <- Ta_vals
+  dimnames(lut)[[2]] <- pct.rh_vals
+  dimnames(lut)[[3]] <- days_vals
+  dimnames(lut)[[4]] <- c("fat.inf", "fat.null")
+  
+  
+  #Fill look up table
+  for (i in seq_len(nrow(mod.dif))) {
+    d <- mod.dif[i,]
+    if (i %% 10000 == 0) {
+      cat("Look up table generation up to", i, "of", nrow(mod.dif), "\n")
+    }
+    lut[as.character(d$Ta), as.character(d$pct.rh), as.character(d$days),] <- c(d$g.fat.consumed,
+                                                          d$n.g.fat.consumed)
+  }
+  
+  ####Find closest####
+  find_closest <- function(x, y) {
+    # Find the closest item in the vector y to x.
+    # NOTE: Assumes that y is increasing, equi-spaced vector
+    dy <- (y[length(y)] - y[1]) / (length(y)-1)
+    wch <- round((x - y[1]) / dy + 1)
+    # check the range.
+    clamp <- function(x, xmin, xmax) {
+      min(max(x, xmin),xmax)
+    }
+    
+    clamp(wch, 1, length(y))
+  }
+  
+  #Run lookup
+  for(j in 1:nlayers(out.s)){
+    #Create output matrix
+    out.z <- matrix(ncol = ncol(pct.rh), nrow = nrow(pct.rh))
+    for(i in 1:length(pct.rh)){
+      # first find the closest humidity and Ta
+      if(i %% 1000 == 0){
+        cat("Raster layer: " j, "of", nlayers(out.s), "up to", i, "of", length(pct.rh), "\n")
+      }
+      pct.rh_i <- find_closest(pct.rh[[i]], pct.rh_vals)
+      Ta_i  <- find_closest(temp[[i]], Ta_vals)
+      win_i <- find_closest(win[[i]], days_vals)
+      out.z[[i]] <- lut[Ta_i, pct.rh_i, win_i, j]
+    }
+    # Set values back from matrix to raster
+    out.s[[j]] <- setValues(out.s[[j]], out.z)
+  }
+  
+}
+
+
+mod.big <- fread("D://Dropbox/winTor_aux/data/myluModHUGE.csv")
+win <- raster(file.path(win.res, "f3Pred_frost.tif"))
+rh <- raster("D://Dropbox/batwintor_aux/paramFiles/RH_NA.tif")
+mat <- raster("D://WorldClim/bclim/bio_1.bil")
+
+rh.fix <- projectRaster(rh, win); rm(rh)
+mat. <- projectRaster(mat, win); rm(mat)
+mat.fix <- calc(mat., function(x){x/10}); rm(mat.)
+
+fat.rast <- survivalFat(mod.df = mod.big, 
+                        pct.rh.rast = rh.fix,
+                        temp.rast = mat.fix,
+                        win.rast = win)
+
+writeRaster(fat.rast,
+            filename = file.path(win.res, "MYLU.tif"),
+            format = "GTiff", 
+            bylayer = T,
+            suffix = "names")
