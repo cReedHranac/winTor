@@ -18,7 +18,7 @@ win.res <- file.path(base.path, "Results")
 ##were going to need to modify the 
 ?batwintor::survivalRaster #to create a layers that describes how much fat would be required instead
 
-library(tidyverse, data.table)
+library(tidyverse); library(data.table)
 survivalFat <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
   #Raster modifications for Kelvin temperatures
   if(summary(temp.rast)[1] > 200){
@@ -29,7 +29,7 @@ survivalFat <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
   
   #Creating output raster dimensions
   out <- raster(pct.rh.rast); values(out) <- NA
-  out.s <- stack(out,out,out); names(out.s) <- c("fat.inf", "fat.null")
+  out.s <- stack(out,out); names(out.s) <- c("fat.inf", "fat.null")
   
   #Extract data from rasters  to matrix for speed
   pct.rh <- as.matrix(pct.rh.rast, nrow = nrow(pct.rh.rast), ncol = ncol(pct.rh.rast))
@@ -85,7 +85,7 @@ survivalFat <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
     for(i in 1:length(pct.rh)){
       # first find the closest humidity and Ta
       if(i %% 1000 == 0){
-        cat("Raster layer: " j, "of", nlayers(out.s), "up to", i, "of", length(pct.rh), "\n")
+        cat("Raster layer: ", j, "of", nlayers(out.s), "up to", i, "of", length(pct.rh), "\n")
       }
       pct.rh_i <- find_closest(pct.rh[[i]], pct.rh_vals)
       Ta_i  <- find_closest(temp[[i]], Ta_vals)
@@ -95,26 +95,46 @@ survivalFat <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
     # Set values back from matrix to raster
     out.s[[j]] <- setValues(out.s[[j]], out.z)
   }
-  
+  return(out.s)
 }
 
+library(raster)
+### Takes forever (+48 hours) run sparingly
+# mod.big <- fread("D://Dropbox/winTor_aux/data/myluModHUGE.csv")
+# win <- raster(file.path(win.res, "f3Pred_frost.tif"))
+# rh <- raster("D://Dropbox/batwintor_aux/paramFiles/RH_NA.tif")
+# mat <- raster("D://WorldClim/bclim/bio_1.bil")
+# 
+# rh.fix <- projectRaster(rh, win); rm(rh)
+# mat. <- projectRaster(mat, win); rm(mat)
+# mat.fix <- calc(mat., function(x){x/10}); rm(mat.)
+# 
+# fat.rast <- survivalFat(mod.df = mod.big, 
+#                         pct.rh.rast = rh.fix,
+#                         temp.rast = mat.fix,
+#                         win.rast = win)
+# 
+# writeRaster(fat.rast,
+#             filename = file.path(win.res, "MYLU.tif"),
+#             format = "GTiff", 
+#             bylayer = T,
+#             suffix = "names")
 
-mod.big <- fread("D://Dropbox/winTor_aux/data/myluModHUGE.csv")
-win <- raster(file.path(win.res, "f3Pred_frost.tif"))
-rh <- raster("D://Dropbox/batwintor_aux/paramFiles/RH_NA.tif")
-mat <- raster("D://WorldClim/bclim/bio_1.bil")
+#### Gathered Data ####
+dat <- read.csv("data/massLocations.csv")
+coordinates(dat) <- ~ Long + Lat
+proj4string(dat) <- proj4string(fat.rast)
+dat.fat <- as.data.frame(cbind(dat, raster::extract(fat.rast, dat)))
 
-rh.fix <- projectRaster(rh, win); rm(rh)
-mat. <- projectRaster(mat, win); rm(mat)
-mat.fix <- calc(mat., function(x){x/10}); rm(mat.)
+dat.fat <- dat.fat %>%
+  mutate(resid.inf = g.fat - fat.inf,
+         resid.null = g.fat - fat.null)
 
-fat.rast <- survivalFat(mod.df = mod.big, 
-                        pct.rh.rast = rh.fix,
-                        temp.rast = mat.fix,
-                        win.rast = win)
+##Explore
+hist(dat.fat$resid.null)
+## how many below 0
+length(which(dat.fat$resid.null < 0))
+length(which(dat.fat$resid.null < -2))
 
-writeRaster(fat.rast,
-            filename = file.path(win.res, "MYLU.tif"),
-            format = "GTiff", 
-            bylayer = T,
-            suffix = "names")
+hist(dat.fat$resid.inf)
+length(which(dat.fat$resid.inf > 0 ))
