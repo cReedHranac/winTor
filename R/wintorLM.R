@@ -355,6 +355,23 @@ f3.mod <- lapply(f3.list, rapid.lm)
 ## Summaries
 f3.sum <- lapply(f3.mod, summary.lm)
 
+
+## addressing the potential sptial auto corrilation
+n1Mod <- f3.mod[[1]]
+n1.resid <- data.table(lat =env.df$lat, long = env.df$long, resid =   n1Mod$residuals)
+
+
+## plot residuals to map
+library(mapview)
+coordinates(n1.resid) <- ~long + lat
+proj4string(n1.resid) <- proj4string(env.stk)
+mapview(n1.resid)
+
+
+
+
+
+
 ## AIC table
 f3.res <- aictab(f3.mod, 
                  modnames = c("frost",
