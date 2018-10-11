@@ -42,9 +42,6 @@ rapid.lm.clean <- function(x){
   
   ## Clean out those with shit residulas
   broom::augment(f1.lm) %>% filter(.std.resid < 2) -> lm.df2
-  ## with cooks dist
-  broom::augment(f1.lm) %>% filter(cooks.distance(f1.lm) < 4/nrow(x$dat)) -> lm.df2
-  
   
   ##Run second lm
   f2.lm <- lm(formula = x$mod, data = lm.df2)
@@ -54,7 +51,7 @@ rapid.lm.clean <- function(x){
   f3.lm <- lm(formula = x$mod, data = lm.df3)
   
   ## create a statement to tell me which row were removed
-  if(nrow(x$dat) != nrow(lm.df4)){
+  if(nrow(x$dat) != nrow(lm.df3)){
     cat( nrow(x$dat) - nrow(lm.df3),
         " points were removed during model fit", paste0(replace(x$mod[length(x$mod)], "+", "_")), "\n")
   }
@@ -64,7 +61,7 @@ rapid.lm.clean <- function(x){
   plot(f3.lm, which = 1:6, main = x$mod[[length(x$mod)]], ask = F)
   dev.off()
   
-  return(f2.lm)
+  return(f3.lm)
 }
 
 cooks.thresh <- function(lm, x){
@@ -282,3 +279,18 @@ major.table <- aictab(c(fat1.mod, fat2.mod, fat3.mod),
                                    "north + dem + frostFreeze",
                                    "north + dem + OG"))
 write.csv(major.table, file =  file.path(win.res, 'allFatModelAICtable.csv'), row.names = F)
+
+
+# #### look at residuals for top layer ####
+# best <- fat1.list[[5]]
+# mod <- rapid.lm.clean(best) ## five points are romoved. but whitch 5?
+# 
+# mod.df <- env.df %>%
+#   left_join( cbind(resid = mod$residuals, mod$model), "NA_nDaysFreeze") %>%
+#   dplyr::filter(!is.na(avgMass.y)) %>%
+#   select(Long, Lat, resid)
+# 
+# library(mapview)
+# coordinates(mod.df) <- ~ Long + Lat
+# proj4string(mod.df) <- proj4string(env.stk)
+# mapview(mod.df)
