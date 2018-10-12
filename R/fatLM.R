@@ -158,7 +158,7 @@ for(i in 1:length(mod.formulas2)){
 }
 
 ## models
-fat2.mod <- lapply(fat2.list, rapid.lm)
+fat2.mod <- lapply(fat2.list, rapid.lm.clean)
 
 ## summaries
 fat2.sum <- lapply(fat2.mod, summary.lm)
@@ -208,26 +208,10 @@ for(i in 1:length(mod.formulas3)){
 }
 
 ## models
-fat3.mod <- lapply(fat3.list, rapid.lm)
+fat3.mod <- lapply(fat3.list, rapid.lm.clean)
 
 ## Summaries
 fat3.sum <- lapply(fat3.mod, summary.lm)
-
-
-## addressing the potential sptial auto corrilation
-n1Mod <- fat3.mod[[1]]
-n1.resid <- data.table(lat =env.df$lat, long = env.df$long, resid =   n1Mod$residuals)
-
-
-## plot residuals to map
-library(mapview)
-coordinates(n1.resid) <- ~long + lat
-proj4string(n1.resid) <- proj4string(env.stk)
-mapview(n1.resid)
-
-
-
-
 
 
 ## AIC table
@@ -282,15 +266,15 @@ write.csv(major.table, file =  file.path(win.res, 'allFatModelAICtable.csv'), ro
 
 
 # #### look at residuals for top layer ####
-# best <- fat1.list[[5]]
-# mod <- rapid.lm.clean(best) ## five points are romoved. but whitch 5?
-# 
-# mod.df <- env.df %>%
-#   left_join( cbind(resid = mod$residuals, mod$model), "NA_nDaysFreeze") %>%
-#   dplyr::filter(!is.na(avgMass.y)) %>%
-#   select(Long, Lat, resid)
-# 
-# library(mapview)
-# coordinates(mod.df) <- ~ Long + Lat
-# proj4string(mod.df) <- proj4string(env.stk)
-# mapview(mod.df)
+best <- fat3.list[[3]]
+mod <- rapid.lm.clean(best) ## 6 points are romoved. but whitch 6?
+
+mod.df <- env.df %>%
+  left_join( cbind(resid = mod$residuals, mod$model), "NA_nDaysFreeze") %>%
+  dplyr::filter(!is.na(avgMass.y)) %>%
+  select(Long, Lat, resid)
+
+library(mapview)
+coordinates(mod.df) <- ~ Long + Lat
+proj4string(mod.df) <- proj4string(env.stk)
+mapview(mod.df)
