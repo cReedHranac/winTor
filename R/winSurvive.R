@@ -12,15 +12,20 @@ if (!exists('base.path')) {
 win.dat <- file.path(base.path, "data")
 win.res <- file.path(base.path, "Results")
 
+
 ####Top body fat layer ####
 library(raster)
 mass.rast <- raster(file.path(win.res, "fat3Pred_freeze.tif"))
 fat.rast <- calc(mass.rast, function(x) {-2.840036 + .59321*x})
+library(rgdal)
+mylu.dist <- readOGR(dsn = "D:/Dropbox/batwintor_aux/paramFiles/ShapeFiles", 
+                     layer = "myotis_lucifugus")
+
 
 ## plots 
 library(ggplot2)
 
-mass.plot <- function(x, save.name,  res.agg = 25, save = F, ...){
+mass.plot <- function(x, save.name, dist.map, res.agg = 25, save = F, ...){
   ## Create DataFrame (aggragation is mainly for the dev period)
   if(!is.null(res.agg)){ #aggratetion bits
     x.ag <- raster::aggregate(x, res.agg)
@@ -46,8 +51,11 @@ mass.plot <- function(x, save.name,  res.agg = 25, save = F, ...){
     scale_fill_gradientn("Predicted\nBody\nMass (g)",
                          colors = c("#5e3c99","#b2abd2", "#ffffff","#fdb863", "#e66101" ),
                          limits=  c(5,16)) + 
-    
-    #general malarkey
+    # geom_polygon(data = fortify(dist.map),
+    #              aes(long,lat, group = group),
+    #              colour = "black",
+    #              fill = NA) +
+        #general malarkey
     scale_x_continuous(expand = c(0,0))+
     scale_y_continuous(expand = c(0,0))+
     theme(plot.title = element_text(hjust = .05))+
@@ -88,7 +96,7 @@ fat.plot <- function(x, save.name,  res.agg = 25, save = F, ...){
     #oooohhhhh pretty colors
     scale_fill_gradientn("Predicted\nBody\nFat (g)",
                          colors = c("#5e3c99","#b2abd2", "#ffffff","#fdb863", "#e66101" ),
-                         limits=  c(0,6)) + 
+                         limits=  c(0,7)) + 
     
     #general malarkey
     scale_x_continuous(expand = c(0,0))+
@@ -106,7 +114,7 @@ fat.plot <- function(x, save.name,  res.agg = 25, save = F, ...){
   return(g.Fat)
 }
 
-m.test <- mass.plot(x = mass.rast)
+m.test <- mass.plot(x = mass.rast, dist.map = mylu.dist)
 f.test <- fat.plot(x= fat.rast)
 
 
@@ -203,6 +211,12 @@ survivalFat.plot <- function(x, save.name, inf, res.agg = 25, save = F, ...){
     scale_fill_gradientn("Predicted\nBody Fat\nRemaining (g)",
                          colors = c("#5e3c99","#b2abd2", "#ffffff","#fdb863", "#e66101" ),
                          limits=  c(-31,3)) + 
+    geom_contour(aes(z = predFat,
+                     color = factor(..level.. == 0,
+                                      levels = c(F, T))),
+                 breaks = -31:3) + 
+    scale_color_manual(values = c(NA, "black"), guide =F)+
+    labs("deathline")+
     
     #general malarkey
     scale_x_continuous(expand = c(0,0))+
