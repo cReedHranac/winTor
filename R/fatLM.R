@@ -64,10 +64,6 @@ rapid.lm.clean <- function(x){
   return(f3.lm)
 }
 
-cooks.thresh <- function(lm, x){
-  ## Calculation for cooks distance threshold of the formula 4/n
-    ## lm is model, and X is data frame
-}
 
 #### data ####
 dat.fat <- read.csv("data/massLocations.csv")
