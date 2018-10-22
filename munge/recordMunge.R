@@ -1,5 +1,5 @@
 #### Record munge Re-work
-library(tidyselect); library(skimr); library(rgdal); library(raster); library(lubridate)
+library(tidyverse); library(skimr); library(rgdal); library(raster); library(lubridate)
 
 #### Functions #####
 geoManager <- function(x){
@@ -62,8 +62,9 @@ if (!exists('base.path')) {
 win.dat <- file.path(base.path, "data")
 win.res <- file.path(base.path, "Results")
 
+
 #### Recorder data ####
-rec.dirty <- tbl_df(read.csv("data/WinterDurationP1.csv", stringsAsFactors = F))
+rec.dirty <- dplyr::tbl_df(read.csv("data/WinterDurationP1.csv", stringsAsFactors = F))
 ## add ID col
 rec.dirty$ID <- paste0("ID_", 1:nrow(rec.dirty))
 ## modifiy no data entries 
