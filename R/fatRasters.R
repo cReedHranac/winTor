@@ -100,15 +100,15 @@ survivalFat <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
 
 library(raster)
 ### Takes forever (+48 hours) run sparingly
-# mod.big <- fread("D://Dropbox/winTor_aux/data/myluModHUGE.csv")
-# win <- raster(file.path(win.res, "f3Pred_frost.tif"))
-# rh <- raster("D://Dropbox/batwintor_aux/paramFiles/RH_NA.tif")
-# mat <- raster("D://WorldClim/bclim/bio_1.bil")
-# 
-# rh.fix <- projectRaster(rh, win); rm(rh)
-# mat. <- projectRaster(mat, win); rm(mat)
-# mat.fix <- calc(mat., function(x){x/10}); rm(mat.)
-# 
+mod.big <- fread("D://Dropbox/winTor_aux/data/myluModHUGE.csv")
+win <- raster(file.path(win.res, "f3Pred_frost.tif"))
+rh <- raster("D://Dropbox/batwintor_aux/paramFiles/RH_NA.tif")
+mat <- raster("D://WorldClim/bclim/bio_1.bil")
+
+rh.fix <- projectRaster(rh, win); rm(rh)
+mat. <- projectRaster(mat, win); rm(mat)
+mat.fix <- calc(mat., function(x){x/10}); rm(mat.)
+
 # fat.rast <- survivalFat(mod.df = mod.big, 
 #                         pct.rh.rast = rh.fix,
 #                         temp.rast = mat.fix,
