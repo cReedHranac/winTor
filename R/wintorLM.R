@@ -22,6 +22,8 @@ if (!exists('base.path')) {
 
 win.dat <- file.path(base.path, "data")
 win.res <- file.path(base.path, "Results")
+## The %!in% opperator 
+'%!in%' <- function(x,y)!('%in%'(x,y))
 
 #### Functions ####
 scrapeResults <- function(x){
@@ -37,39 +39,57 @@ scrapeResults <- function(x){
 
 ## replacing the rapid.lm for clean version developed for the fat
 # rapid.lm <- function(x){
- ###function for lapplying lm
-  f1.lm <- lm(formula = x$mod, data = x$dat)
-  pdf(file = file.path(win.res,paste0(replace(x$mod[length(x$mod)], "+", "_"),".pdf")))
-  par(mfrow = c(3,2))
-  plot(f1.lm, which = 1:6, main = x$mod[[length(x$mod)]], ask = F)
-  dev.off()
-  
-  return(f1.lm)
-}
+#  ###function for lapplying lm
+#   f1.lm <- lm(formula = x$mod, data = x$dat)
+#   pdf(file = file.path(win.res,paste0(replace(x$mod[length(x$mod)], "+", "_"),".pdf")))
+#   par(mfrow = c(3,2))
+#   plot(f1.lm, which = 1:6, main = x$mod[[length(x$mod)]], ask = F)
+#   dev.off()
+#   
+#   return(f1.lm)
+# }
 
 rapid.lm.clean <- function(x, name){
   ###function for lapplying lm
   ## updated methods to remove outliers internally
+  ## x consists of $dat (modeling data frame) & $mod (model formula)
   
-  #name <- string for naming file results when written out
+  ## name <- string for naming file results when written out
   
-  #Un initial lm
+  ## outputs final lm, and new modified dataframe 
+  
+  ## add row names to try to select what comes up
+  rownames(x$dat) <- paste0("a",1:nrow(x$dat))
+  
+  ## initial lm
   f1.lm <- lm(formula = x$mod, data = x$dat)
   
-  ## Clean out those with shit residulas
-  broom::augment(f1.lm) %>% filter(.std.resid < 2) -> lm.df2
-  
+  ## filter based on residuals
+  lm.df2 <- x$dat %>% ## select based on rownames and feed back through
+    rownames_to_column("rn") %>%
+    dplyr::filter(rn %!in% names(which(abs(rstandard(f1.lm))>2))) %>%
+    column_to_rownames("rn")
+    
   ##Run second lm
   f2.lm <- lm(formula = x$mod, data = lm.df2)
-  broom::augment(f2.lm) %>% filter(cooks.distance(f2.lm) < 4/nrow(lm.df2)) -> lm.df3
+  
+  lm.df3 <- lm.df2 %>%
+    rownames_to_column("rn") %>%
+    dplyr::filter(rn %!in% names(which(cooks.distance(f2.lm) > 4/nrow(lm.df2)))) %>%
+    column_to_rownames("rn")
   
   ##third?
   f3.lm <- lm(formula = x$mod, data = lm.df3)
+  df.rm <- x$dat %>%
+    rownames_to_column("rn") %>%
+    dplyr::filter(rn %in% rownames(lm.df3)) %>%
+    column_to_rownames("rn")
+    
   
   ## create a statement to tell me which row were removed
   if(nrow(x$dat) != nrow(lm.df3)){
-    cat( nrow(x$dat) - nrow(lm.df3),
-         " points were removed during model fit", paste0(replace(x$mod[length(x$mod)], "+", "_")), "\n")
+    cat( as.character(x$dat$ID[which(row.names(x$dat) %!in% row.names(lm.df3))]),
+         " were removed during model fit", paste0(replace(x$mod[length(x$mod)], "+", "_")), "\n")
   }
   
   pdf(file = file.path(win.res,paste0(name,replace(x$mod[length(x$mod)], "+", "_"),".pdf")))
@@ -77,7 +97,7 @@ rapid.lm.clean <- function(x, name){
   plot(f3.lm, which = 1:6, main = x$mod[[length(x$mod)]], ask = F)
   dev.off()
   
-  return(f3.lm)
+  return(list(lm = f3.lm, dp.rm = df.rm))
 }
 
 wintorContour <- function(x, id, res.agg = 25,  save = F, ...){
@@ -277,7 +297,10 @@ for(i in 1:length(mod.formulas)){
 }
 
 ## models
-f1.mod <- lapply(f1.list, rapid.lm.clean, name = "win")
+f1 <- lapply(f1.list, rapid.lm.clean, name = "win")
+#split into dfs and models
+f1.mod <- list();for(i in 1:length(f1)){f1.mod[[i]] <- f1[[i]]$lm}
+f1.df <- list();for(i in 1:length(f1)){f1.df[[i]] <- f1[[i]]$dp.rm}
 
 
 ## summaries
@@ -330,7 +353,10 @@ for(i in 1:length(mod.formulas2)){
 }
 
 ## models
-f2.mod <- lapply(f2.list, rapid.lm.clean, name = "win")
+f2 <- lapply(f2.list, rapid.lm.clean, name = "win")
+#split into dfs and models
+f2.mod <- list();for(i in 1:length(f2)){f2.mod[[i]] <- f2[[i]]$lm}
+f2.df <- list();for(i in 1:length(f2)){f2.df[[i]] <- f2[[i]]$dp.rm}
 
 ## summaries
 f2.sum <- lapply(f2.mod, summary.lm)
@@ -377,8 +403,10 @@ for(i in 1:length(mod.formulas3)){
 }
 
 ## models
-f3.mod <- lapply(f3.list, rapid.lm.clean, name = "win")
-
+f3<- lapply(f3.list, rapid.lm.clean, name = "win")
+#split into dfs and models
+f3.mod <- list();for(i in 1:length(f3)){f3.mod[[i]] <- f3[[i]]$lm}
+f3.df <- list();for(i in 1:length(f3)){f3.df[[i]] <- f3[[i]]$dp.rm}
 ## Summaries
 f3.sum <- lapply(f3.mod, summary.lm)
 
