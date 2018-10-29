@@ -1,6 +1,7 @@
 #### variogram attempt
 
 ## libraries
+library(sp); library(tidyverse); library(raster)
 
 ## Extra Paths
 if (!exists('base.path')) {
@@ -18,7 +19,6 @@ win.res <- file.path(base.path, "Results")
 #### Data ####
 
 env.df <- read.csv("data/modelingDataFrame.csv")
-library(sp); library(tidyverse); library(raster)
 dat.mini <- env.df %>%
   dplyr::select(lat, long, winter.duration)
 coordinates(dat.mini) <- ~long + lat
@@ -37,12 +37,12 @@ dat.mondo <- rasterToPoints(mondo.stk)
 
 library(gstat)
 # use best formula from linear selection? 
-  # winter.duration ~ NA_dem + NA_northing + NA_nDaysFreeze
+# winter.duration ~ NA_dem + NA_northing + NA_nDaysFreeze
 v <- variogram(winter.duration ~ NA_dem + NA_northing + NA_nDaysFreeze, data = dat.mondo)
-fit.variogram(v, vgm("Exp", "Mat", "Sph"), fit.kappa = T)
+fit.variogram(v, vgm("Exp", "Mat", "Sph"), fit.kappa = T)
 
-
-
-library(sp)
-demo(meuse, ask = FALSE, echo = FALSE)
-head(meuse)
+## with only complete data points
+env.sp <- env.df
+coordinates(env.sp) <- ~long + lat
+v1 <- variogram(winter.duration ~ NA_dem + NA_northing + NA_nDaysFreeze, data = env.sp)
+fit.variogram(v1, vgm("Exp", "Mat", "Sph"), fit.kappa = T)
