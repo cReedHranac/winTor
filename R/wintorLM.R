@@ -487,3 +487,29 @@ write.csv(major.table, file =  file.path(win.res, 'winModelAICtable.csv'), row.n
 #                    device = "pdf")
 # 
 
+#### Variogram of the top model ####
+# library(gstat)
+# 
+# #top model
+# mod <- f3.mod[[2]]
+# mod.df <- f3.df[[2]]
+# 
+# #Create locations points
+# coordinates(mod.df) <- ~ long + lat
+# proj4string(mod.df) <- proj4string(env.stk)
+# 
+# #formula winter.duration ~ NA_northing + NA_nonGrowingDays + NA_dem
+# v <- variogram( winter.duration ~ NA_northing + NA_nonGrowingDays + NA_dem,
+#                data = mod.df)
+# v.exp = fit.variogram(v, vgm("Exp"), fit.kappa = T)
+# v.mat <- fit.variogram(v, vgm("Mat"), fit.kappa = T)
+# v.sph <- fit.variogram(v, vgm("Sph"), fit.kappa = T)
+# 
+# par(mfrow = c(1,3))
+# 
+# plot(v, v.exp)
+# plot(v, v.mat)
+# plot(v, v.sph)
+
+
+## Looks like the correlation is fine, we'll leave with this model structure
