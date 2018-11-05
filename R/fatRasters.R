@@ -16,7 +16,6 @@ win.res <- file.path(base.path, "Results")
 
 #### Functions ####
 ##were going to need to modify the 
-?batwintor::survivalRaster #to create a layers that describes how much fat would be required instead
 
 library(tidyverse); library(data.table)
 survivalFat <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
@@ -101,40 +100,41 @@ survivalFat <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
 library(raster)
 ### Takes forever (+48 hours) run sparingly
 mod.big <- fread("D://Dropbox/winTor_aux/data/myluModHUGE.csv")
-win <- raster(file.path(win.res, "f3Pred_frost.tif"))
+win <- raster(file.path(win.res, "win3Pred_growing.tif"))
 rh <- raster("D://Dropbox/batwintor_aux/paramFiles/RH_NA.tif")
 mat <- raster("D://WorldClim/bclim/bio_1.bil")
 
 rh.fix <- projectRaster(rh, win); rm(rh)
 mat. <- projectRaster(mat, win); rm(mat)
 mat.fix <- calc(mat., function(x){x/10}); rm(mat.)
+library(batwintor)
 
-# fat.rast <- survivalFat(mod.df = mod.big, 
-#                         pct.rh.rast = rh.fix,
-#                         temp.rast = mat.fix,
-#                         win.rast = win)
-# 
-# writeRaster(fat.rast,
-#             filename = file.path(win.res, "MYLU.tif"),
-#             format = "GTiff", 
-#             bylayer = T,
-#             suffix = "names")
+fat.rast <- survivalFat(mod.df = mod.big,
+                        pct.rh.rast = rh.fix,
+                        temp.rast = mat.fix,
+                        win.rast = win)
+
+writeRaster(fat.rast,
+            filename = file.path(win.res, "MYLU.tif"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "names")
 
 #### Gathered Data ####
-dat <- read.csv("data/massLocations.csv")
-coordinates(dat) <- ~ Long + Lat
-proj4string(dat) <- proj4string(fat.rast)
-dat.fat <- as.data.frame(cbind(dat, raster::extract(fat.rast, dat)))
-
-dat.fat <- dat.fat %>%
-  mutate(resid.inf = g.fat - fat.inf,
-         resid.null = g.fat - fat.null)
-
-##Explore
-hist(dat.fat$resid.null)
-## how many below 0
-length(which(dat.fat$resid.null < 0))
-length(which(dat.fat$resid.null < -2))
-
-hist(dat.fat$resid.inf)
-length(which(dat.fat$resid.inf > 0 ))
+# dat <- read.csv("data/massLocations.csv")
+# coordinates(dat) <- ~ Long + Lat
+# proj4string(dat) <- proj4string(fat.rast)
+# dat.fat <- as.data.frame(cbind(dat, raster::extract(fat.rast, dat)))
+# 
+# dat.fat <- dat.fat %>%
+#   mutate(resid.inf = g.fat - fat.inf,
+#          resid.null = g.fat - fat.null)
+# 
+# ##Explore
+# hist(dat.fat$resid.null)
+# ## how many below 0
+# length(which(dat.fat$resid.null < 0))
+# length(which(dat.fat$resid.null < -2))
+# 
+# hist(dat.fat$resid.inf)
+# length(which(dat.fat$resid.inf > 0 ))
