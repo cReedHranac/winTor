@@ -232,8 +232,20 @@ lit.df <- lit.dat %>%
             Lat = unique(Lat),
             Long = unique(Long))
 
+
+
+#### Yukon Data (added 05/11/2018)####
+Yk.dat <- fread('data/YukonClean.csv')
+
+yk.df <- Yk.dat %>%
+  group_by(Location) %>%
+  dplyr::select(lat, long, Mass) %>%
+  summarise(avgMass = mean(Mass), 
+            Lat = unique(lat),
+            Long = unique(long))
+
 #### Bind and add grams fat ####
-full <- rbind(vert.df, can.df[,-1], serdp.df[,-1], lit.df[,-1])
+full <- rbind(vert.df, can.df[,-1], serdp.df[,-1], lit.df[,-1], yk.df[,-1])
 # equation lifted from the qmrAnalysis script
 full$g.fat <- -2.8400 + 0.5932*full$avgMass
 
