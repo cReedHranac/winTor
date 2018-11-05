@@ -225,7 +225,7 @@ for(i in 1:length(mod.formulas3)){
 }
 
 ## models
-fat3 <- lapply(fat3.list, rapid.lm.clean, name = fat)
+fat3 <- lapply(fat3.list, rapid.lm.clean, name = "fat")
 #split into dfs and models
 fat3.mod <- list();for(i in 1:length(fat3)){fat3.mod[[i]] <- fat3[[i]]$lm}
 fat3.df <- list();for(i in 1:length(fat3)){fat3.df[[i]] <- fat3[[i]]$dp.rm}
@@ -296,3 +296,28 @@ write.csv(major.table, file =  file.path(win.res, 'allFatModelAICtable.csv'), ro
 # coordinates(mod.df) <- ~ Long + Lat
 # proj4string(mod.df) <- proj4string(env.stk)
 # mapview(mod.df)
+
+
+#### variogram ####
+
+library(gstat)
+mod <- fat3.mod[[3]]
+mod.df <- fat3.df[[3]]
+
+
+#Create locations points
+coordinates(mod.df) <- ~ Long + Lat
+proj4string(mod.df) <- proj4string(env.stk)
+
+#formula winter.duration ~ NA_northing + NA_nonGrowingDays + NA_dem
+v <- variogram( g.fat ~ NA_northing + NA_nDaysFreeze + NA_dem,
+               data = mod.df)
+v.exp = fit.variogram(v, vgm("Exp"), fit.kappa = T)
+v.mat <- fit.variogram(v, vgm("Mat"), fit.kappa = T)
+v.sph <- fit.variogram(v, vgm("Sph"), fit.kappa = T)
+
+par(mfrow = c(1,3))
+
+plot(v, v.exp)
+plot(v, v.mat)
+plot(v, v.sph)
