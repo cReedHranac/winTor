@@ -300,24 +300,48 @@ write.csv(major.table, file =  file.path(win.res, 'allFatModelAICtable.csv'), ro
 
 #### variogram ####
 
-library(gstat)
+# library(gstat)
+# mod <- fat3.mod[[3]]
+# mod.df <- fat3.df[[3]]
+
+
+# #Create locations points
+# coordinates(mod.df) <- ~ Long + Lat
+# proj4string(mod.df) <- proj4string(env.stk)
+# 
+# #formula winter.duration ~ NA_northing + NA_nonGrowingDays + NA_dem
+# v <- variogram( g.fat ~ NA_northing + NA_nDaysFreeze + NA_dem,
+#                data = mod.df)
+# v.exp = fit.variogram(v, vgm("Exp"), fit.kappa = T)
+# v.mat <- fit.variogram(v, vgm("Mat"), fit.kappa = T)
+# v.sph <- fit.variogram(v, vgm("Sph"), fit.kappa = T)
+# 
+# plot(v, v.exp)
+# plot(v, v.mat)
+# plot(v, v.sph)
+## She'll be right
+
+#### Uncertainty ####
+
 mod <- fat3.mod[[3]]
 mod.df <- fat3.df[[3]]
 
+predfun <- function(model, data) {
+  v <- predict(model, data, interval = "prediction")
+  cbind(p=as.vector(v[,"fit"]), lwr=as.vector(v[,"lwr"]), upr=as.vector(v[,"upr"]) )
+}
 
-#Create locations points
-coordinates(mod.df) <- ~ Long + Lat
-proj4string(mod.df) <- proj4string(env.stk)
+pred.int <- raster::predict(mod, object = env.stk, fun = predfun, index = 1:3)
+names(pred.int) <- c("p", "lwr", "upr")
 
-#formula winter.duration ~ NA_northing + NA_nonGrowingDays + NA_dem
-v <- variogram( g.fat ~ NA_northing + NA_nDaysFreeze + NA_dem,
-               data = mod.df)
-v.exp = fit.variogram(v, vgm("Exp"), fit.kappa = T)
-v.mat <- fit.variogram(v, vgm("Mat"), fit.kappa = T)
-v.sph <- fit.variogram(v, vgm("Sph"), fit.kappa = T)
+pred.int$diff <- pred.int$upr - pred.int$lwr
+plot(pred.int$diff)
 
-par(mfrow = c(1,3))
 
-plot(v, v.exp)
-plot(v, v.mat)
-plot(v, v.sph)
+writeRaster(pred.int,
+            filename = file.path(win.res, "fatSE"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "names",
+            overwrite = T)
+
