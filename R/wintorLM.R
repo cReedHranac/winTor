@@ -518,20 +518,39 @@ write.csv(major.table, file =  file.path(win.res, 'winModelAICtable.csv'), row.n
 #top model
 mod <- f3.mod[[2]]
 mod.df <- f3.df[[2]]
-predfun <- function(model, data) {
-  v <- predict(model, data, interval = "prediction")
+# predfun <- function(model, data) {
+#   v <- predict(model, data, interval = "prediction")
+#   cbind(p=as.vector(v[,"fit"]), lwr=as.vector(v[,"lwr"]), upr=as.vector(v[,"upr"]) )
+# }
+# 
+# pred.int <- raster::predict(mod, object = env.stk, fun = predfun, index = 1:3)
+# names(pred.int) <- c("p", "lwr", "upr")
+# 
+# pred.int$diff <- pred.int$upr - pred.int$lwr
+# plot(pred.int$diff)
+# 
+# 
+# writeRaster(pred.int,
+#             filename = file.path(win.res, "winSE"),
+#             format = "GTiff",
+#             bylayer = T,
+#             suffix = "names",
+#             overwrite = T)
+
+conffun <- function(model, data) {
+  v <- predict(model, data, interval = "confidence")
   cbind(p=as.vector(v[,"fit"]), lwr=as.vector(v[,"lwr"]), upr=as.vector(v[,"upr"]) )
 }
 
-pred.int <- raster::predict(mod, object = env.stk, fun = predfun, index = 1:3)
-names(pred.int) <- c("p", "lwr", "upr")
+conf.int <- raster::predict(mod, object = env.stk, fun = conffun, index = 1:3)
+names(conf.int) <- c("p", "lwr", "upr")
 
-pred.int$diff <- pred.int$upr - pred.int$lwr
-plot(pred.int$diff)
+conf.int$diff <- conf.int$upr - conf.int$lwr
+plot(conf.int$diff)
 
 
-writeRaster(pred.int,
-            filename = file.path(win.res, "winSE"),
+writeRaster(conf.int,
+            filename = file.path(win.res, "winSE_Conf"),
             format = "GTiff",
             bylayer = T,
             suffix = "names",

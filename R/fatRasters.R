@@ -123,7 +123,7 @@ library(batwintor)
 #             overwrite = T)
 
 #### uncertianty win ####
-win.lwr <- raster(file.path(win.res, "winSE_lwr.tif"))
+win.lwr <- raster(file.path(win.res, "winSE_Conf_lwr.tif"))
 
 fat.lwr <- survivalFat(mod.df = mod.big,
                         pct.rh.rast = rh.fix,
@@ -131,7 +131,7 @@ fat.lwr <- survivalFat(mod.df = mod.big,
                         win.rast = win.lwr)
 
 writeRaster(fat.lwr,
-            filename = file.path(win.res, "MYLU_fatLWR.tif"),
+            filename = file.path(win.res, "MYLU_fat_Conf_LWR.tif"),
             format = "GTiff",
             bylayer = T,
             suffix = "names",
@@ -140,7 +140,7 @@ rm(win.lwr, fat.lwr)
 
 
 
-win.upr <- raster(file.path(win.res, "winSE_upr.tif"))
+win.upr <- raster(file.path(win.res, "winSE_Conf_upr.tif"))
 
 fat.upr <- survivalFat(mod.df = mod.big,
                        pct.rh.rast = rh.fix,
@@ -148,7 +148,7 @@ fat.upr <- survivalFat(mod.df = mod.big,
                        win.rast = win.upr)
 
 writeRaster(fat.upr,
-            filename = file.path(win.res, "MYLU_fatupr.tif"),
+            filename = file.path(win.res, "MYLU_fat_Conf_upr.tif"),
             format = "GTiff",
             bylayer = T,
             suffix = "names",

@@ -171,8 +171,8 @@ fatMean.fig <- fat.plot(x= fat.rast,
                         save.name = "/fig/fatMean.pdf")
 
 ##adding in the sensitivity measure ones
-mass.lwr <- raster(file.path(win.res, "fatSE_lwr.tif"))
-mass.upr <- raster(file.path(win.res, "fatSE_upr.tif"))
+mass.lwr <- raster(file.path(win.res, "fatSE_Conf__lwr.tif"))
+mass.upr <- raster(file.path(win.res, "fatSE_Conf__upr.tif"))
 fat.lwr <- calc(mass.lwr, function(x) {-2.840036 + .59321*x})
 fat.upr <- calc(mass.upr, function(x) {-2.840036 + .59321*x})
 
@@ -187,20 +187,20 @@ fatLwr.fig <- fat.plot(x = fat.lwr,
 fatUpr.fig <- fat.plot(x = fat.upr,
                        dist.map = mylu.dist)
 
-mass.predInt <- grid.arrange(massLwr.fig, massUpr.fig, 
+mass.confInt <- grid.arrange(massLwr.fig, massUpr.fig, 
                              ncol = 1)
-ggsave(file.path(win.res, "fig/massPredInt.pdf"),
-       mass.predInt,
+ggsave(file.path(win.res, "fig/massConfInt.pdf"),
+       mass.confInt,
        device = "pdf",
        width = 2.79*4,
        height = 4,
        units = "in",
        dpi = 300)
 
-fat.predInt <- grid.arrange(fatLwr.fig, fatUpr.fig, 
+fat.confInt <- grid.arrange(fatLwr.fig, fatUpr.fig, 
                              ncol = 1)
-ggsave(file.path(win.res, "fig/fatPredInt.pdf"),
-       fat.predInt,
+ggsave(file.path(win.res, "fig/fatConfInt.pdf"),
+       fat.confInt,
        device = "pdf",
        width = 2.79*4,
        height = 4,
