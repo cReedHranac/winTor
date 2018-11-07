@@ -309,7 +309,6 @@ write.csv(major.table, file =  file.path(win.res, 'allFatModelAICtable.csv'), ro
 # coordinates(mod.df) <- ~ Long + Lat
 # proj4string(mod.df) <- proj4string(env.stk)
 # 
-# #formula winter.duration ~ NA_northing + NA_nonGrowingDays + NA_dem
 # v <- variogram( g.fat ~ NA_northing + NA_nDaysFreeze + NA_dem,
 #                data = mod.df)
 # v.exp = fit.variogram(v, vgm("Exp"), fit.kappa = T)

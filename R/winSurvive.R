@@ -25,7 +25,7 @@ mylu.dist <- readOGR(dsn = "D:/Dropbox/batwintor_aux/paramFiles/ShapeFiles",
 ## plots 
 library(ggplot2)
 
-mass.plot.resid <- function(x, resid.df = NULL, save.name = NULL, dist.map = NULL, res.agg = 25, save = F, ...){
+mass.plot.resid <- function(x, resid.df = NULL, save.name = NULL, dist.map = NULL, res.agg = 25, ...){
   ## Create DataFrame (aggragation is mainly for the dev period)
   if(!is.null(res.agg)){ #aggratetion bits
     x.ag <- raster::aggregate(x, res.agg)
@@ -146,7 +146,7 @@ fat.plot <- function(x, save.name = NULL, res.agg = 25,  dist.map = NULL, ...){
     ex <- as.vector(extent(x))
     aspect.ratio <- (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])
     ggsave(filename = file.path(win.res, save.name),
-    g.fat, width = 7, height = 7/aspect.ratio,
+    g.Fat, width = 7, height = 7/aspect.ratio,
     ...)}
   
   return(g.Fat)
@@ -162,8 +162,52 @@ fat.plot <- function(x, save.name = NULL, res.agg = 25,  dist.map = NULL, ...){
 #   dplyr::filter(!is.na(avgMass.y)) %>%
 #   select(Long, Lat, resid)
 
-m.test <- mass.plot.resid(x = mass.rast, dist.map = mylu.dist)
-f.test <- fat.plot(x= fat.rast, dist.map = mylu.dist)
+massMean.fig <- mass.plot.resid(x = mass.rast,
+                                dist.map = mylu.dist,
+                                save.name = "/fig/massMean.pdf")
+
+fatMean.fig <- fat.plot(x= fat.rast,
+                        dist.map = mylu.dist,
+                        save.name = "/fig/fatMean.pdf")
+
+##adding in the sensitivity measure ones
+mass.lwr <- raster(file.path(win.res, "fatSE_lwr.tif"))
+mass.upr <- raster(file.path(win.res, "fatSE_upr.tif"))
+fat.lwr <- calc(mass.lwr, function(x) {-2.840036 + .59321*x})
+fat.upr <- calc(mass.upr, function(x) {-2.840036 + .59321*x})
+
+##plots
+library(gridExtra)
+massLwr.fig <- mass.plot.resid(mass.lwr,
+                               dist.map = mylu.dist)
+massUpr.fig <- mass.plot.resid(mass.upr,
+                               dist.map = mylu.dist)
+fatLwr.fig <- fat.plot(x = fat.lwr,
+                       dist.map = mylu.dist)
+fatUpr.fig <- fat.plot(x = fat.upr,
+                       dist.map = mylu.dist)
+
+mass.predInt <- grid.arrange(massLwr.fig, massUpr.fig, 
+                             ncol = 1)
+ggsave(file.path(win.res, "fig/massPredInt.pdf"),
+       mass.predInt,
+       device = "pdf",
+       width = 2.79*4,
+       height = 4,
+       units = "in",
+       dpi = 300)
+
+fat.predInt <- grid.arrange(fatLwr.fig, fatUpr.fig, 
+                             ncol = 1)
+ggsave(file.path(win.res, "fig/fatPredInt.pdf"),
+       fat.predInt,
+       device = "pdf",
+       width = 2.79*4,
+       height = 4,
+       units = "in",
+       dpi = 300)
+
+
 
 
 #### Look at predicted body fat for survival ####
@@ -238,6 +282,15 @@ requiredFat.plot <- function(x, save.name = NULL, dist.map = NULL,  inf, res.agg
 n.test <- requiredFat.plot(x = null.fat, dist.map = mylu.dist, inf = F)
 i.test <- requiredFat.plot(x = inf.fat, dist.map = mylu.dist, inf = T)
 
+fat.req <- grid.arrange(n.test, i.test,
+                        ncol = 1)
+ggsave(file.path(win.res, "fig/fatReq.pdf"),
+       fat.req,
+       device = "pdf",
+       width = 2.79*4+1,
+       height = 4,
+       units = "in",
+       dpi = 300)
 
 ## predicted fat reserves - fat required
 null.survive <- fat.rast - null.fat
@@ -318,6 +371,24 @@ survivalFat.plot <- function(x, save.name = NULL, dist.map = NULL,  inf, res.agg
 
 ns.test <- survivalFat.plot(x = null.survive, dist.map = mylu.dist, inf = F)
 is.test <- survivalFat.plot(x = inf.survive, dist.map = mylu.dist, inf = T)
+
+fat.remain <- grid.arrange(ns.test, is.test,
+                           ncol = 1)
+ggsave(file.path(win.res, "fig/fatRemain.pdf"),
+       fat.remain,
+       device = "pdf",
+       width = 2.79*4+2,
+       height = 4,
+       units = "in",
+       dpi = 300)
+
+
+#### uncertainty of fat effect on survival
+nullLwr.survive <- fat.lwr - null.fat
+nullUpr.survive <- fat.upr - null.fat
+
+infLwr.survive <- fat.lwr - inf.fat
+infUpr.survive <- fat.upr - inf.fat
 
 
 
