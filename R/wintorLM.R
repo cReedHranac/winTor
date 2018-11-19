@@ -63,11 +63,19 @@ rapid.lm.clean <- function(x, name){
   
   lm.df3 <- lm.df2 %>%
     rownames_to_column("rn") %>%
-    dplyr::filter(rn %!in% names(which(cooks.distance(f2.lm) > 4/nrow(lm.df2)))) %>%
+    dplyr::filter(rn %!in% names(which(abs(rstandard(f2.lm))>2))) %>%
     column_to_rownames("rn")
+  
+  dim(lm.df3)
   
   ##third?
   f3.lm <- lm(formula = x$mod, data = lm.df3)
+  lm.df4 <- lm.df3 %>%
+    rownames_to_column("rn") %>%
+    dplyr::filter(rn %!in% names(which(abs(rstandard(f3.lm))>2))) %>%
+    column_to_rownames("rn")
+  dim(lm.df4)
+  
   df.rm <- x$dat %>%
     rownames_to_column("rn") %>%
     dplyr::filter(rn %in% rownames(lm.df3)) %>%
@@ -284,7 +292,7 @@ for(i in 1:length(mod.formulas)){
 }
 
 ## models
-f1 <- lapply(f1.list, rapid.lm.clean, name = "win")
+f1 <- lapply(f1.list, rapid.lm.clean, name = "newWin")
 #split into dfs and models
 f1.mod <- list();for(i in 1:length(f1)){f1.mod[[i]] <- f1[[i]]$lm}
 f1.df <- list();for(i in 1:length(f1)){f1.df[[i]] <- f1[[i]]$dp.rm}
@@ -303,13 +311,13 @@ f1.res <- aictab(f1.mod,
                               "freeze",
                               "OG"))
 ##write
-write.csv(f1.res,file =  file.path(win.res, 'win1AICtable.csv'), row.names = F)
+write.csv(f1.res,file =  file.path(win.res, 'NEWwin1AICtable.csv'), row.names = F)
 
 ## results table
 f1.scrape <- lapply(f1.mod, scrapeResults)
 f1.scrape.df <- do.call(rbind, f1.scrape)
 
-write.csv(f1.scrape.df, file = file.path(win.res, 'win1Results.csv'), row.names = F)
+write.csv(f1.scrape.df, file = file.path(win.res, 'NEWwin1Results.csv'), row.names = F)
 
 ##Create prediction rasters
 f1Pred.rasters <- lapply(f1.mod, FUN = raster::predict, object = env.stk)
@@ -320,7 +328,7 @@ names(pred.stk) <- c("dem",
                      "growing",
                      "freeze",
                      "OG")
-writeRaster(pred.stk, filename = file.path(win.res, "win1Pred"),
+writeRaster(pred.stk, filename = file.path(win.res, "NEWwin1Pred"),
   format = "GTiff", bylayer = T, suffix = "names", overwrite = T)
 
 ## Clean for memory
@@ -342,7 +350,7 @@ for(i in 1:length(mod.formulas2)){
 }
 
 ## models
-f2 <- lapply(f2.list, rapid.lm.clean, name = "win")
+f2 <- lapply(f2.list, rapid.lm.clean, name = "NEWwin")
 #split into dfs and models
 f2.mod <- list();for(i in 1:length(f2)){f2.mod[[i]] <- f2[[i]]$lm}
 f2.df <- list();for(i in 1:length(f2)){f2.df[[i]] <- f2[[i]]$dp.rm}
@@ -358,28 +366,28 @@ f2.res <- aictab(f2.mod,
                               "freeze",
                               "OG"))
 #write
-write.csv(f2.res,file =  file.path(win.res, 'win2AICtable.csv'), row.names = F)
+write.csv(f2.res,file =  file.path(win.res, 'NEWwin2AICtable.csv'), row.names = F)
 
 ## results table
 f2.scrape <- lapply(f2.mod, scrapeResults)
 f2.scrape.df <- do.call(rbind, f2.scrape)
 
-write.csv(f2.scrape.df, file = file.path(win.res, 'win2Results.csv'), row.names = F)
+write.csv(f2.scrape.df, file = file.path(win.res, 'NEWwin2Results.csv'), row.names = F)
 
-## Create prediction rasters
-
-f2Pred.rasters <- lapply(f2.mod, FUN = raster::predict, object = env.stk)
-pred.stk2 <- do.call(stack, f2Pred.rasters)
-names(pred.stk2) <- c("dem",
-                     "frost",
-                     "growing",
-                     "freeze",
-                     "OG")
-writeRaster(pred.stk2, filename = file.path(win.res, "win2Pred"),
-            format = "GTiff", bylayer = T, suffix = "names", overwrite = T)
-
+# ## Create prediction rasters
+# 
+# f2Pred.rasters <- lapply(f2.mod, FUN = raster::predict, object = env.stk)
+# pred.stk2 <- do.call(stack, f2Pred.rasters)
+# names(pred.stk2) <- c("dem",
+#                      "frost",
+#                      "growing",
+#                      "freeze",
+#                      "OG")
+# writeRaster(pred.stk2, filename = file.path(win.res, "win2Pred"),
+#             format = "GTiff", bylayer = T, suffix = "names", overwrite = T)
+# 
 ## Clean for memory
-rm(pred.stk2, f2Pred.rasters)
+# rm(pred.stk2, f2Pred.rasters)
 
 #### Level 3 models ####
 
@@ -395,7 +403,7 @@ for(i in 1:length(mod.formulas3)){
 }
 
 ## models
-f3<- lapply(f3.list, rapid.lm.clean, name = "win")
+f3<- lapply(f3.list, rapid.lm.clean, name = "NEWwin")
 #split into dfs and models
 f3.mod <- list();for(i in 1:length(f3)){f3.mod[[i]] <- f3[[i]]$lm}
 f3.df <- list();for(i in 1:length(f3)){f3.df[[i]] <- f3[[i]]$dp.rm}
@@ -423,27 +431,27 @@ f3.res <- aictab(f3.mod,
                               "freeze",
                               "OG"))
 ##write
-write.csv(f3.res,file =  file.path(win.res, 'win3AICtable.csv'), row.names = F)
+write.csv(f3.res,file =  file.path(win.res, 'NEWwin3AICtable.csv'), row.names = F)
 
 ## results table
 f3.scrape <- lapply(f3.mod, scrapeResults)
 f3.scrape.df <- do.call(rbind, f3.scrape)
 
-write.csv(f3.scrape.df, file = file.path(win.res, 'win3Results.csv'), row.names = F)
+write.csv(f3.scrape.df, file = file.path(win.res, 'NEWwin3Results.csv'), row.names = F)
 
 ## Create prediction rasters
-
-f3Pred.rasters <- lapply(f3.mod, FUN = raster::predict, object = env.stk)
-pred.stk3 <- do.call(stack, f3Pred.rasters)
-names(pred.stk3) <- c("frost",
-                      "growing",
-                      "freeze",
-                      "OG")
-writeRaster(pred.stk3, filename = file.path(win.res, "win3Pred"),
-            format = "GTiff", bylayer = T, suffix = "names", overwrite = T)
-
-## Clean for memory
-rm(pred.stk3, f3Pred.rasters)
+# 
+# f3Pred.rasters <- lapply(f3.mod, FUN = raster::predict, object = env.stk)
+# pred.stk3 <- do.call(stack, f3Pred.rasters)
+# names(pred.stk3) <- c("frost",
+#                       "growing",
+#                       "freeze",
+#                       "OG")
+# writeRaster(pred.stk3, filename = file.path(win.res, "win3Pred"),
+#             format = "GTiff", bylayer = T, suffix = "names", overwrite = T)
+# 
+# ## Clean for memory
+# rm(pred.stk3, f3Pred.rasters)
 
 
 #### making a bunch of pretty figures ####
@@ -463,7 +471,7 @@ major.table <- aictab(c(f1.mod, f2.mod, f3.mod),
                                    "north + dem + growing",
                                    "north + dem + freeze",
                                    "north + dem + OG"))
-write.csv(major.table, file =  file.path(win.res, 'winModelAICtable.csv'), row.names = F)
+write.csv(major.table, file =  file.path(win.res, 'NEWwinModelAICtable.csv'), row.names = F)
 
 # win.maps <- lapply(unstack(pred.stk),
 #                    wintorContour,
@@ -488,28 +496,28 @@ write.csv(major.table, file =  file.path(win.res, 'winModelAICtable.csv'), row.n
 # 
 
 #### Variogram of the top model ####
-# library(gstat)
-# 
-# #top model
-# mod <- f3.mod[[2]]
-# mod.df <- f3.df[[2]]
-# 
-# #Create locations points
-# coordinates(mod.df) <- ~ long + lat
-# proj4string(mod.df) <- proj4string(env.stk)
-# 
-# #formula winter.duration ~ NA_northing + NA_nonGrowingDays + NA_dem
-# v <- variogram( winter.duration ~ NA_northing + NA_nonGrowingDays + NA_dem,
-#                data = mod.df)
-# v.exp = fit.variogram(v, vgm("Exp"), fit.kappa = T)
-# v.mat <- fit.variogram(v, vgm("Mat"), fit.kappa = T)
-# v.sph <- fit.variogram(v, vgm("Sph"), fit.kappa = T)
-# 
-# par(mfrow = c(1,3))
-# 
-# plot(v, v.exp)
-# plot(v, v.mat)
-# plot(v, v.sph)
+library(gstat)
+
+#top model
+mod <- f1.mod[[4]]
+mod.df <- f1.df[[4]]
+
+#Create locations points
+coordinates(mod.df) <- ~ long + lat
+proj4string(mod.df) <- proj4string(env.stk)
+
+#formula winter.duration ~ NA_northing + NA_nonGrowingDays + NA_dem
+v <- variogram( winter.duration ~  NA_nDaysFreeze,
+               data = mod.df)
+v.exp = fit.variogram(v, vgm("Exp"), fit.kappa = T)
+v.mat <- fit.variogram(v, vgm("Mat"), fit.kappa = T)
+v.sph <- fit.variogram(v, vgm("Sph"), fit.kappa = T)
+
+par(mfrow = c(1,3))
+
+plot(v, v.exp)
+plot(v, v.mat)
+plot(v, v.sph)
 
 
 ## Looks like the correlation is fine, we'll leave with this model structure
@@ -555,3 +563,13 @@ writeRaster(conf.int,
             bylayer = T,
             suffix = "names",
             overwrite = T)
+
+
+#### Plots for top Layer ####
+newWIN <- raster(file.path(win.res, "NEWwin1Pred_freeze.tif"))
+wintorContour(win)
+
+win <- raster(file.path(win.res, "win3Pred_growing.tif"))
+win.bin <- wintorContour(win)
+
+plot(win)

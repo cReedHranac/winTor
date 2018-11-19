@@ -283,7 +283,7 @@ major.table <- aictab(c(fat1.mod, fat2.mod, fat3.mod),
 write.csv(major.table, file =  file.path(win.res, 'allFatModelAICtable.csv'), row.names = F)
 
 
-# # #### look at residuals for top layer ####
+#### look at residuals for top layer ####
 # best <- fat3.list[[3]]
 # mod <- rapid.lm.clean(best) ## 6 points are romoved. but whitch 6?
 # 
@@ -343,4 +343,5 @@ writeRaster(pred.int,
             bylayer = T,
             suffix = "names",
             overwrite = T)
+
 
