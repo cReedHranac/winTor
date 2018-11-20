@@ -110,50 +110,50 @@ mat.fix <- calc(mat., function(x){x/10}); rm(mat.)
 rm(win)
 library(batwintor)
 
-# fat.rast <- survivalFat(mod.df = mod.big,
+fat.rast <- survivalFat(mod.df = mod.big,
+                        pct.rh.rast = rh.fix,
+                        temp.rast = mat.fix,
+                        win.rast = win)
+
+writeRaster(fat.rast,
+            filename = file.path(win.res, "MYLU.tif"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "names",
+            overwrite = T)
+
+#### uncertianty win ####
+# win.lwr <- raster(file.path(win.res, "winSE_Conf_lwr.tif"))
+# 
+# fat.lwr <- survivalFat(mod.df = mod.big,
 #                         pct.rh.rast = rh.fix,
 #                         temp.rast = mat.fix,
-#                         win.rast = win)
+#                         win.rast = win.lwr)
 # 
-# writeRaster(fat.rast,
-#             filename = file.path(win.res, "MYLU.tif"),
+# writeRaster(fat.lwr,
+#             filename = file.path(win.res, "MYLU_fat_Conf_LWR.tif"),
 #             format = "GTiff",
 #             bylayer = T,
 #             suffix = "names",
 #             overwrite = T)
-
-#### uncertianty win ####
-win.lwr <- raster(file.path(win.res, "winSE_Conf_lwr.tif"))
-
-fat.lwr <- survivalFat(mod.df = mod.big,
-                        pct.rh.rast = rh.fix,
-                        temp.rast = mat.fix,
-                        win.rast = win.lwr)
-
-writeRaster(fat.lwr,
-            filename = file.path(win.res, "MYLU_fat_Conf_LWR.tif"),
-            format = "GTiff",
-            bylayer = T,
-            suffix = "names",
-            overwrite = T)
-rm(win.lwr, fat.lwr)
-
-
-
-win.upr <- raster(file.path(win.res, "winSE_Conf_upr.tif"))
-
-fat.upr <- survivalFat(mod.df = mod.big,
-                       pct.rh.rast = rh.fix,
-                       temp.rast = mat.fix,
-                       win.rast = win.upr)
-
-writeRaster(fat.upr,
-            filename = file.path(win.res, "MYLU_fat_Conf_upr.tif"),
-            format = "GTiff",
-            bylayer = T,
-            suffix = "names",
-            overwrite = T)
-rm(win.upr, fat.upr)
+# rm(win.lwr, fat.lwr)
+# 
+# 
+# 
+# win.upr <- raster(file.path(win.res, "winSE_Conf_upr.tif"))
+# 
+# fat.upr <- survivalFat(mod.df = mod.big,
+#                        pct.rh.rast = rh.fix,
+#                        temp.rast = mat.fix,
+#                        win.rast = win.upr)
+# 
+# writeRaster(fat.upr,
+#             filename = file.path(win.res, "MYLU_fat_Conf_upr.tif"),
+#             format = "GTiff",
+#             bylayer = T,
+#             suffix = "names",
+#             overwrite = T)
+# rm(win.upr, fat.upr)
 
 #### Gathered Data ####
 # dat <- read.csv("data/massLocations.csv")
