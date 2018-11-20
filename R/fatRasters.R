@@ -107,7 +107,7 @@ mat <- raster("D://WorldClim/bclim/bio_1.bil")
 rh.fix <- projectRaster(rh, win); rm(rh)
 mat. <- projectRaster(mat, win); rm(mat)
 mat.fix <- calc(mat., function(x){x/10}); rm(mat.)
-rm(win)
+
 library(batwintor)
 
 fat.rast <- survivalFat(mod.df = mod.big,

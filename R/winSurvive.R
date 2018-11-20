@@ -88,9 +88,9 @@ mass.plot.resid <- function(x, resid.df = NULL, save.name = NULL, dist.map = NUL
     ex <- as.vector(extent(x))
     aspect.ratio <- (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])
     ggsave(filename = file.path(win.res, save.name),
-           g.mass, width = 7, height = 7/aspect.ratio, dpi = 900,
-           ...)
-  }
+           g.mass, width = 9, height = 9/aspect.ratio, dpi = 900,
+           device = cairo_pdf, units = "in",
+           ...)}
   return(g.mass)
 }
 fat.plot <- function(x, save.name = NULL, res.agg = 25,  dist.map = NULL, ...){
@@ -146,7 +146,9 @@ fat.plot <- function(x, save.name = NULL, res.agg = 25,  dist.map = NULL, ...){
     ex <- as.vector(extent(x))
     aspect.ratio <- (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])
     ggsave(filename = file.path(win.res, save.name),
-    g.Fat, width = 7, height = 7/aspect.ratio, dpi = 900,
+    g.Fat, width = 9, height = 9/aspect.ratio, dpi = 900,
+    units = "in",
+    device = cairo_pdf,
     ...)}
   
   return(g.Fat)
@@ -163,10 +165,26 @@ fat.plot <- function(x, save.name = NULL, res.agg = 25,  dist.map = NULL, ...){
 #   select(Long, Lat, resid)
 
 massMean.fig <- mass.plot.resid(x = mass.rast,
-                                save.name = NULL)
+                                save.name = "massMean.pdf")
+ggsave(file.path(win.res, "fig/massMean.pdf"),
+       massMean.fig,
+       device = cairo_pdf,
+       width = 14,
+       height = 6,
+       units = "in",
+       dpi = 900)
+
 
 fatMean.fig <- fat.plot(x= fat.rast,
-                        save.name = "fig/insaneName.pdf")
+                        save.name = "fatMean.pdf")
+
+ggsave(file.path(win.res, "fig/fatMean.pdf"),
+       fatMean.fig,
+       device = cairo_pdf,
+       width = 14,
+       height = 6,
+       units = "in",
+       dpi = 900)
 
 ##adding in the sensitivity measure ones
 mass.lwr <- raster(file.path(win.res, "fatSE_Conf__lwr.tif"))
@@ -272,7 +290,8 @@ requiredFat.plot <- function(x, save.name = NULL, dist.map = NULL,  inf, res.agg
     ex <- as.vector(extent(x))
     aspect.ratio <- (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])
     ggsave(filename = file.path(win.res, save.name),
-    g.fat, width = 7, height = 7/aspect.ratio,
+    g.fat, width = 7, height = 7/aspect.ratio, units = "in",
+    device = cairo_pdf,
     ...)}
   return(g.Fat)
 }
@@ -280,15 +299,18 @@ requiredFat.plot <- function(x, save.name = NULL, dist.map = NULL,  inf, res.agg
 n.test <- requiredFat.plot(x = null.fat, dist.map = mylu.dist, inf = F)
 i.test <- requiredFat.plot(x = inf.fat, dist.map = mylu.dist, inf = T)
 
-fat.req <- grid.arrange(n.test, i.test,
+fat.req <- grid.arrange(n.test + theme(axis.title.x = element_blank(),
+                                       axis.text.x = element_blank()),
+                        i.test + theme(axis.title.x = element_blank(),
+                                       axis.text.x = element_blank()),
                         ncol = 1)
 ggsave(file.path(win.res, "fig/fatReq.pdf"),
        fat.req,
        device = "pdf",
-       width = 2.79*4+1,
-       height = 4,
+       width = 9,
+       height = 6,
        units = "in",
-       dpi = 300)
+       dpi = 900)
 
 ## predicted fat reserves - fat required
 null.survive <- fat.rast - null.fat
@@ -370,18 +392,21 @@ survivalFat.plot <- function(x, save.name = NULL, dist.map = NULL,  inf, res.agg
 ns.test <- survivalFat.plot(x = null.survive, dist.map = mylu.dist, inf = F)
 is.test <- survivalFat.plot(x = inf.survive, dist.map = mylu.dist, inf = T)
 
-fat.remain <- grid.arrange(ns.test, is.test,
+fat.remain <- grid.arrange(ns.test + theme(axis.title.x = element_blank(),
+                                           axis.text.x = element_blank()),
+                           is.test + theme(axis.title.x = element_blank(),
+                                          axis.text.x = element_blank()),
                            ncol = 1)
 ggsave(file.path(win.res, "fig/fatRemain.pdf"),
        fat.remain,
        device = "pdf",
-       width = 2.79*4+2,
-       height = 4,
+       width = 9,
+       height = 6,
        units = "in",
-       dpi = 300)
+       dpi = 900)
 
 
-#### uncertainty of fat effect on survival
+## uncertainty of fat effect on survival
 nullLwr.survive <- fat.lwr - null.fat
 nullUpr.survive <- fat.upr - null.fat
 

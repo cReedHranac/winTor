@@ -627,12 +627,13 @@ win.plot <- function(x, save.name = NULL, res.agg = 25,  dist.map = NULL, ...){
   if(!is.null(save.name)){
     ex <- as.vector(extent(x))
     aspect.ratio <- (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])
-    ggsave(filename = file.path("data", save.name),
-           g.Fat, width = 7, height = 7/aspect.ratio, dpi = 900,
+    ggsave(filename = file.path("fig", save.name),
+           g.win, width = 9, height = 9/aspect.ratio, dpi = 900,
+           device = cairo_pdf,
            ...)}
   
   return(g.win)
 }
 z <- win.plot(newWIN)
 q <- win.plot(n4)
-q.r <- win.plot(n4.reclass)
+q.r <- win.plot(n4.reclass, save.name = "winWinner.pdf")
