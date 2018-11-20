@@ -173,3 +173,49 @@ rm(win.upr, fat.upr)
 # 
 # hist(dat.fat$resid.inf)
 # length(which(dat.fat$resid.inf > 0 ))
+
+#### Figures ####
+massWinner <- raster(file.path(win.res, "fat3Pred_freeze.tif"))
+MassContinious <- function(x, id, res.agg = 25, save = F, ...){
+  ## Create DataFrame
+  if(!is.null(res.agg)){ #aggratetion bits
+    x.ag <- raster::aggregate(x, res.agg)
+  }
+  else{
+    x.ag <- x}
+  
+  ## round and trim
+  
+  x.pts <- rasterToPoints(x.ag) #to points
+  x.df <- data.frame(x.pts)
+  colnames(x.df) <- c("long", "lat", "Mass")
+  
+  g.winTor <- ggplot(x.df, aes(x = long, y = lat, z = Mass)) +
+    coord_fixed(xlim = extent(x)[1:2],ylim=extent(x)[3:4])+
+    #border lines
+    borders("world",
+            xlim=extent(x)[1:2],ylim=extent(x)[3:4],
+            colour = "grey20",
+            fill = "grey80")+
+    #Raster fill
+    geom_raster(aes(fill = Mass),  interpolate = T) +
+    #oooohhhhh pretty colors
+    scale_fill_gradientn(colors = brewer.pal(8, "YlGnBu"), na.value="white") +
+    #general malarkey
+    scale_x_continuous(expand = c(0,0))+
+    scale_y_continuous(expand = c(0,0))+
+    theme(plot.title = element_text(hjust = .05))+
+    ggtitle("Predicted Body Mass") + 
+    theme_bw()
+  
+  if(save == T){
+    ex <- as.vector(extent(x))
+    aspect.ratio <- (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])
+    ggsave(filename = file.path("fig", paste0(id, names(x), ".pdf")),
+           g.winTor, width = 7, height = 7/aspect.ratio, dpi = 900,
+           ...)
+  }
+  return(g.winTor)
+}
+
+massPlot <- MassContinious(massWinner, id = "winner", res.agg = NULL, save = T, device = "pdf")

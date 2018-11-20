@@ -88,7 +88,7 @@ mass.plot.resid <- function(x, resid.df = NULL, save.name = NULL, dist.map = NUL
     ex <- as.vector(extent(x))
     aspect.ratio <- (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])
     ggsave(filename = file.path(win.res, save.name),
-           g.mass, width = 7, height = 7/aspect.ratio,
+           g.mass, width = 7, height = 7/aspect.ratio, dpi = 900,
            ...)
   }
   return(g.mass)
@@ -146,7 +146,7 @@ fat.plot <- function(x, save.name = NULL, res.agg = 25,  dist.map = NULL, ...){
     ex <- as.vector(extent(x))
     aspect.ratio <- (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])
     ggsave(filename = file.path(win.res, save.name),
-    g.Fat, width = 7, height = 7/aspect.ratio,
+    g.Fat, width = 7, height = 7/aspect.ratio, dpi = 900,
     ...)}
   
   return(g.Fat)
@@ -163,12 +163,10 @@ fat.plot <- function(x, save.name = NULL, res.agg = 25,  dist.map = NULL, ...){
 #   select(Long, Lat, resid)
 
 massMean.fig <- mass.plot.resid(x = mass.rast,
-                                dist.map = mylu.dist,
-                                save.name = "/fig/massMean.pdf")
+                                save.name = NULL)
 
 fatMean.fig <- fat.plot(x= fat.rast,
-                        dist.map = mylu.dist,
-                        save.name = "/fig/fatMean.pdf")
+                        save.name = "fig/insaneName.pdf")
 
 ##adding in the sensitivity measure ones
 mass.lwr <- raster(file.path(win.res, "fatSE_Conf__lwr.tif"))

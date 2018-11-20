@@ -85,8 +85,12 @@ summary(ph)
 ## There is a significant differnce between Eastern and Western states in this instance
 
 state.lean.plot <- ggplot(data = dat.clean) +
-  geom_boxplot(aes(x = state, y = lean, color = state))
-state.lean.plot
+  geom_boxplot(aes(x = state, y = lean, color = state))+
+  theme_bw()
+
+ggsave("fig/StateLean.pdf",
+       state.lean.plot)
+
 
 ## Predicting fat from body mass
 fat.body <- lm(fat ~ mass, dat.clean)
@@ -107,7 +111,8 @@ fat.mass.plot <- ggplot(dat.clean) +
   theme_bw()
 
 
-fat.mass.plot
+ggsave("fig/FatMassLM.pdf",
+       fat.mass.plot)
 
 ## predict fat mass from our data
 new.df <- data.frame(mass = dat.clean$mass)

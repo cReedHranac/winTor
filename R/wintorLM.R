@@ -95,145 +95,146 @@ rapid.lm.clean <- function(x, name){
   
   return(list(lm = f3.lm, dp.rm = df.rm))
 }
-
-wintorContour <- function(x, id, res.agg = 25,  save = F, ...){
-  ## Create DataFrame
-  if(!is.null(res.agg)){ #aggratetion bits
-    x.ag <- raster::aggregate(x, res.agg)
-  }
-  else{
-    x.ag <- x}
-  
-  x.class <- calc(x.ag, function(x) {x[is.na(x)] <- NA; as.factor(round(x/30))}) #make month factors 
-  m <- rbind(c(-1000, 0, 0),
-             c(0,2,2), 
-             c(2,4,4),
-             c(4,6,6),
-             c(6,8,8),
-             c(8,10,10),
-             c(10,12,12),
-             c(12, 1000, 12))
-  
-  rast.trimmed <- reclassify(x.class, m) #trim ends
-  x.pts <- rasterToPoints(rast.trimmed) #to points
-  x.df <- data.frame(x.pts)
-  colnames(x.df) <- c("long", "lat", "Winter")
-  x.df$Winter <- as.factor(x.df$Winter)
-  
-  g.winTor <- ggplot(x.df, aes(x = long, y = lat, z = Winter)) +
-    coord_fixed(xlim = extent(x)[1:2],ylim=extent(x)[3:4])+
-    #border lines
-    borders("world",
-            xlim=extent(x)[1:2],ylim=extent(x)[3:4],
-            colour = "grey20",
-            fill = "grey80")+
-    #Raster fill
-    geom_raster(aes(fill = Winter),  interpolate = T) +
-    #oooohhhhh pretty colors
-    scale_fill_brewer(palette="Spectral", na.value="white") +
-    #general malarkey
-    ggtitle(names(x)) + 
-    scale_x_continuous(expand = c(0,0))+
-    scale_y_continuous(expand = c(0,0))+
-    theme_bw()
-  
-  if(save == T){
-    ex <- as.vector(extent(x))
-    aspect.ratio <- (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])
-    ggsave(filename = file.path(win.res, paste0(id, names(x))),
-           g.winTor, width = 7, height = 7/aspect.ratio,
-           ...)
-  }
-  
-  return(g.winTor)
-}
-wintorContinious <- function(x, id, res.agg = 25, save = F, ...){
-  ## Create DataFrame
-  if(!is.null(res.agg)){ #aggratetion bits
-    x.ag <- raster::aggregate(x, res.agg)
-  }
-  else{
-    x.ag <- x}
-  
-  ## round and trim
-  x.count <- calc(x.ag, function(x) {x[is.na(x)] <- NA; round(x/30, 2)})
-  m <- rbind(c(-1000, 0, 0))
-  rast.trimmed <- reclassify(x.count, m) #trim ends
-  
-  x.pts <- rasterToPoints(rast.trimmed) #to points
-  x.df <- data.frame(x.pts)
-  colnames(x.df) <- c("long", "lat", "Winter")
-  #x.df$Winter <- as.factor(x.df$Winter)
-  
-  g.winTor <- ggplot(x.df, aes(x = long, y = lat, z = Winter)) +
-    coord_fixed(xlim = extent(x)[1:2],ylim=extent(x)[3:4])+
-    #border lines
-    borders("world",
-            xlim=extent(x)[1:2],ylim=extent(x)[3:4],
-            colour = "grey20",
-            fill = "grey80")+
-    #Raster fill
-    geom_raster(aes(fill = Winter),  interpolate = T) +
-    #oooohhhhh pretty colors
-    scale_fill_gradientn(colors = brewer.pal(8, "YlGnBu"), na.value="white") +
-    #general malarkey
-    scale_x_continuous(expand = c(0,0))+
-    scale_y_continuous(expand = c(0,0))+
-    theme(plot.title = element_text(hjust = .05))+
-    ggtitle("Predicted Winter Length") + 
-    theme_bw()
-  
-  if(save == T){
-    ex <- as.vector(extent(x))
-    aspect.ratio <- (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])
-    ggsave(filename = file.path(win.res, paste0(id, names(x))),
-           g.winTor, width = 7, height = 7/aspect.ratio,
-           ...)
-  }
-}
-wintorContinious2 <- function(x, id, res.agg = 25, save = F, ...){
-  ## Create DataFrame
-  if(!is.null(res.agg)){ #aggratetion bits
-    x.ag <- raster::aggregate(x, res.agg)
-  }
-  else{
-    x.ag <- x}
-  
-  ## round and trim
-  x.con <- calc(x.ag, function(x){x[is.na(x)] <- NA; batwintor::day.to.month(x)})
-  x.pts <- rasterToPoints(x.con) #to points
-  x.df <- data.frame(x.pts)
-  colnames(x.df) <- c("long", "lat", "Winter")
-  
-  
-  g.winTor <- ggplot(x.df, aes(x = long, y = lat, z = Winter)) +
-    coord_fixed(xlim = extent(x)[1:2],ylim=extent(x)[3:4])+
-    #border lines
-    borders("world",
-            xlim=extent(x)[1:2],ylim=extent(x)[3:4],
-            colour = "grey20",
-            fill = "grey80")+
-    #Raster fill
-    geom_raster(aes(fill = Winter),  interpolate = T) +
-    #oooohhhhh pretty colors
-    scale_fill_gradientn("Survival\nCapacity\n(months)",
-                         colors = c("#e66101", "#fdb863","#ffffff", "#b2abd2", "#5e3c99"),
-                         limits=  c(-8,8)) + 
-    #general malarkey
-    scale_x_continuous(expand = c(0,0))+
-    scale_y_continuous(expand = c(0,0))+
-    theme(plot.title = element_text(hjust = .05))+
-    ggtitle("Predicted Winter Survival") + 
-    theme_bw()
-  
-  if(save == T){
-    ex <- as.vector(extent(x))
-    aspect.ratio <- (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])
-    ggsave(filename = file.path(win.res, paste0(id, names(x))),
-           g.winTor, width = 7, height = 7/aspect.ratio,
-           ...)
-  }
-}
+# 
+# wintorContour <- function(x, id, res.agg = 25,  save = F, ...){
+#   ## Create DataFrame
+#   if(!is.null(res.agg)){ #aggratetion bits
+#     x.ag <- raster::aggregate(x, res.agg)
+#   }
+#   else{
+#     x.ag <- x}
+#   
+#   x.class <- calc(x.ag, function(x) {x[is.na(x)] <- NA; as.factor(round(x/30))}) #make month factors 
+#   m <- rbind(c(-1000, 0, 0),
+#              c(0,2,2), 
+#              c(2,4,4),
+#              c(4,6,6),
+#              c(6,8,8),
+#              c(8,10,10),
+#              c(10,12,12),
+#              c(12, 1000, 12))
+#   
+#   rast.trimmed <- reclassify(x.class, m) #trim ends
+#   x.pts <- rasterToPoints(rast.trimmed) #to points
+#   x.df <- data.frame(x.pts)
+#   colnames(x.df) <- c("long", "lat", "Winter")
+#   x.df$Winter <- as.factor(x.df$Winter)
+#   
+#   g.winTor <- ggplot(x.df, aes(x = long, y = lat, z = Winter)) +
+#     coord_fixed(xlim = extent(x)[1:2],ylim=extent(x)[3:4])+
+#     #border lines
+#     borders("world",
+#             xlim=extent(x)[1:2],ylim=extent(x)[3:4],
+#             colour = "grey20",
+#             fill = "grey80")+
+#     #Raster fill
+#     geom_raster(aes(fill = Winter),  interpolate = T) +
+#     #oooohhhhh pretty colors
+#     scale_fill_brewer(palette="Spectral", na.value="white") +
+#     #general malarkey
+#     ggtitle(names(x)) + 
+#     scale_x_continuous(expand = c(0,0))+
+#     scale_y_continuous(expand = c(0,0))+
+#     theme_bw()
+#   
+#   if(save == T){
+#     ex <- as.vector(extent(x))
+#     aspect.ratio <- (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])
+#     ggsave(filename = file.path(win.res, paste0(id, names(x))),
+#            g.winTor, width = 7, height = 7/aspect.ratio,
+#            ...)
+#   }
+#   
+#   return(g.winTor)
+# }
+# wintorContinious <- function(x, id, res.agg = 25, save = F, ...){
+#   ## Create DataFrame
+#   if(!is.null(res.agg)){ #aggratetion bits
+#     x.ag <- raster::aggregate(x, res.agg)
+#   }
+#   else{
+#     x.ag <- x}
+#   
+#   ## round and trim
+#   x.count <- calc(x.ag, function(x) {x[is.na(x)] <- NA; round(x/30, 2)})
+#   m <- rbind(c(-1000, 0, 0))
+#   rast.trimmed <- reclassify(x.count, m) #trim ends
+#   
+#   x.pts <- rasterToPoints(rast.trimmed) #to points
+#   x.df <- data.frame(x.pts)
+#   colnames(x.df) <- c("long", "lat", "Winter")
+#   #x.df$Winter <- as.factor(x.df$Winter)
+#   
+#   g.winTor <- ggplot(x.df, aes(x = long, y = lat, z = Winter)) +
+#     coord_fixed(xlim = extent(x)[1:2],ylim=extent(x)[3:4])+
+#     #border lines
+#     borders("world",
+#             xlim=extent(x)[1:2],ylim=extent(x)[3:4],
+#             colour = "grey20",
+#             fill = "grey80")+
+#     #Raster fill
+#     geom_raster(aes(fill = Winter),  interpolate = T) +
+#     #oooohhhhh pretty colors
+#     scale_fill_gradientn(colors = brewer.pal(8, "YlGnBu"), na.value="white") +
+#     #general malarkey
+#     scale_x_continuous(expand = c(0,0))+
+#     scale_y_continuous(expand = c(0,0))+
+#     theme(plot.title = element_text(hjust = .05))+
+#     ggtitle("Predicted Winter Length") + 
+#     theme_bw()
+#   
+#   if(save == T){
+#     ex <- as.vector(extent(x))
+#     aspect.ratio <- (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])
+#     ggsave(filename = file.path(win.res, paste0(id, names(x))),
+#            g.winTor, width = 7, height = 7/aspect.ratio,
+#            ...)
+#     return(g.winTor)
+#   }
+# }
+# wintorContinious2 <- function(x, id, res.agg = 25, save = F, ...){
+#   ## Create DataFrame
+#   if(!is.null(res.agg)){ #aggratetion bits
+#     x.ag <- raster::aggregate(x, res.agg)
+#   }
+#   else{
+#     x.ag <- x}
+#   
+#   ## round and trim
+#   x.con <- calc(x.ag, function(x){x[is.na(x)] <- NA; batwintor::day.to.month(x)})
+#   x.pts <- rasterToPoints(x.con) #to points
+#   x.df <- data.frame(x.pts)
+#   colnames(x.df) <- c("long", "lat", "Winter")
+#   
+#   
+#   g.winTor <- ggplot(x.df, aes(x = long, y = lat, z = Winter)) +
+#     coord_fixed(xlim = extent(x)[1:2],ylim=extent(x)[3:4])+
+#     #border lines
+#     borders("world",
+#             xlim=extent(x)[1:2],ylim=extent(x)[3:4],
+#             colour = "grey20",
+#             fill = "grey80")+
+#     #Raster fill
+#     geom_raster(aes(fill = Winter),  interpolate = T) +
+#     #oooohhhhh pretty colors
+#     scale_fill_gradientn("Survival\nCapacity\n(months)",
+#                          colors = c("#e66101", "#fdb863","#ffffff", "#b2abd2", "#5e3c99"),
+#                          limits=  c(-8,8)) + 
+#     #general malarkey
+#     scale_x_continuous(expand = c(0,0))+
+#     scale_y_continuous(expand = c(0,0))+
+#     theme(plot.title = element_text(hjust = .05))+
+#     ggtitle("Predicted Winter Survival") + 
+#     theme_bw()
+#   
+#   if(save == T){
+#     ex <- as.vector(extent(x))
+#     aspect.ratio <- (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])
+#     ggsave(filename = file.path(win.res, paste0(id, names(x))),
+#            g.winTor, width = 7, height = 7/aspect.ratio,
+#            ...)
+#   }
+# }
 
 #### Data ####
 
@@ -567,9 +568,68 @@ writeRaster(conf.int,
 
 #### Plots for top Layer ####
 newWIN <- raster(file.path(win.res, "NEWwin1Pred_freeze.tif"))
-wintorContour(win)
+win.plot <- function(x, save.name = NULL, res.agg = 25,  dist.map = NULL, ...){
+  ## Create DataFrame (aggragation is mainly for the dev period)
+  if(!is.null(res.agg)){ #aggratetion bits
+    x.ag <- raster::aggregate(x, res.agg)
+  }
+  else{
+    x.ag <- x}
+  ## Crop and mask to distribution
+  if(!is.null(dist.map)){
+    x.ag <- mask(crop(x.ag, dist.map), dist.map)
+  }
+  
+  ## Convert to df
+  x.pts <- rasterToPoints(x.ag) #to points
+  x.df <- data.frame(x.pts)
+  colnames(x.df) <- c("long", "lat", "winter")
+  
+  g.win <- ggplot(data = x.df, aes(x = long, y = lat, z = winter)) +
+    coord_fixed(xlim = extent(x)[1:2], ylim = extent(x)[3:4]) +
+    #border lines
+    borders("world",
+            xlim=extent(x)[1:2],ylim=extent(x)[3:4],
+            colour = "grey20",
+            fill = "grey80")+
+    #Raster fill
+    geom_raster(aes(fill = winter),  interpolate = T) +
+    #oooohhhhh pretty colors
+    scale_fill_gradientn("Predicted\nDuration\nWinter (g)",
+                         colors = c("#5e3c99","#b2abd2", "#ffffff","#fdb863", "#e66101" ),
+                         limits=  c(floor(minValue(x.ag)),
+                                    ceiling(maxValue(x.ag)))) +
+    
+    #general malarkey
+    scale_x_continuous(expand = c(0,0))+
+    scale_y_continuous(expand = c(0,0))+
+    theme(plot.title = element_text(hjust = .05))+
+    #ggtitle("Predicted Body Mass") + 
+    theme_bw()
+  
+  ##Distribution map flag
+  if(!is.null(dist.map)){
+    g.win <- g.win +
+      geom_polygon(data = fortify(dist.map),
+                   aes(long,lat, group = group),
+                   colour = "black",
+                   fill = NA,
+                   inherit.aes = F) 
+  }
+  
+  if(!is.null(save.name)){
+    ex <- as.vector(extent(x))
+    aspect.ratio <- (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])
+    ggsave(filename = file.path("data", save.name),
+           g.Fat, width = 7, height = 7/aspect.ratio, dpi = 900,
+           ...)}
+  
+  return(g.win)
+}
+z <- win.plot(newWIN)
 
 win <- raster(file.path(win.res, "win3Pred_growing.tif"))
 win.bin <- wintorContour(win)
 
 plot(win)
+plot(newWIN)
