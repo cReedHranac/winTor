@@ -55,47 +55,50 @@ rapid.lm.clean <- function(x, name){
   ## filter based on residuals
   lm.df2 <- x$dat %>% ## select based on rownames and feed back through
     rownames_to_column("rn") %>%
-    dplyr::filter(rn %!in% names(which(abs(rstandard(f1.lm))>2))) %>%
+    dplyr::filter(rn %!in% names(which(cooks.distance(f1.lm) > .5))) %>%
     column_to_rownames("rn")
     
   ##Run second lm
   f2.lm <- lm(formula = x$mod, data = lm.df2)
   
-  lm.df3 <- lm.df2 %>%
-    rownames_to_column("rn") %>%
-    dplyr::filter(rn %!in% names(which(abs(rstandard(f2.lm))>2))) %>%
-    column_to_rownames("rn")
-  
-  dim(lm.df3)
-  
-  ##third?
-  f3.lm <- lm(formula = x$mod, data = lm.df3)
-  lm.df4 <- lm.df3 %>%
-    rownames_to_column("rn") %>%
-    dplyr::filter(rn %!in% names(which(cooks.distance(f3.lm) > 4/nrow(lm.df2)))) %>%
-    column_to_rownames("rn")
-  dim(lm.df4)
-  
-  f4.lm <- lm(formula = x$mod, data = lm.df4)
+  # lm.df3 <- lm.df2 %>%
+  #   rownames_to_column("rn") %>%
+  #   dplyr::filter(rn %!in% names(which(abs(rstandard(f2.lm))>2))) %>%
+  #   column_to_rownames("rn")
+  # 
+  # dim(lm.df3)
+  # 
+  # ##third?
+  # f3.lm <- lm(formula = x$mod, data = lm.df3)
+  # lm.df4 <- lm.df3 %>%
+  #   rownames_to_column("rn") %>%
+  #   dplyr::filter(rn %!in% names(which(cooks.distance(f3.lm) > 4/nrow(lm.df2)))) %>%
+  #   column_to_rownames("rn")
+  # dim(lm.df4)
+  # 
+  # f4.lm <- lm(formula = x$mod, data = lm.df4)
   
   df.rm <- x$dat %>%
     rownames_to_column("rn") %>%
-    dplyr::filter(rn %in% rownames(lm.df4)) %>%
+    dplyr::filter(rn %in% rownames(lm.df2)) %>%
     column_to_rownames("rn")
     
   
   ## create a statement to tell me which row were removed
-  if(nrow(x$dat) != nrow(lm.df4)){
-    cat( as.character(x$dat$ID[which(row.names(x$dat) %!in% row.names(lm.df4))]),
+  if(nrow(x$dat) != nrow(lm.df2)){
+    cat( as.character(x$dat$ID[which(row.names(x$dat) %!in% row.names(lm.df2))]),
          " were removed during model fit", paste0(replace(x$mod[length(x$mod)], "+", "_")), "\n")
   }
   
   pdf(file = file.path(win.res,paste0(name,replace(x$mod[length(x$mod)], "+", "_"),".pdf")))
   par(mfrow = c(3,2))
-  plot(f4.lm, which = 1:6, main = x$mod[[length(x$mod)]], ask = F)
+  plot(f2.lm, which = 1:6, main = x$mod[[length(x$mod)]], ask = F)
   dev.off()
   
-  return(list(lm = f4.lm, dp.rm = df.rm))
+  return(list(lm = f2.lm, dp.rm = df.rm))
+  
+  
+  
 }
 # 
 # wintorContour <- function(x, id, res.agg = 25,  save = F, ...){
@@ -444,17 +447,17 @@ write.csv(f3.scrape.df, file = file.path(win.res, 'n4win3Results.csv'), row.name
 
 # Create prediction rasters
 
-f3Pred.rasters <- lapply(f3.mod, FUN = raster::predict, object = env.stk)
-pred.stk3 <- do.call(stack, f3Pred.rasters)
-names(pred.stk3) <- c("frost",
-                      "growing",
-                      "freeze",
-                      "OG")
-writeRaster(pred.stk3, filename = file.path(win.res, "win3Pred"),
-            format = "GTiff", bylayer = T, suffix = "names", overwrite = T)
-
-## Clean for memory
-rm(pred.stk3, f3Pred.rasters)
+# f3Pred.rasters <- lapply(f3.mod, FUN = raster::predict, object = env.stk)
+# pred.stk3 <- do.call(stack, f3Pred.rasters)
+# names(pred.stk3) <- c("frost",
+#                       "growing",
+#                       "freeze",
+#                       "OG")
+# writeRaster(pred.stk3, filename = file.path(win.res, "win3Pred"),
+#             format = "GTiff", bylayer = T, suffix = "names", overwrite = T)
+# 
+# ## Clean for memory
+# rm(pred.stk3, f3Pred.rasters)
 
 
 #### making a bunch of pretty figures ####
@@ -637,3 +640,35 @@ win.plot <- function(x, save.name = NULL, res.agg = 25,  dist.map = NULL, ...){
 z <- win.plot(newWIN)
 q <- win.plot(n4)
 q.r <- win.plot(n4.reclass, save.name = "winWinner.pdf")
+
+
+
+x <- env.df
+train_control <- trainControl(method="LOOCV", returnResamp = "all")
+# train the model
+model <- train(winter.duration ~ NA_northing + NA_nFrostyDays + NA_dem, data=x, trControl=train_control, method="lm")
+summary(model)
+print(model)
+
+fat.mod <- train(avgMass ~ NA_northing + NA_nFrostyDays + NA_dem, data=mass.df, trControl=train_control, method="lm")
+cv.fat = fat.mod$pred %>% mutate(diff = obs - pred)
+cv.fat %>% top_n(10, abs(diff))
+summary(fat.mod)
+ggplot(cv.fat, aes(x=rowIndex, y=diff)) + geom_point()
+
+
+## SuperBlock ###
+pred = list()
+for (i in 1:nrow(x)) {
+  test = x[i,]
+  train = x[-i,]
+  mod = lm(winter.duration ~ NA_northing + NA_nFrostyDays + NA_dem, data=train)
+  pred_fit = predict(mod, test, interval="prediction", se.fit=TRUE)
+  pred[[i]] = cbind(pred_fit$fit, se=pred_fit$se.fit, res.scale=pred_fit$residual.scale, df=pred_fit$df, obs=test$winter.duration)
+}
+pred = bind_rows(lapply(pred, as.data.frame))
+## finds p val for observations, if outside of window of obs adj.pval will be low
+pred %>% mutate(pred.sd = sqrt(se^2 + res.scale^2),
+                tval = (obs - fit) / pred.sd,
+                pval = 2*pt(abs(tval), df=df, lower.tail = FALSE)) %>%
+  mutate(padj = p.adjust(pval)) %>% arrange(pval)
