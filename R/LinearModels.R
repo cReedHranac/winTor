@@ -369,3 +369,54 @@ writeRaster(fat.upr,
             suffix = "names",
             overwrite = T)
 rm(win.upr, fat.upr)
+
+#### Fixed conditions ####
+## create mock laters to represent bats choosing to hibernate at 98% and 4deg
+
+temp4 <- calc(mat.fix, function(x) ifelse(!is.na(x),4,NA))
+rh98 <- calc(rh.fix, function(x) ifelse(!is.na(x), 98, NA))
+
+fat.rast <- survivalFat(mod.df = mod.big,
+                        pct.rh.rast = rh98,
+                        temp.rast = temp4,
+                        win.rast = win)
+writeRaster(fat.rast,
+            filename = file.path(win.res, "MYLU_fatRequired_98_4.tif"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "names",
+            overwrite = T)
+rm(fat.rast)
+
+win.lwr <- raster(file.path(win.res, "massRaster_lwr_98_4.tif"))
+
+
+fat.lwr <- survivalFat(mod.df = mod.big,
+                       pct.rh.rast = rh98,
+                       temp.rast = temp4,
+                       win.rast = win.lwr)
+
+writeRaster(fat.lwr,
+            filename = file.path(win.res, "MYLU_fatRequired_lwr_98_4.tif"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "names",
+            overwrite = T)
+rm(win.lwr, fat.lwr)
+
+
+
+win.upr <- raster(file.path(win.res, "massRaster_upr.tif"))
+
+fat.upr <- survivalFat(mod.df = mod.big,
+                       pct.rh.rast = rh98,
+                       temp.rast = temp4,
+                       win.rast = win.upr)
+
+writeRaster(fat.upr,
+            filename = file.path(win.res, "MYLU_fatRequired_upr_98_4.tif"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "names",
+            overwrite = T)
+rm(win.upr, fat.upr)
