@@ -210,7 +210,7 @@ lmRasterIntervals <- function(model, coVars, outName){
   names(conf.int) <- c("p", "lwr", "upr")
   
   writeRaster(x = conf.int,
-              filename = file.path(win.res, out.name),
+              filename = file.path(win.res, outName),
               format = "GTiff",
               bylayer = T,
               suffix = "names",
@@ -229,7 +229,143 @@ lmRasterIntervals(dur.top.mod,
 
 
 mass.top.form <- mod.form("avgMass",coVar = env.names)[[10]]
-dur.top.mod <- lm(dur.top.form, data = mass.df)
+mass.top.mod <- lm(mass.top.form, data = mass.df)
 lmRasterIntervals(mass.top.mod,
                   coVars = env.stk,
                   outName = "massRaster")
+gc()
+#### Creating the fat required rasters #####
+
+library(data.table)
+survivalFat <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
+  #Raster modifications for Kelvin temperatures
+  if(summary(temp.rast)[1] > 200){
+    temp.c <- temp.rast - 273
+  } else{
+    temp.c <- temp.rast
+  }
+  
+  #Creating output raster dimensions
+  out <- raster(pct.rh.rast); values(out) <- NA
+  out.s <- stack(out,out); names(out.s) <- c("fat.inf", "fat.null")
+  
+  #Extract data from rasters  to matrix for speed
+  pct.rh <- as.matrix(pct.rh.rast, nrow = nrow(pct.rh.rast), ncol = ncol(pct.rh.rast))
+  temp <- as.matrix(temp.c, nrow = nrow(temp.c), ncol = ncol(temp.c))
+  win <- as.matrix(win.rast, nrow = nrow(win.rast), ncol = ncol(win.rast))
+  
+  ## shifting hours to days
+  mod.dif <- mod.df %>%
+    mutate_(days = ~hour.to.day(time)) 
+  
+  ####Look Up Table ####
+  #Vectors for look up table structure
+  Ta_vals <- unique(mod.dif$Ta)
+  pct.rh_vals <- unique(mod.dif$pct.rh)
+  days_vals <- unique(mod.dif$days)
+  
+  #Look Up Table
+  lut <- array(NA, dim=c(length(Ta_vals), length(pct.rh_vals), length(days_vals),  2)) # 2 for fat.inf and fat.null
+  dimnames(lut)[[1]] <- Ta_vals
+  dimnames(lut)[[2]] <- pct.rh_vals
+  dimnames(lut)[[3]] <- days_vals
+  dimnames(lut)[[4]] <- c("fat.inf", "fat.null")
+  
+  
+  #Fill look up table
+  for (i in seq_len(nrow(mod.dif))) {
+    d <- mod.dif[i,]
+    if (i %% 10000 == 0) {
+      cat("Look up table generation up to", i, "of", nrow(mod.dif), "\n")
+    }
+    lut[as.character(d$Ta), as.character(d$pct.rh), as.character(d$days),] <- c(d$g.fat.consumed,
+                                                                                d$n.g.fat.consumed)
+  }
+  
+  ####Find closest####
+  find_closest <- function(x, y) {
+    # Find the closest item in the vector y to x.
+    # NOTE: Assumes that y is increasing, equi-spaced vector
+    dy <- (y[length(y)] - y[1]) / (length(y)-1)
+    wch <- round((x - y[1]) / dy + 1)
+    # check the range.
+    clamp <- function(x, xmin, xmax) {
+      min(max(x, xmin),xmax)
+    }
+    
+    clamp(wch, 1, length(y))
+  }
+  
+  #Run lookup
+  for(j in 1:nlayers(out.s)){
+    #Create output matrix
+    out.z <- matrix(ncol = ncol(pct.rh), nrow = nrow(pct.rh))
+    for(i in 1:length(pct.rh)){
+      # first find the closest humidity and Ta
+      if(i %% 1000 == 0){
+        cat("Raster layer: ", j, "of", nlayers(out.s), "up to", i, "of", length(pct.rh), "\n")
+      }
+      pct.rh_i <- find_closest(pct.rh[[i]], pct.rh_vals)
+      Ta_i  <- find_closest(temp[[i]], Ta_vals)
+      win_i <- find_closest(win[[i]], days_vals)
+      out.z[[i]] <- lut[Ta_i, pct.rh_i, win_i, j]
+    }
+    # Set values back from matrix to raster
+    out.s[[j]] <- setValues(out.s[[j]], out.z)
+  }
+  return(out.s)
+}
+mod.big <- fread("D://Dropbox/winTor_aux/data/myluModHUGE.csv")
+win <- raster(file.path(win.res, "massRaster_p.tif"))
+rh <- raster("D://Dropbox/batwintor_aux/paramFiles/RH_NA.tif")
+mat <- raster("D://WorldClim/bclim/bio_1.bil")
+
+rh.fix <- projectRaster(rh, win); rm(rh)
+mat. <- projectRaster(mat, win); rm(mat)
+mat.fix <- calc(mat., function(x){x/10}); rm(mat.)
+
+library(batwintor)
+
+fat.rast <- survivalFat(mod.df = mod.big,
+                        pct.rh.rast = rh.fix,
+                        temp.rast = mat.fix,
+                        win.rast = win)
+writeRaster(fat.rast,
+            filename = file.path(win.res, "MYLU_fatRequired.tif"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "names",
+            overwrite = T)
+
+#### uncertianty win ####
+win.lwr <- raster(file.path(win.res, "massRaster_lwr.tif"))
+
+fat.lwr <- survivalFat(mod.df = mod.big,
+                       pct.rh.rast = rh.fix,
+                       temp.rast = mat.fix,
+                       win.rast = win.lwr)
+
+writeRaster(fat.lwr,
+            filename = file.path(win.res, "MYLU_fatRequired_LWR.tif"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "names",
+            overwrite = T)
+rm(win.lwr, fat.lwr)
+
+
+
+win.upr <- raster(file.path(win.res, "massRaster_upr.tif"))
+
+fat.upr <- survivalFat(mod.df = mod.big,
+                       pct.rh.rast = rh.fix,
+                       temp.rast = mat.fix,
+                       win.rast = win.upr)
+
+writeRaster(fat.upr,
+            filename = file.path(win.res, "MYLU_fatRequired_upr.tif"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "names",
+            overwrite = T)
+rm(win.upr, fat.upr)
