@@ -316,7 +316,7 @@ survivalFat <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
   return(out.s)
 }
 mod.big <- fread("D://Dropbox/winTor_aux/data/myluModHUGE.csv")
-win <- raster(file.path(win.res, "massRaster_p.tif"))
+win <- raster(file.path(win.res, "durationRaster_p.tif"))
 rh <- raster("D://Dropbox/batwintor_aux/paramFiles/RH_NA.tif")
 mat <- raster("D://WorldClim/bclim/bio_1.bil")
 
