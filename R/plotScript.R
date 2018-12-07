@@ -518,3 +518,8 @@ writeRaster(onset, file.path(win.res, "winterOnset.tif"), format = "GTiff")
 end <- calc(durationMean,fun = function(x){ifelse(x > 0, (x/2)+10, NA)})
 writeRaster(end, file.path(win.res, "winterEnd.tif"), format = "GTiff")
 
+
+writeRaster(surfaceSurv.null, file.path(win.res,"myluSurace_nul.tif"), format = "GTiff")
+writeRaster(surfaceSurv.inf, file.path(win.res, "myluSurace_inf.tif"), format = "GTiff")
+writeRaster(survStatic.null, file.path(win.res, "myluStatic_null.tif"), format = "GTiff")
+writeRaster(survStatic.inf, file.path(win.res, "myluStatic_inf.tif"), format = "GTiff")
