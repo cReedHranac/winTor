@@ -10,10 +10,14 @@ if (!exists('base.path')) {
 win.dat <- file.path(base.path, "data")
 win.res <- file.path(base.path, "Results")
 
-
+## The %!in% opperator 
+'%!in%' <- function(x,y)!('%in%'(x,y))
 
 library(tidyverse)
 library(data.table)
+library(skimr)
+library(broom)
+#### Data ####
 m.dat <- fread("data/weeklyPasses_Species_Site.csv")
 loc.m <- fread("data/LongtermSiteLocs.csv")
 
@@ -21,7 +25,75 @@ mylu.dat <- m.dat %>%
   filter(Species == "Mylu") %>%
   inner_join(. ,loc.m, by = "Location") %>%
   mutate(YR = as.factor(YR),
-         Week = as.factor(Week))
+         bi = 1)
+
+##split to front and back halves
+dat.front <- mylu.dat %>%
+  filter(Week <= 25)
+
+dat.rear <- mylu.dat %>%
+  filter(Week > 25)
+
+## create logistic regression function for site and year 
+x <- dat.front
+logReg <- function(x){
+  out <- list()
+  v <- 1
+  for(i in 1:length(unique(x$Location))){
+    for(j in 1:length(unique(x$YR))){
+      frame <- x %>%
+        filter(Location == unique(x$Location)[[i]],
+               YR == unique(x$YR)[[j]]) %>%
+        dplyr::select(Location, YR, Week, bi) 
+      #remove duplicates if they exist
+      frame <- frame[!duplicated(frame),]
+      
+      #create missing weeks
+      if(max(frame$Week <=25)){
+        low.weeks <- seq(1:25)
+        missing <- low.weeks[low.weeks %!in% frame$Week]
+        missing.df <- as.data.frame(cbind(unique(x$Location)[[i]], 
+                            levels(x$YR)[unique(x$YR)[[j]]],
+                            missing, 
+                            0))
+        names(missing.df) <- names(frame)
+        frame.filled <- rbind(frame, missing.df)
+      } else{
+        high.weeks <- seq(26:52)
+        missing <- high.weeks[high.weeks %!in% frame$Week]
+        missing.df <- as.data.frame(cbind(unique(x$Location)[[i]], 
+                                          levels(x$YR)[unique(x$YR)[[j]]],
+                                          missing, 
+                                          0))
+        names(missing.df) <- names(frame)
+        frame.filled <- rbind(frame, missing.df)
+      }
+      
+      #Run the glm if the data for that year exists
+      if(nrow(frame.filled)>1){
+        frame.filled$bi <- as.numeric(frame.filled$bi); frame.filled$Week <- as.numeric(frame.filled$Week)
+        mod <- glm(bi ~ Week, family = binomial(link = "logit"), data = frame.filled)
+        mod.a <- augment(mod, newdata =  data.frame(Week = 1:52), type.predict = "response")
+        out[[v]] <- cbind(mod.a, Location = unique(x$Location)[[i]], YR = unique(x$YR)[[j]])
+        v <- v + 1 
+      }
+    }
+  }
+  out.df <- do.call(rbind, out)
+  colnames(out.df) <- c("Week", "fitted", "se.fit", "Location", "YR")
+  return(out.df)
+  
+}
+
+a<- logReg(dat.rear)
+b <- logReg(dat.front)
+colnames(a)
+
+(backend <- ggplot(data = a, aes(x = Week, y = fitted, fill = Location, color = YR)) + 
+  geom_line()) 
+(frontend <- ggplot(data = b, aes(x = Week, y = fitted, fill = Location, color = YR)) +
+    geom_line())
+
 
 
 (date.hist <- ggplot(data = toy, aes(x = Week, y = AvgPasses_perNight, fill = Location)) + 
