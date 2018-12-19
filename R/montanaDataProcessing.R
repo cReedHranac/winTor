@@ -35,7 +35,7 @@ dat.rear <- mylu.dat %>%
   filter(Week > 25)
 
 ## create logistic regression function for site and year 
-x <- dat.front
+
 logReg <- function(x){
   out <- list()
   v <- 1
@@ -49,31 +49,34 @@ logReg <- function(x){
       frame <- frame[!duplicated(frame),]
       
       #create missing weeks
-      if(max(frame$Week <=25)){
-        low.weeks <- seq(1:25)
-        missing <- low.weeks[low.weeks %!in% frame$Week]
-        missing.df <- as.data.frame(cbind(unique(x$Location)[[i]], 
-                            levels(x$YR)[unique(x$YR)[[j]]],
-                            missing, 
-                            0))
-        names(missing.df) <- names(frame)
-        frame.filled <- rbind(frame, missing.df)
-      } else{
-        high.weeks <- seq(26:52)
-        missing <- high.weeks[high.weeks %!in% frame$Week]
-        missing.df <- as.data.frame(cbind(unique(x$Location)[[i]], 
-                                          levels(x$YR)[unique(x$YR)[[j]]],
-                                          missing, 
-                                          0))
-        names(missing.df) <- names(frame)
-        frame.filled <- rbind(frame, missing.df)
+      if(nrow(frame)>0){
+        if(max(frame$Week) <= 25){
+          weeks <- seq(1,25)
+          missing <- weeks[weeks %!in% frame$Week]
+          missing.df <- as.data.frame(cbind(unique(x$Location)[[i]], 
+                                            levels(x$YR)[unique(x$YR)[[j]]],
+                                            missing, 
+                                            0))
+          names(missing.df) <- names(frame)
+          frame.filled <- rbind(frame, missing.df)
+        } else{
+          weeks <- seq(26,52)
+          missing <- weeks[weeks %!in% frame$Week]
+          missing.df <- as.data.frame(cbind(unique(x$Location)[[i]], 
+                                            levels(x$YR)[unique(x$YR)[[j]]],
+                                            missing, 
+                                            0))
+          names(missing.df) <- names(frame)
+          frame.filled <- rbind(frame, missing.df)
+        }
       }
       
+      
       #Run the glm if the data for that year exists
-      if(nrow(frame.filled)>1){
+      if(exists("frame.filled")){
         frame.filled$bi <- as.numeric(frame.filled$bi); frame.filled$Week <- as.numeric(frame.filled$Week)
         mod <- glm(bi ~ Week, family = binomial(link = "logit"), data = frame.filled)
-        mod.a <- augment(mod, newdata =  data.frame(Week = 1:52), type.predict = "response")
+        mod.a <- augment(mod, newdata =  data.frame(Week = weeks), type.predict = "response")
         out[[v]] <- cbind(mod.a, Location = unique(x$Location)[[i]], YR = unique(x$YR)[[j]])
         v <- v + 1 
       }
@@ -87,16 +90,47 @@ logReg <- function(x){
 
 a<- logReg(dat.rear)
 b <- logReg(dat.front)
-colnames(a)
 
-(backend <- ggplot(data = a, aes(x = Week, y = fitted, fill = Location, color = YR)) + 
+
+(backend <- ggplot(data = frame.x, aes(x = Week, y = fitted, fill = Location, color = YR)) + 
   geom_line()) 
 (frontend <- ggplot(data = b, aes(x = Week, y = fitted, fill = Location, color = YR)) +
     geom_line())
 
 
+loc.plot <- function(x, y){
+  ## x is the return of logReg
+  ## y is dataframe into log reg
+  out <- list()
+  v <- 1
+  for(i in 1:length(unique(x$Location))){
+    frame.x <-  x %>%
+      filter(Location == unique(x$Location)[[i]]) 
+    frame.y <-  y %>%
+      filter(Location == unique(x$Location)[[i]])
+    frame.y <- frame.y[!duplicated(frame.y),]
+    out[[v]] <-  ggplot() + 
+      geom_bar(data = frame.y,
+               aes(x = Week, y = bi, fill = YR), stat = "identity")+
+      geom_line(data = frame.x,
+                aes(x = Week, y = fitted, color = YR)) + 
+      scale_x_continuous(breaks = seq(min(x$Week), max(x$Week)),
+                         limits = c(min(x$Week), max(x$Week)))+
+      theme_bw() 
+    
+    
+  }
 
-(date.hist <- ggplot(data = toy, aes(x = Week, y = AvgPasses_perNight, fill = Location)) + 
+}
+
+
+
+
+
+
+
+
+(date.hist <- ggplot(data = toy, ) + 
   geom_bar( stat = "identity") + guides(fill=FALSE)+
   facet_grid(~YR))
 
