@@ -34,16 +34,50 @@ dat.front <- mylu.dat %>%
 dat.rear <- mylu.dat %>%
   filter(Week > 25)
 
+## tables 
+#Create tables to see which data exists where prior to cleaning methods
+table(dat.front$Location, dat.front$YR)
+table(dat.rear$Location, dat.rear$YR)
+
+#### Clceaning points ####
+## must have at least 3 points in one each year,
+## must have at least 2 years,
+## must pass through .5
+
+## Take median 
+
+clean.site.years <- function(x){
+  ##Function to clean by first 2 criteria
+  df <- x %>%
+    group_by(Location, YR) %>%
+    filter(n() > 2) %>%
+    ungroup %>%
+    group_by(Location) %>%
+    filter(any(length(unique(YR)) >= 2))
+  return(df)
+}
+
+clean.log <- function(y){
+  #function to remove site locations that don't hav ean inflection point
+  df <- y %>%
+    group_by(Location, YR) %>%
+    filter(any(range(fitted) > .5))
+  return(df)
+}
+
+
 ## create logistic regression function for site and year 
 
 logReg <- function(x){
   out <- list()
+  out.est <- list()
   v <- 1
   for(i in 1:length(unique(x$Location))){
-    for(j in 1:length(unique(x$YR))){
-      frame <- x %>%
-        filter(Location == unique(x$Location)[[i]],
-               YR == unique(x$YR)[[j]]) %>%
+    frame.loc <- x %>%
+      filter(Location == unique(x$Location)[[i]])
+    for(j in 1:length(unique(frame.loc$YR))){
+      frame <- frame.loc %>%
+        filter(YR == unique(frame.loc$YR)[[j]]) %>%
         dplyr::select(Location, YR, Week, bi) 
       #remove duplicates if they exist
       frame <- frame[!duplicated(frame),]
@@ -53,21 +87,84 @@ logReg <- function(x){
         if(max(frame$Week) <= 25){
           weeks <- seq(1,25)
           missing <- weeks[weeks %!in% frame$Week]
-          missing.df <- as.data.frame(cbind(unique(x$Location)[[i]], 
-                                            levels(x$YR)[unique(x$YR)[[j]]],
+          missing.df <- as_tibble(cbind(unique(x$Location)[[i]], 
+                                            levels(frame.loc$YR)[unique(frame.loc$YR)[[j]]],
                                             missing, 
                                             0))
           names(missing.df) <- names(frame)
-          frame.filled <- rbind(frame, missing.df)
+          frame.filled <- bind_rows(mutate_all(frame, as.character), missing.df)
         } else{
           weeks <- seq(26,52)
           missing <- weeks[weeks %!in% frame$Week]
-          missing.df <- as.data.frame(cbind(unique(x$Location)[[i]], 
-                                            levels(x$YR)[unique(x$YR)[[j]]],
-                                            missing, 
-                                            0))
+          missing.df <- as_tibble(cbind(unique(x$Location)[[i]], 
+                                        levels(frame.loc$YR)[unique(frame.loc$YR)[[j]]],
+                                        missing, 
+                                        0))
           names(missing.df) <- names(frame)
-          frame.filled <- rbind(frame, missing.df)
+          frame.filled <- bind_rows(mutate_all(frame, as.character), missing.df)
+        }
+      }
+      
+      
+      #Run the glm if the data for that year exists
+      if(exists("frame.filled")){
+        frame.filled$bi <- as.numeric(frame.filled$bi); frame.filled$Week <- as.numeric(frame.filled$Week)
+        mod <- glm(bi ~ Week, family = binomial(link = "logit"), data = frame.filled)
+        # fitting curves
+        mod.a <- augment(mod, newdata =  data.frame(Week = weeks), type.predict = "response")
+        out[[v]] <- cbind(mod.a,
+                          Location = unique(x$Location)[[i]],
+                          YR = unique(frame.loc$YR)[[j]])
+        # finding p=.5
+        p <- 0.5
+        est <- (log(p/(1-p)) - coef(mod)[1]/coef(mod)[2])
+        out.est[[v]] <- cbind(Location = unique(x$Location)[[i]],
+                              YR = levels(frame.loc$YR)[unique(frame.loc$YR)[[j]]],
+                              est = est)
+        v <- v + 1 
+      }
+    }
+  }
+  out.df <- do.call(rbind, out)
+  out.est.df <- do.call(rbind, out.est)
+  colnames(out.df) <- c("Week", "fitted", "se.fit", "Location", "YR")
+  
+  out.list <- list(regression.df = out.df, 
+                   regression.est = out.est.df)
+  return(out.list)
+  
+}
+# logRegSite <- function(x){
+  ## same as above function without the year breakout for site averages
+  out <- list()
+  v <- 1
+  for(i in 1:length(unique(x$Location))){
+      frame <- x %>%
+        filter(Location == unique(x$Location)[[i]]) %>%
+        dplyr::select(Location, Week, bi) 
+      #remove duplicates if they exist
+      frame <- frame[!duplicated(frame),]
+      
+      #create missing weeks
+      if(nrow(frame)>0){
+        if(max(frame$Week) <= 25){
+          weeks <- seq(1,25)
+          missing <- weeks[weeks %!in% frame$Week]
+          missing.df <- as_tibble(cbind(unique(x$Location)[[i]], 
+                                        levels(frame.loc$YR)[unique(frame.loc$YR)[[j]]],
+                                        missing, 
+                                        0))
+          names(missing.df) <- names(frame)
+          frame.filled <- bind_rows(mutate_all(frame, as.character), missing.df)
+        } else{
+          weeks <- seq(26,52)
+          missing <- weeks[weeks %!in% frame$Week]
+          missing.df <- as_tibble(cbind(unique(x$Location)[[i]], 
+                                        levels(frame.loc$YR)[unique(frame.loc$YR)[[j]]],
+                                        missing, 
+                                        0))
+          names(missing.df) <- names(frame)
+          frame.filled <- bind_rows(mutate_all(frame, as.character), missing.df)
         }
       }
       
@@ -77,30 +174,18 @@ logReg <- function(x){
         frame.filled$bi <- as.numeric(frame.filled$bi); frame.filled$Week <- as.numeric(frame.filled$Week)
         mod <- glm(bi ~ Week, family = binomial(link = "logit"), data = frame.filled)
         mod.a <- augment(mod, newdata =  data.frame(Week = weeks), type.predict = "response")
-        out[[v]] <- cbind(mod.a, Location = unique(x$Location)[[i]], YR = unique(x$YR)[[j]])
+        out[[v]] <- cbind(mod.a, Location = unique(x$Location)[[i]])
         v <- v + 1 
-      }
     }
   }
   out.df <- do.call(rbind, out)
-  colnames(out.df) <- c("Week", "fitted", "se.fit", "Location", "YR")
+  colnames(out.df) <- c("Week", "fitted", "se.fit", "Location")
   return(out.df)
-  
 }
-
-a<- logReg(dat.rear)
-b <- logReg(dat.front)
-
-
-(backend <- ggplot(data = frame.x, aes(x = Week, y = fitted, fill = Location, color = YR)) + 
-  geom_line()) 
-(frontend <- ggplot(data = b, aes(x = Week, y = fitted, fill = Location, color = YR)) +
-    geom_line())
-
-
-loc.plot <- function(x, y){
-  ## x is the return of logReg
-  ## y is dataframe into log reg
+loc.plot <- function(x, y, z = NULL){
+  ## x is dataframe into logReg
+  ## y is the return of logReg
+  ## z is the return of logRegSite
   out <- list()
   v <- 1
   for(i in 1:length(unique(x$Location))){
@@ -109,25 +194,65 @@ loc.plot <- function(x, y){
     frame.y <-  y %>%
       filter(Location == unique(x$Location)[[i]])
     frame.y <- frame.y[!duplicated(frame.y),]
+    
     out[[v]] <-  ggplot() + 
-      geom_bar(data = frame.y,
-               aes(x = Week, y = bi, fill = YR), stat = "identity")+
-      geom_line(data = frame.x,
-                aes(x = Week, y = fitted, color = YR)) + 
-      scale_x_continuous(breaks = seq(min(x$Week), max(x$Week)),
-                         limits = c(min(x$Week), max(x$Week)))+
+      geom_bar(data = frame.x,
+               aes(x = Week, y = bi, fill = YR), stat = "identity", alpha = .5)+
+      geom_line(data = frame.y,
+                aes(x = Week, y = fitted, color = YR), size = 1.5) +
+      scale_x_continuous(breaks = seq(min(y$Week), max(y$Week)),
+                         limits = c(min(y$Week), max(y$Week)))+
+      ggtitle(unique(x$Location)[[i]])+
       theme_bw() 
-    
-    
+    if(!is.null(z)){
+      frame.z <- z %>%
+        filter(Location == unique(x$Location)[[i]])
+      frame.z <- frame.z[!duplicated(frame.z),]
+      out[[v]] <- out[[v]] +geom_line(data = frame.z, 
+                aes(x = Week, y = fitted), size = 1.25) 
+    }
+    v <- v+1
   }
-
+  return(out)
+}
+logWrapper <- function(x){
+  ## clean input 
+  x.cleaned <- clean.site.years(x)
+  
+  ## run the regressions
+  regSiteYear <- logReg(x.cleaned)
+  #regSite <- logRegSite(x.cleaned)
+  
+  y.cleaned <- clean.log(regSiteYear$regression.df)
+    
+  ## create location plots
+  locationPlots <- loc.plot(x= x.cleaned,
+                            y= y.cleaned)
+  
+  out <- list(cleaned_Site_Year = x.cleaned,
+              fitted_Site_Year = y.cleaned$regression.df,
+              #fitted_Site = regSite,
+              plot_Location = locationPlots,
+              estimate.df = y.cleaned$regression.est)
+  return(out)
 }
 
 
+frontHalf <- logWrapper(dat.front)
+backHalf <- logWrapper(dat.rear)
+
+## Group plots
+(backend <- ggplot(data = b, aes(x = Week, y = fitted, fill = Location, color = YR)) + 
+  geom_line()) 
+(frontend <- ggplot(data = a, aes(x = Week, y = fitted, fill = Location, color = YR)) +
+    geom_line())
 
 
 
 
+
+
+#
 
 
 (date.hist <- ggplot(data = toy, ) + 
