@@ -57,15 +57,6 @@ clean.site.years <- function(x){
   return(df)
 }
 
-clean.log <- function(y){
-  #function to remove site locations that don't hav ean inflection point
-  df <- y %>%
-    group_by(Location, YR) %>%
-    filter(any(range(fitted) > .5))
-  return(df)
-}
-
-
 ## create logistic regression function for site and year 
 
 logReg <- function(x){
@@ -128,6 +119,17 @@ logReg <- function(x){
   out.df <- do.call(rbind, out)
   out.est.df <- do.call(rbind, out.est)
   colnames(out.df) <- c("Week", "fitted", "se.fit", "Location", "YR")
+  ## Fiter for those not within range and without the requirements mentioned above
+  est.df <- as.data.frame(out.est.df, row.names = NULL)
+  rownames(est.df) <- NULL; est.df$est <- as.numeric(est.df$est)
+  out.est.df <- est.df %>%
+    group_by(Location, YR) %>%
+    filter(est %in% weeks) %>%
+    ungroup %>%
+    group_by(Location) %>%
+    # filter(any(length(unique(YR)) >= 2)) %>%
+    summarise(est.med = median(est))
+  
   
   out.list <- list(regression.df = out.df, 
                    regression.est = out.est.df)
@@ -220,20 +222,18 @@ logWrapper <- function(x){
   x.cleaned <- clean.site.years(x)
   
   ## run the regressions
-  regSiteYear <- logReg(x.cleaned)
+  regSiteYear <- logReg(x)
   #regSite <- logRegSite(x.cleaned)
-  
-  y.cleaned <- clean.log(regSiteYear$regression.df)
     
   ## create location plots
   locationPlots <- loc.plot(x= x.cleaned,
-                            y= y.cleaned)
+                            y= regSiteYear$regression.df)
   
   out <- list(cleaned_Site_Year = x.cleaned,
-              fitted_Site_Year = y.cleaned$regression.df,
+              fitted_Site_Year = regSiteYear$regression.df,
               #fitted_Site = regSite,
               plot_Location = locationPlots,
-              estimate.df = y.cleaned$regression.est)
+              estimate.df = regSiteYear$regression.est)
   return(out)
 }
 
