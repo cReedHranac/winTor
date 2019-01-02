@@ -247,42 +247,26 @@ backHalf <- logWrapper(dat.rear)
 (frontend <- ggplot(data = a, aes(x = Week, y = fitted, fill = Location, color = YR)) +
     geom_line())
 
+## Putting together which appear in both sets 
+comp.est <- inner_join(backHalf$estimate.df,
+                       frontHalf$estimate.df,
+                       by = "Location") %>%
+  inner_join(., loc.m,
+             by = "Location") %>% 
+  dplyr::select(Location, est.med.x, est.med.y, Latitude, Longitude) %>%
+  distinct %>%
+  mutate(start.est = as.Date(paste(2018, trunc(est.med.x), 1, sep = "-"), "%Y-%U-%u"),
+         end.est = as.Date(paste(2019, trunc(est.med.y), 1, sep = "-"), "%Y-%U-%u") ,
+         duration = as.numeric( end.est - start.est))
 
-
-
-
-
-#
-
-
-(date.hist <- ggplot(data = toy, ) + 
-  geom_bar( stat = "identity") + guides(fill=FALSE)+
-  facet_grid(~YR))
-
-
-toy <- mylu.dat %>%
-  filter(Location =="Signal Peak Mine Busse Water Reservoir")
-
-top.dat <- mylu.dat %>%
-  group_by(Location) %>%
-  mutate(n.row = n()) %>%
-  top_n(5, wt = n.row)
-
-max(top.dat$n.row)
-top.dat[top.dat["n.row"==188],]
-a <-  top.dat[ top.dat$n.row == 188, ]
 
 ## See how long our locations go for in the mod
 library(raster)
 winter <- raster(file.path(win.res, "durationRaster_p.tif"))
 
-coordinates(mylu.dat) <- ~ Longitude + Latitude
-proj4string(mylu.dat) <- proj4string(winter)
+coordinates(comp.est) <- ~ Longitude + Latitude
+proj4string(comp.est) <- proj4string(winter)
 
-win.length <- extract(winter, mylu.dat)
-summary(win.length)
-
-
-
-library(mapview)
-mapview(mylu.dat)
+comp.est$duration.p <- extract(winter, comp.est)
+comp.est$duration.diff <- comp.est$duration.p - comp.est$duration
+## These are looking real shit
