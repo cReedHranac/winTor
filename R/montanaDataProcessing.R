@@ -183,7 +183,7 @@ logReg <- function(x){
   out.df <- do.call(rbind, out)
   colnames(out.df) <- c("Week", "fitted", "se.fit", "Location")
   return(out.df)
-}
+
 loc.plot <- function(x, y, z = NULL){
   ## x is dataframe into logReg
   ## y is the return of logReg
@@ -255,8 +255,8 @@ comp.est <- inner_join(backHalf$estimate.df,
              by = "Location") %>% 
   dplyr::select(Location, est.med.x, est.med.y, Latitude, Longitude) %>%
   distinct %>%
-  mutate(start.est = as.Date(paste(2018, trunc(est.med.x), 1, sep = "-"), "%Y-%U-%u"),
-         end.est = as.Date(paste(2019, trunc(est.med.y), 1, sep = "-"), "%Y-%U-%u") ,
+  mutate(start.est = as.Date(paste(2018, trunc(est.med.x), 1, sep = "-"), "%Y-%m-%d"),
+         end.est = as.Date(paste(2019, trunc(est.med.y), 1, sep = "-"), "%Y-%m-%d") ,
          duration = as.numeric( end.est - start.est))
 
 
@@ -275,10 +275,10 @@ comp.est$duration.diff <- comp.est$duration.p - comp.est$duration
 ## out dataframe should be
 ## id lat long Start End winter.duration
 
-df.out <- cbind(ID = paste0("MTHP", 1:nrow(comp.est)),
+df.out <- bind_cols(ID = paste0("MTHP", 1:nrow(comp.est)),
                 lat = comp.est$Latitude,
                 long = comp.est$Longitude,
-                Start = comp.est$start.est,
-                End = comp.est$end.est,
+                Start = as.Date(comp.est$start.est,"%Y-%m-%d"),
+                End = as.Date(comp.est$end.est, "%Y-%m-%d"),
                 winter.duration = comp.est$duration)
 write.csv(df.out, "data/MTHP_durationCleaned.csv", row.names = F)

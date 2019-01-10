@@ -95,6 +95,7 @@ rec.clean <- rec.sub %>%
   dplyr::filter(!is.na(winter.duration)) %>%
   dplyr::select(ID, lat, long, LDH, LDE, winter.duration)
 colnames(rec.clean)[4:5] <- c("Start", "End") # rename to conform
+rec.clean$lat <- as.numeric(rec.clean$lat) ## shifting
 
 #### literature data ####
 lit.dat <- as_tibble(read.csv("data/durationData.csv"))
@@ -106,6 +107,7 @@ lit.dat$Start <- as.Date(lit.dat$Start, '%d-%h')
 lit.dat$End <- as.Date(lit.dat$End, '%d-%h')
 ## add year for end
 year(lit.dat$End) <- 2019
+year(lit.dat$Start) <- 2018
 
 
 for(i in 1:nrow(lit.dat)){ # Create duration since there's one already in there
@@ -118,11 +120,15 @@ lit.clean <- lit.dat %>%
   dplyr::select(ID, lat, long, Start, End, winter.duration)
 
 #### Complete data frame ####
-dat.comp <- rbind(lit.clean, rec.clean)
-# lat isn't numeric for some reason
-dat.comp$lat <- as.numeric(dat.comp$lat)
+## Include the MTHP data stream
+mthp <- fread("data/MTHP_durationCleaned.csv")
+mthp$Start <- as.Date(mthp$Start, "%Y-%m-%d")
+mthp$End <- as.Date(mthp$End, "%Y-%m-%d")
+dat.comp <- bind_rows(lit.clean, rec.clean, mthp)
+
 #create id col for binding with env 
 dat.comp$env_ID <- 1:nrow(dat.comp)
+
 #### spatial co-varriates ####
 
 ## add spatial orientation
@@ -132,7 +138,7 @@ proj4string(dat.comp)  <- wgs84
 
 ## Co-variates
 env.names <- c("NA_dem", "NA_northing", "NA_nFrostyDays",
-               "NA_nonGrowingDays", "NA_nDaysFreeze", "NA_frostFreeze", "NA_OG1k")
+               "NA_nonGrowingDays", "NA_nDaysFreeze", "NA_OG1k")
 env.stk <- raster::subset(stack(list.files(win.dat, pattern = "NA_*", full.names = T)), env.names)
 
 ## extract data from locations
@@ -141,4 +147,4 @@ colnames(env.dat)[1] <- "env_ID"
 env.df <- as_tibble(left_join(as.data.frame(dat.comp), env.dat))
 
 ## write out complete dataframe to 
-write.csv(env.df[,-7], file.path("data/", "modelingDataFrame.csv"), row.names = F)
+write.csv(env.df[,-7], file.path("data/", "durationUpdate.csv"), row.names = F)
