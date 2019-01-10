@@ -270,3 +270,15 @@ proj4string(comp.est) <- proj4string(winter)
 comp.est$duration.p <- extract(winter, comp.est)
 comp.est$duration.diff <- comp.est$duration.p - comp.est$duration
 ## These are looking real shit
+## fuck it we're going to try them any ways
+
+## out dataframe should be
+## id lat long Start End winter.duration
+
+df.out <- cbind(ID = paste0("MTHP", 1:nrow(comp.est)),
+                lat = comp.est$Latitude,
+                long = comp.est$Longitude,
+                Start = comp.est$start.est,
+                End = comp.est$end.est,
+                winter.duration = comp.est$duration)
+write.csv(df.out, "data/MTHP_durationCleaned.csv", row.names = F)
