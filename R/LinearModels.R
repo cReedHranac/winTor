@@ -18,7 +18,7 @@ win.res <- file.path(base.path, "Results")
 
 
 #### Data ####
-dur.df <- read.csv("data/modelingDataFrame.csv")
+dur.df <- read.csv("data/durationUpdate.csv")
 mass <- read.csv("data/massLocations.csv")
 
 ## Co-variates
@@ -143,7 +143,26 @@ cross.wrapper <- function(predictor, coVarNames, df){
 dur.points <- cross.wrapper(predictor = "winter.duration", 
                        coVarNames = env.names,
                        df = dur.df)
-## No points stand out
+## MTHP1 identified by 15/15 
+## MTHP4 identified by 6/16
+## MTHP3 showed up too 1/15
+dur.mod1 <- dur.df %>%
+  dplyr::filter(ID %!in% c("MTHP1", "MTHP4"))
+## Re-run, as I suspect the MTHP3 will fall out now
+dur.points1 <- cross.wrapper(predictor = "winter.duration",
+                              coVarNames = env.names,
+                              df = dur.mod1)
+## MTHP4 identified by 5/15
+## MTHP3 showed up too 3/15
+dur.mod2 <- dur.df %>%
+  dplyr::filter(ID %!in% c("MTHP1", "MTHP4", "MTHP4"))
+## Re-run, as I suspect the MTHP3 will fall out now
+dur.points2 <- cross.wrapper(predictor = "winter.duration",
+                             coVarNames = env.names,
+                             df = dur.mod2)
+
+
+
 
 mass.points <- cross.wrapper(predictor = "avgMass",
                              coVarNames = env.names,
