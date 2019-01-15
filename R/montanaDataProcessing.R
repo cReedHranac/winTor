@@ -136,7 +136,7 @@ logReg <- function(x){
   return(out.list)
   
 }
-# logRegSite <- function(x){
+ logRegSite <- function(x){
   ## same as above function without the year breakout for site averages
   out <- list()
   v <- 1
@@ -183,7 +183,7 @@ logReg <- function(x){
   out.df <- do.call(rbind, out)
   colnames(out.df) <- c("Week", "fitted", "se.fit", "Location")
   return(out.df)
-
+}
 loc.plot <- function(x, y, z = NULL){
   ## x is dataframe into logReg
   ## y is the return of logReg

@@ -120,12 +120,13 @@ lit.clean <- lit.dat %>%
   dplyr::select(ID, lat, long, Start, End, winter.duration)
 
 #### Complete data frame ####
-## Include the MTHP data stream
-mthp <- fread("data/MTHP_durationCleaned.csv")
-mthp$Start <- as.Date(mthp$Start, "%Y-%m-%d")
-mthp$End <- as.Date(mthp$End, "%Y-%m-%d")
-dat.comp <- bind_rows(lit.clean, rec.clean, mthp)
+## Include the MTHP data stream    ## This data sucks
+# mthp <- fread("data/MTHP_durationCleaned.csv")
+# mthp$Start <- as.Date(mthp$Start, "%Y-%m-%d")
+# mthp$End <- as.Date(mthp$End, "%Y-%m-%d")
+# dat.comp <- bind_rows(lit.clean, rec.clean, mthp)
 
+dat.comp <- bind_rows(lit.clean, rec.clean)
 #create id col for binding with env 
 dat.comp$env_ID <- 1:nrow(dat.comp)
 
@@ -147,4 +148,4 @@ colnames(env.dat)[1] <- "env_ID"
 env.df <- as_tibble(left_join(as.data.frame(dat.comp), env.dat))
 
 ## write out complete dataframe to 
-write.csv(env.df[,-7], file.path("data/", "durationUpdate.csv"), row.names = F)
+write.csv(env.df[,-which(names(env.df)=="env_ID")], file.path("data/", "durationUpdate.csv"), row.names = F)

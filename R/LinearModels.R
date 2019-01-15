@@ -143,33 +143,14 @@ cross.wrapper <- function(predictor, coVarNames, df){
 dur.points <- cross.wrapper(predictor = "winter.duration", 
                        coVarNames = env.names,
                        df = dur.df)
-## MTHP1 identified by 15/15 
-## MTHP4 identified by 6/16
-## MTHP3 showed up too 1/15
-dur.mod1 <- dur.df %>%
-  dplyr::filter(ID %!in% c("MTHP1", "MTHP4"))
-## Re-run, as I suspect the MTHP3 will fall out now
-dur.points1 <- cross.wrapper(predictor = "winter.duration",
-                              coVarNames = env.names,
-                              df = dur.mod1)
-## MTHP4 identified by 5/15
-## MTHP3 showed up too 3/15
-dur.mod2 <- dur.df %>%
-  dplyr::filter(ID %!in% c("MTHP1", "MTHP4", "MTHP4"))
-## Re-run, as I suspect the MTHP3 will fall out now
-dur.points2 <- cross.wrapper(predictor = "winter.duration",
-                             coVarNames = env.names,
-                             df = dur.mod2)
-
-
-
+## the two shortest data points were identifited in 1/15 models and still had
+## acptable adjusted p-values so I'd say they're fine
 
 mass.points <- cross.wrapper(predictor = "avgMass",
                              coVarNames = env.names,
                              df = mass.df)
 ## The 14.5 point from New York pops out in every intance and has a super low p-val
-
-mass.df <- mass.df[-10,]
+mass.df <- mass.df[-which(mass.df$avgMass==14.5),]
 
 #### Linear model application ####
 
@@ -236,9 +217,6 @@ lmRasterIntervals <- function(model, coVars, outName){
               overwrite = T)
   
 }
-
-
-
 
 dur.top.form <- mod.form("winter.duration",coVar = env.names)[[12]]
 dur.top.mod <- lm(dur.top.form, data = dur.df)
