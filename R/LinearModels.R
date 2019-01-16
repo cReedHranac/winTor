@@ -233,7 +233,7 @@ lmRasterIntervals(mass.top.mod,
 gc()
 #### Creating the fat required rasters #####
 
-library(data.table)
+library(data.table);library(raster)
 survivalFat <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
   #Raster modifications for Kelvin temperatures
   if(summary(temp.rast)[1] > 200){
@@ -335,7 +335,7 @@ writeRaster(fat.rast,
             overwrite = T)
 
 #### uncertianty win ####
-win.lwr <- raster(file.path(win.res, "massRaster_lwr.tif"))
+win.lwr <- raster(file.path(win.res, "durationRaster_lwr.tif"))
 
 fat.lwr <- survivalFat(mod.df = mod.big,
                        pct.rh.rast = rh.fix,
@@ -349,10 +349,10 @@ writeRaster(fat.lwr,
             suffix = "names",
             overwrite = T)
 rm(win.lwr, fat.lwr)
+gc()
 
 
-
-win.upr <- raster(file.path(win.res, "massRaster_upr.tif"))
+win.upr <- raster(file.path(win.res, "durationRaster_upr.tif"))
 
 fat.upr <- survivalFat(mod.df = mod.big,
                        pct.rh.rast = rh.fix,
@@ -366,6 +366,7 @@ writeRaster(fat.upr,
             suffix = "names",
             overwrite = T)
 rm(win.upr, fat.upr)
+gc()
 
 #### Fixed conditions ####
 ## create mock laters to represent bats choosing to hibernate at 98% and 4deg
@@ -385,7 +386,9 @@ writeRaster(fat.rast,
             overwrite = T)
 rm(fat.rast)
 
-win.lwr <- raster(file.path(win.res, "massRaster_lwr_98_4.tif"))
+
+#
+win.lwr <- raster(file.path(win.res, "durationRaster_lwr.tif"))
 
 
 fat.lwr <- survivalFat(mod.df = mod.big,
@@ -400,10 +403,10 @@ writeRaster(fat.lwr,
             suffix = "names",
             overwrite = T)
 rm(win.lwr, fat.lwr)
+gc()
 
 
-
-win.upr <- raster(file.path(win.res, "massRaster_upr.tif"))
+win.upr <- raster(file.path(win.res, "durationRaster_upr.tif"))
 
 fat.upr <- survivalFat(mod.df = mod.big,
                        pct.rh.rast = rh98,
