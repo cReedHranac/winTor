@@ -291,6 +291,10 @@ Surv.plot <- function(x,  res.agg = 25, dist.map = NULL,
                          midpoint = 0,
                          limits=  c(floor(minValue(x.ag)),
                                     ceiling(maxValue(x.ag)))) +
+    geom_contour(aes(z = winter,
+                     color = factor(..level.. == 0,
+                                    levels = c(F, T))),
+                 breaks = -31:3) +
     
     #general malarkey
     scale_x_continuous(expand = c(0,0))+
@@ -335,7 +339,8 @@ Surv.plot <- function(x,  res.agg = 25, dist.map = NULL,
 fatSurvivalHistograms <- function(survNULL, survINF, dist.map, c.string,
                                  save.name = NULL, device.out = NULL){
   stk <- stack(survNULL, survINF); names(stk) <- c("null", "inf")
-  stk.mask <- mask(crop(stk, dist.map), dist.map)
+  stk.ag <- aggregate(stk, 25)
+  stk.mask <- mask(crop(stk.ag, dist.map), dist.map)
   stk.df <- na.omit(as.data.frame(values(stk.mask))) %>%
     gather("status", "fat", 1:2 ) 
   stk.med <- stk.df %>%
@@ -378,7 +383,7 @@ survNULL <- survStatic.null
 survINF <- survStatic.inf
 dist.map <-mylu.dist
 
-fatSurvivalHitograms(survStatic.null,survStatic.inf,mylu.dist, survColors(2))
+(staticHist <- fatSurvivalHitograms(survStatic.null,survStatic.inf,mylu.dist, survColors(2)))
 
 ####No Longer needed ####
 # survColorsPOS <- colorRampPalette(c( "#ffffff", "#5e3c99","#b2abd2")) #"#fdb863", "#e66101"
@@ -469,7 +474,8 @@ surfaceSurv.inf <- fatMean - fatReq.inf
 fatSurvivalHistSurface <- function(survNULL, survINF, dist.map, c.string,
                                  save.name = NULL, device.out = NULL){
   stk <- stack(survNULL, survINF); names(stk) <- c("null", "inf")
-  stk.mask <- mask(crop(stk, dist.map), dist.map)
+  stk.ag <- aggregate(stk,25)
+  stk.mask <- mask(crop(stk.ag, dist.map), dist.map)
   stk.df <- na.omit(as.data.frame(values(stk.mask))) %>%
     gather("status", "fat", 1:2 ) 
   stk.med <- stk.df %>%
@@ -480,7 +486,7 @@ fatSurvivalHistSurface <- function(survNULL, survINF, dist.map, c.string,
     scale_color_manual(values = c.string) +
     scale_fill_manual(values = c.string) +
     geom_histogram(binwidth = .25, alpha = .5, position = "identity") +
-    # xlim(-3,3)+
+    xlim(-10,2)+
     geom_vline(data = stk.med, aes(xintercept = med, color = status),
                linetype = "dashed", size = 1)+
     geom_vline(xintercept = 0)+
@@ -509,7 +515,7 @@ fatSurvivalHistSurface <- function(survNULL, survINF, dist.map, c.string,
   
 }
 
-fatSurvivalHistSurface(surfaceSurv.null,surfaceSurv.inf,mylu.dist, survColors(2))
+(surfaceHist <- fatSurvivalHistSurface(surfaceSurv.null,surfaceSurv.inf,mylu.dist, survColors(2)))
 
 #### Onset and End of winter for Meredith) ####
 
@@ -523,3 +529,34 @@ writeRaster(surfaceSurv.null, file.path(win.res,"myluSurace_nul.tif"), format = 
 writeRaster(surfaceSurv.inf, file.path(win.res, "myluSurace_inf.tif"), format = "GTiff")
 writeRaster(survStatic.null, file.path(win.res, "myluStatic_null.tif"), format = "GTiff")
 writeRaster(survStatic.inf, file.path(win.res, "myluStatic_inf.tif"), format = "GTiff")
+
+#### Aranging and such ####
+library(gridExtra)
+
+## figure 2: Top Models 
+  ## alternaticly may just be the winMean.plot
+topMods <- grid.arrange(winMean.plot + theme(axis.text.x = element_blank(),
+                                             axis.title.x = element_blank(),
+                                             axis.ticks.x = element_blank(),
+                                             axis.title.y = element_blank()), 
+                        massMean.plot+ theme(axis.text.x = element_blank(),
+                                             axis.ticks.x = element_blank(),
+                                             axis.title.x = element_blank(),
+                                             axis.title.y = element_blank()),
+                        fatMean.plot + theme(axis.title.y = element_blank(),
+                                             axis.title.x = element_blank()),
+                        ncol = 1)
+## Issue: don't know how to get things to be the same sizes (issues come from 
+  ## dropping the x axis attributes in the first two instances)
+
+#figure 3 (alt): Top mass and fat 
+massMean.Dist <- mass.plot(x = massmean,
+                           c.string = massColors(5),
+                           dist.map = mylu.dist)
+fatMean.Dist <- fat.plot(fatMean, 
+                         c.string = fatColors(5),
+                         dist.map = mylu.dist)
+massFat <- grid.arrange(massMean.Dist, 
+                        fatMean.Dist,
+                        ncol = 1)
+
