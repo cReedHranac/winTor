@@ -64,22 +64,27 @@ win.res <- file.path(base.path, "Results")
 
 
 #### Recorder data ####
-rec.dirty <- dplyr::tbl_df(read.csv("data/WinterDurationP1.csv", stringsAsFactors = F))
+  ##First set
+# rec.dirty <- dplyr::tbl_df(read.csv("data/WinterDurationP1.csv", stringsAsFactors = F))
+rec.dirty <- dplyr::tbl_df(read.csv("data/WinterDuration_Update.csv", stringsAsFactors = F,
+                                    na.strings = c("Insufficient Number Recordings",
+                                                   "ND",
+                                                   "",
+                                                   "-",
+                                                   "No bats detected at this location")))
 ## add ID col
 rec.dirty$ID <- paste0("ID_", 1:nrow(rec.dirty))
-## modifiy no data entries 
-rec.NA <- rec.dirty %>%
-  mutate_all(function(x)gsub(pattern = "Insufficient Number Recordings", replacement = NA, x)) %>%
-  mutate_all(function(x)gsub(pattern = "ND", replacement = NA, x))
 ## clean up spatial issues 
-rec.pts <- geoManager(x = rec.NA)
+rec.pts <- geoManager(x = rec.dirty)
 ## remove those without spatial locations
 rec.dpts <- rec.pts %>%
   dplyr::filter(!is.na(long))
 ## clean the excess columns out 
 rec.sub <- rec.dpts %>%
-  dplyr::select(ID, lat, long, nWinterFlights, LDH, lastFall,
-                firstSpring, nMaxEmerging, nMaxSpring, LDE, elevation)
+  dplyr::select(ID, siteName, yearMonitored, #site variables
+                long, lat, elevation, #site location
+                firstSpring, lastFall, #first and Last  
+                LDH, LDE) #esitmates of Hibernation and Emergence
 ## set up dates
 rec.sub$LDH <-  as.Date(rec.sub$LDH, "%d/%m/%Y") 
 rec.sub$LDE <- as.Date(rec.sub$LDE, "%d/%m/%Y")
@@ -87,7 +92,9 @@ rec.sub$firstSpring <- as.Date(rec.sub$firstSpring, "%d/%m/%Y")
 rec.sub$lastFall <- as.Date(rec.sub$lastFall, "%d/%m/%Y")
 rec.sub$winter.duration <- as.numeric(rec.sub$LDE - rec.sub$LDH)
 hist(rec.sub$winter.duration)
-skim(rec.sub)
+
+##Average across years and combine data where applicable.
+
 
 ## final clean
 ##remove those entries that don't have useable duration data
