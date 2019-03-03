@@ -94,15 +94,22 @@ rec.sub$winter.duration <- as.numeric(rec.sub$LDE - rec.sub$LDH)
 hist(rec.sub$winter.duration)
 
 ##Average across years and combine data where applicable.
+(rec.collapse <- rec.sub %>%
+  group_by(siteName) %>%
+  summarise(long = mean(long),
+            lat = mean(lat),
+            avg.LDH = mean(LDH),
+            avg.LDE = mean(LDE),
+            avg.dur = as.numeric(avg.LDE - avg.LDH)) %>%
+    dplyr::filter(!is.na(avg.dur))) ##remove those entries that don't have useable duration data
 
+colnames(rec.collapse) <- c("ID",
+                            "long",
+                            "lat",
+                            "Start",
+                            "End",
+                            "winter.duration") # rename to conform
 
-## final clean
-##remove those entries that don't have useable duration data
-rec.clean <- rec.sub %>%
-  dplyr::filter(!is.na(winter.duration)) %>%
-  dplyr::select(ID, lat, long, LDH, LDE, winter.duration)
-colnames(rec.clean)[4:5] <- c("Start", "End") # rename to conform
-rec.clean$lat <- as.numeric(rec.clean$lat) ## shifting
 
 #### literature data ####
 lit.dat <- as_tibble(read.csv("data/durationData.csv"))
@@ -133,7 +140,7 @@ lit.clean <- lit.dat %>%
 # mthp$End <- as.Date(mthp$End, "%Y-%m-%d")
 # dat.comp <- bind_rows(lit.clean, rec.clean, mthp)
 
-dat.comp <- bind_rows(lit.clean, rec.clean)
+dat.comp <- bind_rows(lit.clean, rec.collapse)
 #create id col for binding with env 
 dat.comp$env_ID <- 1:nrow(dat.comp)
 
