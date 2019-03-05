@@ -27,6 +27,7 @@ win.res <- file.path(base.path, "Results")
 #          driver = "ESRI Shapefile")
 North.America <- readOGR(dsn = win.dat,layer = "NorthAmerica")
 
+
 # canada.focus <- coord_cartesian(xlim = can.ext[1:2],
 #                                 ylim = can.ext[3:4]) + 
 #   borders( database = "world", 
@@ -41,6 +42,7 @@ durationMean <- raster(file.path(win.res, "durationRaster_p.tif"))
 winterColors <- colorRampPalette(c("#e0ecf4", "#9ebcda","#8856a7"))
 
 winDuration.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
+                             north.america = North.America, canada.focus = F,
                              save.name = NULL,  device.out = NULL,  ...){
   ## Create DataFrame (aggragation is mainly for the dev period)
   if(!is.null(res.agg)){ #aggratetion bits
@@ -58,13 +60,9 @@ winDuration.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
   x.df <- data.frame(x.pts)
   colnames(x.df) <- c("long", "lat", "winter")
   
+  
   g.win <- ggplot(data = x.df, aes(x = long, y = lat, z = winter)) +
     coord_fixed(xlim = extent(x)[1:2], ylim = extent(x)[3:4]) +
-    #border lines
-    borders("world",
-            xlim=extent(x)[1:2],ylim=extent(x)[3:4],
-            colour = "grey20",
-            fill = "grey80")+
     #Raster fill
     geom_raster(aes(fill = winter),  interpolate = T) +
     #oooohhhhh pretty colors
@@ -72,7 +70,12 @@ winDuration.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
                          colors = c.string,
                          limits=  c(floor(minValue(x.ag)),
                                     ceiling(maxValue(x.ag)))) +
-    
+    #border lines
+    geom_polygon(data= fortify(North.America),
+                 aes(long,lat,group=group),
+                 color="grey20",
+                 fill=NA,
+                 inherit.aes = F) +
     #general malarkey
     scale_x_continuous(expand = c(0,0))+
     scale_y_continuous(expand = c(0,0))+
@@ -90,6 +93,17 @@ winDuration.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
                    inherit.aes = F) 
   }
   
+  ## Canada focus flag
+  if(canada.focus==T){
+    can.ext <- c(-140,-104,41,60)
+    g.win <- g.win +
+      coord_cartesian(xlim = can.ext[1:2],
+                      ylim = can.ext[3:4]) +
+      scale_x_continuous(expand = c(0,0)) +
+      scale_y_continuous(expand = c(0,0)) 
+  } 
+    
+  ## Save Flag  
   if(!is.null(save.name)){
     if(device.out == "pdf"){
       dev.ext <- cairo_pdf
@@ -99,8 +113,11 @@ winDuration.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
       dev.ext <- device.out
     }
     ex <- as.vector(extent(x))
-    aspect.ratio <- (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])
-    ggsave(filename = file.path("fig", pasteo(save.name,".", device.out)),
+    
+    aspect.ratio <- ifelse(canada.focus==T,
+                           (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]]),
+                           (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]]))
+    ggsave(filename = file.path(win.res,"fig", paste0(save.name,".", device.out)),
            g.win, 
            width = 9, height = 9/aspect.ratio, unit = "in",
            dpi = 300,
@@ -111,94 +128,17 @@ winDuration.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
 }
 
 (winMean.plot <- winDuration.plot(x = durationMean,
-                                  c.string = winterColors(5)))
-winMean.plot + 
-  coord_cartesian(xlim = can.ext[1:2],
-                               ylim = can.ext[3:4]) + 
-  geom_polygon(data= fortify(North.America),
-               aes(long,lat,group=group),
-               color="grey20",
-               fill=NA,
-               inherit.aes = F)
+                                  c.string = winterColors(5),
+                                  canada.focus = T, 
+                                  save.name = "winDurationCanada",
+                                  device.out = "pdf"))
 
 #### Body Mass and Fat Mass Plots####
 massmean <- raster(file.path(win.res, "massRaster_p.tif"))
 massColors <- colorRampPalette(c("#f7fcb9", "#31a354"))
 
 mass.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
-                             save.name = NULL,  device.out = NULL,  ...){
-  ## Create DataFrame (aggragation is mainly for the dev period)
-  if(!is.null(res.agg)){ #aggratetion bits
-    x.ag <- raster::aggregate(x, res.agg)
-  }
-  else{
-    x.ag <- x}
-  ## Crop and mask to distribution
-  if(!is.null(dist.map)){
-    x.ag <- mask(crop(x.ag, dist.map), dist.map)
-  }
-  
-  ## Convert to df
-  x.pts <- rasterToPoints(x.ag) #to points
-  x.df <- data.frame(x.pts)
-  colnames(x.df) <- c("long", "lat", "winter")
-  
-  g.win <- ggplot(data = x.df, aes(x = long, y = lat, z = winter)) +
-    coord_fixed(xlim = extent(x)[1:2], ylim = extent(x)[3:4]) +
-    #border lines
-    borders("world",
-            xlim=extent(x)[1:2],ylim=extent(x)[3:4],
-            colour = "grey20",
-            fill = "grey80")+
-    #Raster fill
-    geom_raster(aes(fill = winter),  interpolate = T) +
-    #oooohhhhh pretty colors
-    scale_fill_gradientn("Predicted\nBody\nMass (g)",
-                         colors = c.string,
-                         limits=  c(floor(minValue(x.ag)),
-                                    ceiling(maxValue(x.ag)))) +
-    
-    #general malarkey
-    scale_x_continuous(expand = c(0,0))+
-    scale_y_continuous(expand = c(0,0))+
-    theme(plot.title = element_text(hjust = .05))+
-    #ggtitle("Predicted Body Mass") + 
-    theme_bw()
-  
-  ##Distribution map flag
-  if(!is.null(dist.map)){
-    g.win <- g.win +
-      geom_polygon(data = fortify(dist.map),
-                   aes(long,lat, group = group),
-                   colour = "black",
-                   fill = NA,
-                   inherit.aes = F) 
-  }
-  
-  if(!is.null(save.name)){
-    if(device.out == "pdf"){
-      dev.ext <- cairo_pdf
-    } else if (device.out =="eps"){
-      dev.ext <- cairo_ps
-    } else {
-      dev.ext <- device.out
-    }
-    ex <- as.vector(extent(x))
-    aspect.ratio <- (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])
-    ggsave(filename = file.path("fig", pasteo(save.name,".", device.out)),
-           g.win, 
-           width = 9, height = 9/aspect.ratio, unit = "in",
-           dpi = 300,
-           device = dev.ext,
-           ...)}
-  
-  return(g.win)
-}
-(massMean.plot <- mass.plot(x = massmean,
-                            c.string = massColors(5)))
-
-fatMean <- calc(massmean, fun = function(x){-2.84 + 0.593*x})
-fat.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
+                      north.america = North.America, canada.focus = F,
                       save.name = NULL,  device.out = NULL,  ...){
   ## Create DataFrame (aggragation is mainly for the dev period)
   if(!is.null(res.agg)){ #aggratetion bits
@@ -218,11 +158,97 @@ fat.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
   
   g.win <- ggplot(data = x.df, aes(x = long, y = lat, z = winter)) +
     coord_fixed(xlim = extent(x)[1:2], ylim = extent(x)[3:4]) +
+    #Raster fill
+    geom_raster(aes(fill = winter),  interpolate = T) +
+    #oooohhhhh pretty colors
+    scale_fill_gradientn("Predicted\nBody\nMass (g)",
+                         colors = c.string,
+                         limits=  c(floor(minValue(x.ag)),
+                                    ceiling(maxValue(x.ag)))) +
     #border lines
-    borders("world",
-            xlim=extent(x)[1:2],ylim=extent(x)[3:4],
-            colour = "grey20",
-            fill = "grey80")+
+    geom_polygon(data= fortify(North.America),
+                 aes(long,lat,group=group),
+                 color="grey20",
+                 fill=NA,
+                 inherit.aes = F) +
+    #general malarkey
+    scale_x_continuous(expand = c(0,0))+
+    scale_y_continuous(expand = c(0,0))+
+    theme(plot.title = element_text(hjust = .05))+
+    #ggtitle("Predicted Body Mass") + 
+    theme_bw()
+  
+  ##Distribution map flag
+  if(!is.null(dist.map)){
+    g.win <- g.win +
+      geom_polygon(data = fortify(dist.map),
+                   aes(long,lat, group = group),
+                   colour = "black",
+                   fill = NA,
+                   inherit.aes = F) 
+  }
+  
+  ## Canada focus flag
+  if(canada.focus==T){
+    can.ext <- c(-140,-104,41,60)
+    g.win <- g.win +
+      coord_cartesian(xlim = can.ext[1:2],
+                      ylim = can.ext[3:4]) +
+      scale_x_continuous(expand = c(0,0)) +
+      scale_y_continuous(expand = c(0,0)) 
+  } 
+  
+  ##Save flag
+  if(!is.null(save.name)){
+    if(device.out == "pdf"){
+      dev.ext <- cairo_pdf
+    } else if (device.out =="eps"){
+      dev.ext <- cairo_ps
+    } else {
+      dev.ext <- device.out
+    }
+    ex <- as.vector(extent(x))
+    aspect.ratio <- ifelse(canada.focus==T,
+                           (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]]),
+                           (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]]))
+    ggsave(filename = file.path(win.res, "fig", paste0(save.name,".", device.out)),
+           g.win, 
+           width = 9, height = 9/aspect.ratio, unit = "in",
+           dpi = 300,
+           device = dev.ext,
+           ...)}
+  
+  return(g.win)
+}
+
+(massMean.plot <- mass.plot(x = massmean,
+                            c.string = massColors(5),
+                            canada.focus = T,
+                            save.name = "massCanada",
+                            device.out = "pdf"))
+
+fatMean <- calc(massmean, fun = function(x){-2.84 + 0.593*x})
+fat.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
+                     north.america = North.America, canada.focus = F,
+                     save.name = NULL,  device.out = NULL,  ...){
+  ## Create DataFrame (aggragation is mainly for the dev period)
+  if(!is.null(res.agg)){ #aggratetion bits
+    x.ag <- raster::aggregate(x, res.agg)
+  }
+  else{
+    x.ag <- x}
+  ## Crop and mask to distribution
+  if(!is.null(dist.map)){
+    x.ag <- mask(crop(x.ag, dist.map), dist.map)
+  }
+  
+  ## Convert to df
+  x.pts <- rasterToPoints(x.ag) #to points
+  x.df <- data.frame(x.pts)
+  colnames(x.df) <- c("long", "lat", "winter")
+  
+  g.win <- ggplot(data = x.df, aes(x = long, y = lat, z = winter)) +
+    coord_fixed(xlim = extent(x)[1:2], ylim = extent(x)[3:4]) +
     #Raster fill
     geom_raster(aes(fill = winter),  interpolate = T) +
     #oooohhhhh pretty colors
@@ -230,13 +256,28 @@ fat.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
                          colors = c.string,
                          limits=  c(floor(minValue(x.ag)),
                                     ceiling(maxValue(x.ag)))) +
-    
+    #border lines
+    geom_polygon(data= fortify(North.America),
+                 aes(long,lat,group=group),
+                 color="grey20",
+                 fill=NA,
+                 inherit.aes = F) +
     #general malarkey
     scale_x_continuous(expand = c(0,0))+
     scale_y_continuous(expand = c(0,0))+
     theme(plot.title = element_text(hjust = .05))+
     #ggtitle("Predicted Body Mass") + 
     theme_bw()
+  
+  ## Canada focus flag
+  if(canada.focus==T){
+    can.ext <- c(-140,-104,41,60)
+    g.win <- g.win +
+      coord_cartesian(xlim = can.ext[1:2],
+                      ylim = can.ext[3:4]) +
+        scale_x_continuous(expand = c(0,0)) +
+        scale_y_continuous(expand = c(0,0)) 
+  } 
   
   ##Distribution map flag
   if(!is.null(dist.map)){
@@ -257,8 +298,10 @@ fat.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
       dev.ext <- device.out
     }
     ex <- as.vector(extent(x))
-    aspect.ratio <- (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])
-    ggsave(filename = file.path("fig", pasteo(save.name,".", device.out)),
+    aspect.ratio <- ifelse(canada.focus==T,
+                           (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]]),
+                           (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]]))
+    ggsave(filename = file.path(win.res, "fig", paste0(save.name,".", device.out)),
            g.win, 
            width = 9, height = 9/aspect.ratio, unit = "in",
            dpi = 300,
@@ -269,7 +312,10 @@ fat.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
 }
 fatColors <- colorRampPalette(c("#fff7bc","#fec44f", "#d95f0e"))
 
-(fatMean.plot <- fat.plot(fatMean, fatColors(5)))
+(fatMean.plot <- fat.plot(fatMean, fatColors(5),
+                          canada.focus = T,
+                          save.name = "fatCanada",
+                          device.out = "pdf"))
 
 #### Survival mapping ####
 ##distribution
@@ -287,6 +333,7 @@ survStatic.inf <- fatMean - fatReq984.inf
 
 survColors <- colorRampPalette(c("#fdb863", "#e66101", "#ffffff", "#5e3c99","#b2abd2"))
 Surv.plot <- function(x,  res.agg = 25, dist.map = NULL,
+                      north.america = North.America, canada.focus = F,
                       save.name = NULL,  device.out = NULL,  ...){
   ## Create DataFrame (aggragation is mainly for the dev period)
   if(!is.null(res.agg)){ #aggratetion bits
@@ -306,11 +353,6 @@ Surv.plot <- function(x,  res.agg = 25, dist.map = NULL,
   
   g.win <- ggplot(data = x.df, aes(x = long, y = lat, z = winter)) +
     coord_fixed(xlim = extent(x)[1:2], ylim = extent(x)[3:4]) +
-    #border lines
-    borders("world",
-            xlim=extent(x)[1:2],ylim=extent(x)[3:4],
-            colour = "grey20",
-            fill = "grey80")+
     #Raster fill
     geom_raster(aes(fill = winter),  interpolate = T) +
     #oooohhhhh pretty colors
@@ -319,10 +361,18 @@ Surv.plot <- function(x,  res.agg = 25, dist.map = NULL,
                          midpoint = 0,
                          limits=  c(floor(minValue(x.ag)),
                                     ceiling(maxValue(x.ag)))) +
+    #border lines
+    geom_polygon(data= fortify(North.America),
+                 aes(long,lat,group=group),
+                 color="grey20",
+                 fill=NA,
+                 inherit.aes = F) +
+    #contour lines
     geom_contour(aes(z = winter,
-                     color = factor(..level.. == 0,
-                                    levels = c(F, T))),
-                 breaks = -31:3) +
+                     color = ..level..),
+                 breaks = seq(floor(minValue(x.ag)),
+                            ceiling(maxValue(x.ag)), by = 1),
+                 show.legend = F) +
     
     #general malarkey
     scale_x_continuous(expand = c(0,0))+
@@ -331,6 +381,15 @@ Surv.plot <- function(x,  res.agg = 25, dist.map = NULL,
     #ggtitle("Predicted Body Mass") + 
     theme_bw()
   
+  ## Canada focus flag
+  if(canada.focus==T){
+    can.ext <- c(-140,-104,41,60)
+    g.win <- g.win +
+      coord_cartesian(xlim = can.ext[1:2],
+                      ylim = can.ext[3:4]) +
+      scale_x_continuous(expand = c(0,0)) +
+      scale_y_continuous(expand = c(0,0)) 
+  } 
   ##Distribution map flag
   if(!is.null(dist.map)){
     g.win <- g.win +
@@ -350,8 +409,10 @@ Surv.plot <- function(x,  res.agg = 25, dist.map = NULL,
       dev.ext <- device.out
     }
     ex <- as.vector(extent(x))
-    aspect.ratio <- (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])
-    ggsave(filename = file.path("fig", pasteo(save.name,".", device.out)),
+    aspect.ratio <- ifelse(canada.focus==T,
+                           (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]]),
+                           (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]]))
+    ggsave(filename = file.path(win.res,"fig", paste0(save.name,".", device.out)),
            g.win, 
            width = 9, height = 9/aspect.ratio, unit = "in",
            dpi = 300,
@@ -361,13 +422,24 @@ Surv.plot <- function(x,  res.agg = 25, dist.map = NULL,
   return(g.win)
 }
 
-(staticNull.plot <- Surv.plot(survStatic.null))
-(staticInf.plot <- Surv.plot(survStatic.inf))
+(staticNull.plot <- Surv.plot(survStatic.null,
+                              canada.focus = T,
+                              save.name = "nullSurvive4_98Canada",
+                              device.out = "pdf"))
+(staticInf.plot <- Surv.plot(survStatic.inf,
+                             canada.focus = T,
+                             save.name = "infSurvuve8_98Canada",
+                             device.out = "pdf"))
 
 fatSurvivalHistograms <- function(survNULL, survINF, dist.map, c.string,
+                                  canada.focus = F, 
                                  save.name = NULL, device.out = NULL){
   stk <- stack(survNULL, survINF); names(stk) <- c("null", "inf")
   stk.ag <- aggregate(stk, 25)
+  if(canada.focus == T){
+    can.ext <- c(-140,-104,41,60)
+    dist.map <- crop(dist.map, can.ext)
+  }
   stk.mask <- mask(crop(stk.ag, dist.map), dist.map)
   stk.df <- na.omit(as.data.frame(values(stk.mask))) %>%
     gather("status", "fat", 1:2 ) 
@@ -394,24 +466,25 @@ fatSurvivalHistograms <- function(survNULL, survINF, dist.map, c.string,
     } else {
       dev.ext <- device.out
     }
-    ex <- as.vector(extent(x))
-    aspect.ratio <- (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])
-    ggsave(filename = file.path("fig", pasteo(save.name,".", device.out)),
+    
+    ggsave(filename = file.path(win.res, "fig", paste0(save.name,".", device.out)),
            dif.hist, 
-           width = 9, height = 9/aspect.ratio, unit = "in",
+           width = 8, height = 5, unit = "in",
            dpi = 300,
-           device = dev.ext,
-           ...)}
+           device = dev.ext)}
   
   
   return(dif.hist)
   
 }
-(survNULL <- survStatic.null)
-survINF <- survStatic.inf
-dist.map <-mylu.dist
 
-(staticHist <- fatSurvivalHistograms(survStatic.null,survStatic.inf,mylu.dist, survColors(2)))
+(staticHist <- fatSurvivalHistograms(survStatic.null,
+                                     survStatic.inf,
+                                     mylu.dist,
+                                     survColors(2),
+                                     canada.focus = T,
+                                     save.name = "fatSurvivalHistStaticCanada",
+                                     device.out = "pdf"))
 
 ####No Longer needed ####
 # survColorsPOS <- colorRampPalette(c( "#ffffff", "#5e3c99","#b2abd2")) #"#fdb863", "#e66101"
