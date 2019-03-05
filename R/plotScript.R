@@ -13,14 +13,26 @@ win.dat <- file.path(base.path, "data")
 win.res <- file.path(base.path, "Results")
 ## The %!in% opperator 
 '%!in%' <- function(x,y)!('%in%'(x,y))
-can.ext <- c(41, 60, -140,-104)
 
-canada.focus <- coord_cartesian(xlim = can.ext[1:2],
-                                ylim = can.ext[3:4]) + 
-  borders( database = "world", 
-           xlim = can.ext[1:2],
-           ylim = can.ext[3:4],
-           colour = "grey20")
+##creating North America political boundries 
+# can.ext <- c( -140,-104,41, 60)
+# canada <- getData("GADM",country="CAN",level=1)
+# usa <- getData("GADM",country="USA", level=1)
+# mexico <- getData("GADM",country="MEX", level=1)
+# North.America <- rbind(canada,usa,mexico)
+# plot(North.America)
+# writeOGR(North.America,
+#          dsn = win.dat, 
+#          layer = "NorthAmerica",
+#          driver = "ESRI Shapefile")
+North.America <- readOGR(dsn = win.dat,layer = "NorthAmerica")
+
+# canada.focus <- coord_cartesian(xlim = can.ext[1:2],
+#                                 ylim = can.ext[3:4]) + 
+#   borders( database = "world", 
+#            xlim = can.ext[1:2],
+#            ylim = can.ext[3:4],
+#            colour = "grey20")
 
 #### Winter duration plots ####
 library(tidyverse);library(raster)
@@ -100,13 +112,14 @@ winDuration.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
 
 (winMean.plot <- winDuration.plot(x = durationMean,
                                   c.string = winterColors(5)))
-winMean.plot + coord_cartesian(xlim = can.ext[1:2],
-                               ylim = can.ext[3:4]) #+ 
-  borders( database = "world", 
-           xlim = can.ext[1:2],
-           ylim = can.ext[3:4],
-           colour = "grey20")
-
+winMean.plot + 
+  coord_cartesian(xlim = can.ext[1:2],
+                               ylim = can.ext[3:4]) + 
+  geom_polygon(data= fortify(North.America),
+               aes(long,lat,group=group),
+               color="grey20",
+               fill=NA,
+               inherit.aes = F)
 
 #### Body Mass and Fat Mass Plots####
 massmean <- raster(file.path(win.res, "massRaster_p.tif"))
