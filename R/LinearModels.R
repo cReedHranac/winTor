@@ -143,7 +143,7 @@ cross.wrapper <- function(predictor, coVarNames, df){
 dur.points <- cross.wrapper(predictor = "winter.duration", 
                        coVarNames = env.names,
                        df = dur.df)
-## the two shortest data points were identifited in 1/15 models and still had
+## 2 points, but never that low of adj p=val
 ## acptable adjusted p-values so I'd say they're fine
 
 mass.points <- cross.wrapper(predictor = "avgMass",
@@ -218,7 +218,7 @@ lmRasterIntervals <- function(model, coVars, outName){
   
 }
 
-dur.top.form <- mod.form("winter.duration",coVar = env.names)[[12]]
+dur.top.form <- mod.form("winter.duration",coVar = env.names)[[3]]
 dur.top.mod <- lm(dur.top.form, data = dur.df)
 lmRasterIntervals(dur.top.mod,
                   coVars = env.stk,
@@ -420,3 +420,5 @@ writeRaster(fat.upr,
             suffix = "names",
             overwrite = T)
 rm(win.upr, fat.upr)
+
+#### fixed 2 degrees x 100% ####

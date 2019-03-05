@@ -13,6 +13,14 @@ win.dat <- file.path(base.path, "data")
 win.res <- file.path(base.path, "Results")
 ## The %!in% opperator 
 '%!in%' <- function(x,y)!('%in%'(x,y))
+can.ext <- c(41, 60, -140,-104)
+
+canada.focus <- coord_cartesian(xlim = can.ext[1:2],
+                                ylim = can.ext[3:4]) + 
+  borders( database = "world", 
+           xlim = can.ext[1:2],
+           ylim = can.ext[3:4],
+           colour = "grey20")
 
 #### Winter duration plots ####
 library(tidyverse);library(raster)
@@ -92,6 +100,13 @@ winDuration.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
 
 (winMean.plot <- winDuration.plot(x = durationMean,
                                   c.string = winterColors(5)))
+winMean.plot + coord_cartesian(xlim = can.ext[1:2],
+                               ylim = can.ext[3:4]) #+ 
+  borders( database = "world", 
+           xlim = can.ext[1:2],
+           ylim = can.ext[3:4],
+           colour = "grey20")
+
 
 #### Body Mass and Fat Mass Plots####
 massmean <- raster(file.path(win.res, "massRaster_p.tif"))
@@ -379,11 +394,11 @@ fatSurvivalHistograms <- function(survNULL, survINF, dist.map, c.string,
   return(dif.hist)
   
 }
-survNULL <- survStatic.null
+(survNULL <- survStatic.null)
 survINF <- survStatic.inf
 dist.map <-mylu.dist
 
-(staticHist <- fatSurvivalHitograms(survStatic.null,survStatic.inf,mylu.dist, survColors(2)))
+(staticHist <- fatSurvivalHistograms(survStatic.null,survStatic.inf,mylu.dist, survColors(2)))
 
 ####No Longer needed ####
 # survColorsPOS <- colorRampPalette(c( "#ffffff", "#5e3c99","#b2abd2")) #"#fdb863", "#e66101"

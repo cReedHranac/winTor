@@ -56,7 +56,7 @@ mylu.dist <- readOGR(dsn = "D:/Dropbox/batwintor_aux/paramFiles/ShapeFiles",
                  fill = NA,
                  inherit.aes = F) +
     geom_point(aes(colour = type),
-               alpha = .9,
+               alpha = .5,
                size = 1.3,
                position = "jitter") +
     # geom_point(data = as.data.frame(cbind(long= -111.007, lat  = 47.12429)),
@@ -76,12 +76,20 @@ aspect_map <- width_height[1] / width_height[2]
   ## points where mass and duration data exist will not jitter or alpha
   ## can not tell that there is both there. 
 
+# 
+# ggsave("fig/locationDataType.pdf",
+#        loc.plot,
+#        height = 7,
+#        width = 7*aspect_map,
+#        device = cairo_pdf,
+#        dpi = 900)
 
-ggsave("fig/locationDataType.pdf",
+
+
+
+ggsave(file.path("D:", "Dropbox", "CanadaY3_2018", "Figures", "locationDataType.pdf"),
        loc.plot,
        height = 7,
        width = 7*aspect_map,
        device = cairo_pdf,
        dpi = 900)
-
-

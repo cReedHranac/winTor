@@ -88,8 +88,8 @@ state.lean.plot <- ggplot(data = dat.clean) +
   geom_boxplot(aes(x = state, y = lean, color = state))+
   theme_bw()
 
-ggsave("fig/StateLean.pdf",
-       state.lean.plot)
+# ggsave("fig/StateLean.pdf",
+#        state.lean.plot)
 
 
 ## Predicting fat from body mass
@@ -111,8 +111,18 @@ fat.mass.plot <- ggplot(dat.clean) +
   theme_bw()
 
 
-ggsave("fig/FatMassLM.pdf",
-       fat.mass.plot)
+# ggsave("fig/FatMassLM.pdf",
+#        fat.mass.plot)
+
+
+fat.plots <- gridExtra::grid.arrange(state.lean.plot, fat.mass.plot,
+                                     nrow = 1)
+ggsave(file.path("D:", "Dropbox", "CanadaY3_2018", "Figures", "FatPlots.pdf"),
+       fat.plots,
+       device = cairo_pdf,
+       width = 9,
+       height = 4,
+       units = "in")
 
 ## predict fat mass from our data
 new.df <- data.frame(mass = dat.clean$mass)
