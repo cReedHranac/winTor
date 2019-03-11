@@ -10,9 +10,9 @@ geoManager <- function(x){
     dplyr::select(ID, siteName, zone, northing, easting, lat, long, elevation)
   
   ## Fix all the Long values
-  ll.dat <- geo.dat %>%
-    dplyr::filter(long != "")
-  x$long[match(ll.dat$ID, x$ID)] <- -1 * as.numeric(substr(ll.dat$long, 3, nchar(ll.dat$long)))
+#  ll.dat <- geo.dat %>%
+#    dplyr::filter(long != "")
+#  x$long[match(ll.dat$ID, x$ID)] <- -1 * as.numeric(substr(ll.dat$long, 3, nchar(ll.dat$long)))
   
   
   ## Work with UTM
