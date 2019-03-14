@@ -14,6 +14,19 @@ win.res <- file.path(base.path, "Results")
 ## The %!in% opperator 
 '%!in%' <- function(x,y)!('%in%'(x,y))
 
+dumb.fun <- function(x){
+  if(x<0){
+    y <- 1
+  } else if(x==0){
+    y <- 2
+  } else if (x>0) {
+    y <- 3
+  } else{
+    y <- NA
+  }
+  return(y)
+}
+
 ##creating North America political boundries 
 # can.ext <- c( -140,-104,41, 60)
 # canada <- getData("GADM",country="CAN",level=1)
@@ -25,6 +38,7 @@ win.res <- file.path(base.path, "Results")
 #          dsn = win.dat, 
 #          layer = "NorthAmerica",
 #          driver = "ESRI Shapefile")
+library(rgdal)
 North.America <- readOGR(dsn = win.dat,layer = "NorthAmerica")
 
 
@@ -40,6 +54,7 @@ library(tidyverse);library(raster)
 #Winter duration raster
 durationMean <- raster(file.path(win.res, "durationRaster_p.tif"))
 winterColors <- colorRampPalette(c("#e0ecf4", "#9ebcda","#8856a7"))
+win.mylu <- mask(crop(durationMean, mylu.dist), mylu.dist)
 
 winDuration.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
                              north.america = North.America, canada.focus = F,
@@ -62,7 +77,7 @@ winDuration.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
   
   
   g.win <- ggplot(data = x.df, aes(x = long, y = lat, z = winter)) +
-    coord_fixed(xlim = extent(x)[1:2], ylim = extent(x)[3:4]) +
+    coord_fixed(xlim = extent(x.ag)[1:2], ylim = extent(x.ag)[3:4]) +
     #Raster fill
     geom_raster(aes(fill = winter),  interpolate = T) +
     #oooohhhhh pretty colors
@@ -102,7 +117,9 @@ winDuration.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
       scale_x_continuous(expand = c(0,0)) +
       scale_y_continuous(expand = c(0,0)) 
   } 
-    
+  
+  
+  
   ## Save Flag  
   if(!is.null(save.name)){
     if(device.out == "pdf"){
@@ -113,30 +130,36 @@ winDuration.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
       dev.ext <- device.out
     }
     ex <- as.vector(extent(x))
+    if(canada.focus==T){
+      aspect.ratio <- (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]])
+    } else{
+      aspect.ratio <-(ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])  
+    }
     
-    aspect.ratio <- ifelse(canada.focus==T,
-                           (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]]),
-                           (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]]))
     ggsave(filename = file.path(win.res,"fig", paste0(save.name,".", device.out)),
            g.win, 
            width = 9, height = 9/aspect.ratio, unit = "in",
            dpi = 300,
-           device = dev.ext,
-           ...)}
+           device = dev.ext)}
   
   return(g.win)
 }
 
 (winMean.plot <- winDuration.plot(x = durationMean,
                                   c.string = winterColors(5),
-                                  canada.focus = T, 
-                                  save.name = "winDurationCanada",
+                                  canada.focus = F,
+                                  save.name = "winDuration_Mean",
                                   device.out = "pdf"))
 
 #### Body Mass and Fat Mass Plots####
 massmean <- raster(file.path(win.res, "massRaster_p.tif"))
 massColors <- colorRampPalette(c("#f7fcb9", "#31a354"))
+ mass.mylu <- mask(crop(massmean, mylu.dist), mylu.dist)
+##distribution
 
+mylu.dist <- readOGR(dsn = "D:/Dropbox/batwintor_aux/paramFiles/ShapeFiles", 
+                     layer = "myotis_lucifugus")
+proj4string(mylu.dist) <- proj4string(massmean)
 mass.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
                       north.america = North.America, canada.focus = F,
                       save.name = NULL,  device.out = NULL,  ...){
@@ -150,6 +173,10 @@ mass.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
   if(!is.null(dist.map)){
     x.ag <- mask(crop(x.ag, dist.map), dist.map)
   }
+  if(canada.focus == T){
+    can.ext <- extent(-140,-104,41,60)
+    x.ag <-crop(x.ag, can.ext)
+  }
   
   ## Convert to df
   x.pts <- rasterToPoints(x.ag) #to points
@@ -157,7 +184,7 @@ mass.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
   colnames(x.df) <- c("long", "lat", "winter")
   
   g.win <- ggplot(data = x.df, aes(x = long, y = lat, z = winter)) +
-    coord_fixed(xlim = extent(x)[1:2], ylim = extent(x)[3:4]) +
+    coord_fixed(xlim = extent(x.ag)[1:2], ylim = extent(x.ag)[3:4]) +
     #Raster fill
     geom_raster(aes(fill = winter),  interpolate = T) +
     #oooohhhhh pretty colors
@@ -188,15 +215,6 @@ mass.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
                    inherit.aes = F) 
   }
   
-  ## Canada focus flag
-  if(canada.focus==T){
-    can.ext <- c(-140,-104,41,60)
-    g.win <- g.win +
-      coord_cartesian(xlim = can.ext[1:2],
-                      ylim = can.ext[3:4]) +
-      scale_x_continuous(expand = c(0,0)) +
-      scale_y_continuous(expand = c(0,0)) 
-  } 
   
   ##Save flag
   if(!is.null(save.name)){
@@ -208,9 +226,11 @@ mass.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
       dev.ext <- device.out
     }
     ex <- as.vector(extent(x))
-    aspect.ratio <- ifelse(canada.focus==T,
-                           (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]]),
-                           (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]]))
+    if(canada.focus==T){
+      aspect.ratio <- (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]])
+    } else{
+      aspect.ratio <-(ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])  
+    }
     ggsave(filename = file.path(win.res, "fig", paste0(save.name,".", device.out)),
            g.win, 
            width = 9, height = 9/aspect.ratio, unit = "in",
@@ -223,11 +243,13 @@ mass.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
 
 (massMean.plot <- mass.plot(x = massmean,
                             c.string = massColors(5),
-                            canada.focus = T,
-                            save.name = "massCanada",
+                            canada.focus = F,
+                            dist.map = mylu.dist,
+                            save.name = "massMean_Dist",
                             device.out = "pdf"))
 
 fatMean <- calc(massmean, fun = function(x){-2.84 + 0.593*x})
+ fat.mylu <- mask(crop(fatMean, mylu.dist), mylu.dist)
 fat.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
                      north.america = North.America, canada.focus = F,
                      save.name = NULL,  device.out = NULL,  ...){
@@ -241,6 +263,10 @@ fat.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
   if(!is.null(dist.map)){
     x.ag <- mask(crop(x.ag, dist.map), dist.map)
   }
+  if(canada.focus == T){
+    can.ext <- extent(-140,-104,41,60)
+    x.ag <-crop(x.ag, can.ext)
+  }
   
   ## Convert to df
   x.pts <- rasterToPoints(x.ag) #to points
@@ -248,7 +274,7 @@ fat.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
   colnames(x.df) <- c("long", "lat", "winter")
   
   g.win <- ggplot(data = x.df, aes(x = long, y = lat, z = winter)) +
-    coord_fixed(xlim = extent(x)[1:2], ylim = extent(x)[3:4]) +
+    coord_fixed(xlim = extent(x.ag)[1:2], ylim = extent(x.ag)[3:4]) +
     #Raster fill
     geom_raster(aes(fill = winter),  interpolate = T) +
     #oooohhhhh pretty colors
@@ -269,15 +295,6 @@ fat.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
     #ggtitle("Predicted Body Mass") + 
     theme_bw()
   
-  ## Canada focus flag
-  if(canada.focus==T){
-    can.ext <- c(-140,-104,41,60)
-    g.win <- g.win +
-      coord_cartesian(xlim = can.ext[1:2],
-                      ylim = can.ext[3:4]) +
-        scale_x_continuous(expand = c(0,0)) +
-        scale_y_continuous(expand = c(0,0)) 
-  } 
   
   ##Distribution map flag
   if(!is.null(dist.map)){
@@ -298,31 +315,32 @@ fat.plot <- function(x, c.string, res.agg = 25, dist.map = NULL,
       dev.ext <- device.out
     }
     ex <- as.vector(extent(x))
-    aspect.ratio <- ifelse(canada.focus==T,
-                           (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]]),
-                           (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]]))
+    if(canada.focus==T){
+      aspect.ratio <- (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]])
+    } else{
+      aspect.ratio <-(ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])  
+    }
     ggsave(filename = file.path(win.res, "fig", paste0(save.name,".", device.out)),
            g.win, 
            width = 9, height = 9/aspect.ratio, unit = "in",
            dpi = 300,
            device = dev.ext,
-           ...)}
+           ...
+           )}
   
   return(g.win)
 }
 fatColors <- colorRampPalette(c("#fff7bc","#fec44f", "#d95f0e"))
 
-(fatMean.plot <- fat.plot(fatMean, fatColors(5),
-                          canada.focus = T,
-                          save.name = "fatCanada",
+(fatMean.plot <- fat.plot(x = fatMean,
+                          c.string = fatColors(5),
+                          canada.focus = F,
+                          dist.map = mylu.dist,
+                          save.name = "fatMean_Dist",
                           device.out = "pdf"))
 
 #### Survival mapping ####
-##distribution
-library(rgdal)
-mylu.dist <- readOGR(dsn = "D:/Dropbox/batwintor_aux/paramFiles/ShapeFiles", 
-                     layer = "myotis_lucifugus")
-proj4string(mylu.dist) <- proj4string(massmean)
+
 
 ## Static conditions 
 fatReq984.null <- raster(file.path(win.res, "MYLU_fatRequired_98_4_fat.null.tif"))
@@ -345,14 +363,18 @@ Surv.plot <- function(x,  res.agg = 25, dist.map = NULL,
   if(!is.null(dist.map)){
     x.ag <- mask(crop(x.ag, dist.map), dist.map)
   }
+  if(canada.focus == T){
+    can.ext <- extent(-140,-104,41,60)
+    x.ag <-crop(x.ag, can.ext)
+  }
   
   ## Convert to df
   x.pts <- rasterToPoints(x.ag) #to points
   x.df <- data.frame(x.pts)
   colnames(x.df) <- c("long", "lat", "winter")
   
-  g.win <- ggplot(data = x.df, aes(x = long, y = lat, z = winter)) +
-    coord_fixed(xlim = extent(x)[1:2], ylim = extent(x)[3:4]) +
+  (g.win <- ggplot(data = x.df, aes(x = long, y = lat, z = winter)) +
+    coord_fixed(xlim = extent(x.ag)[1:2], ylim = extent(x.ag)[3:4]) +
     #Raster fill
     geom_raster(aes(fill = winter),  interpolate = T) +
     #oooohhhhh pretty colors
@@ -368,28 +390,29 @@ Surv.plot <- function(x,  res.agg = 25, dist.map = NULL,
                  fill=NA,
                  inherit.aes = F) +
     #contour lines
-    geom_contour(aes(z = winter,
-                     color = ..level..),
-                 breaks = seq(floor(minValue(x.ag)),
-                            ceiling(maxValue(x.ag)), by = 1),
-                 show.legend = F) +
+      geom_contour(aes(z = winter,
+                       color = factor(..level.. < 0,
+                                      levels = c(T,F),
+                                      labels = c(expression(fat<0),
+                                                 expression(fat>=0))))) +
+      ## Can't get 0 to work as it's ownline
+      # geom_contour(aes(z = winter,
+      #                  color = factor(..level.. == 0,
+      #                                 levels = c(T,F),
+      #                                 labels = c(expression(fat=0),
+      #                                            "")))) +
+      
+      # scale_colour_manual(values = c( "red","blue", "green", NA )) +
+      scale_colour_manual(values = c( "red","blue")) +
+      labs(color = "Contours")+
     
     #general malarkey
     scale_x_continuous(expand = c(0,0))+
     scale_y_continuous(expand = c(0,0))+
     theme(plot.title = element_text(hjust = .05))+
     #ggtitle("Predicted Body Mass") + 
-    theme_bw()
+    theme_bw())
   
-  ## Canada focus flag
-  if(canada.focus==T){
-    can.ext <- c(-140,-104,41,60)
-    g.win <- g.win +
-      coord_cartesian(xlim = can.ext[1:2],
-                      ylim = can.ext[3:4]) +
-      scale_x_continuous(expand = c(0,0)) +
-      scale_y_continuous(expand = c(0,0)) 
-  } 
   ##Distribution map flag
   if(!is.null(dist.map)){
     g.win <- g.win +
@@ -409,9 +432,11 @@ Surv.plot <- function(x,  res.agg = 25, dist.map = NULL,
       dev.ext <- device.out
     }
     ex <- as.vector(extent(x))
-    aspect.ratio <- ifelse(canada.focus==T,
-                           (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]]),
-                           (ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]]))
+    if(canada.focus==T){
+      aspect.ratio <- (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]])
+    } else{
+      aspect.ratio <-(ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])  
+    }
     ggsave(filename = file.path(win.res,"fig", paste0(save.name,".", device.out)),
            g.win, 
            width = 9, height = 9/aspect.ratio, unit = "in",
@@ -422,13 +447,15 @@ Surv.plot <- function(x,  res.agg = 25, dist.map = NULL,
   return(g.win)
 }
 
-(staticNull.plot <- Surv.plot(survStatic.null,
-                              canada.focus = T,
-                              save.name = "nullSurvive4_98Canada",
+(staticNull.plot <- Surv.plot(x = survStatic.null,
+                              canada.focus = F,
+                              dist.map = mylu.dist,
+                              save.name = "nullSurvive4_98_Dist",
                               device.out = "pdf"))
-(staticInf.plot <- Surv.plot(survStatic.inf,
-                             canada.focus = T,
-                             save.name = "infSurvuve8_98Canada",
+(staticInf.plot <- Surv.plot(x = survStatic.inf,
+                             canada.focus = F,
+                             dist.map = mylu.dist,
+                             save.name = "infSurvuve4_98_Dist",
                              device.out = "pdf"))
 
 fatSurvivalHistograms <- function(survNULL, survINF, dist.map, c.string,
@@ -478,13 +505,22 @@ fatSurvivalHistograms <- function(survNULL, survINF, dist.map, c.string,
   
 }
 
-(staticHist <- fatSurvivalHistograms(survStatic.null,
-                                     survStatic.inf,
+(staticHist <- fatSurvivalHistograms(survNULL = survStatic.null,
+                                     survINF =  survStatic.inf,
                                      mylu.dist,
                                      survColors(2),
                                      canada.focus = T,
                                      save.name = "fatSurvivalHistStaticCanada",
                                      device.out = "pdf"))
+
+
+z <- stk.df %>%
+   filter(status == "inf",
+          fat < 0)
+dim(z)
+dim(stk.df)
+2114 20694 
+
 
 ####No Longer needed ####
 # survColorsPOS <- colorRampPalette(c( "#ffffff", "#5e3c99","#b2abd2")) #"#fdb863", "#e66101"
