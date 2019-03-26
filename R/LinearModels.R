@@ -199,29 +199,49 @@ mass.AIC <- aictab(mass.mods,
 write.csv(dur.AIC, file =  file.path(win.res, 'durationAICtable.csv'), row.names = F)
 write.csv(mass.AIC, file =  file.path(win.res, 'massAICtable.csv'), row.names = F)
 
-# #### Variogram of the top models ####
-# library(gstat)
-# 
-# #top model duration
-# dur.mod <- winter.duration ~ NA_nFrostyDays
-# dur.mod.df <- dur.df
-# 
-# #Create locations points
-# coordinates(dur.mod.df) <- ~ long + lat
-# proj4string(dur.mod.df) <- proj4string(env.stk)
-# 
-# #formula winter.duration ~ NA_northing + NA_nonGrowingDays + NA_dem
-# v <- variogram(winter.duration ~ NA_nFrostyDays,
-#                 data = dur.mod.df)
-# v.exp = fit.variogram(v, vgm("Exp"), fit.kappa = T)
-# v.mat <- fit.variogram(v, vgm("Mat"), fit.kappa = T)
-# v.sph <- fit.variogram(v, vgm("Sph"), fit.kappa = T)
-# 
-# par(mfrow = c(1,3))
-# 
-# plot(v, v.exp)
-# plot(v, v.mat)
-# plot(v, v.sph)
+#### Variogram of the top models ####
+library(gstat)
+
+#top model duration
+dur.mod <- formula(dur.mods[[12]])
+dur.mod.df <- dur.df
+
+#Create locations points
+coordinates(dur.mod.df) <- ~ long + lat
+proj4string(dur.mod.df) <- proj4string(env.stk)
+
+v <- variogram(dur.mod,
+                data = dur.mod.df)
+v.exp = fit.variogram(v, vgm("Exp"), fit.kappa = T)
+v.mat <- fit.variogram(v, vgm("Mat"), fit.kappa = T)
+v.sph <- fit.variogram(v, vgm("Sph"), fit.kappa = T)
+
+par(mfrow = c(1,3))
+
+plot(v, v.exp)
+plot(v, v.mat)
+plot(v, v.sph)
+
+### same for Mass
+mass.mod <- formula(mass.mods[[10]])
+mass.mod.df <- mass.df
+
+coordinates(mass.mod.df) <- ~ Long + Lat
+proj4string(mass.mod.df) <- proj4string(env.stk)
+
+q <- variogram(mass.mod,
+               data = mass.mod.df)
+q.exp = fit.variogram(q, vgm("Exp"), fit.kappa = T)
+q.mat <- fit.variogram(q, vgm("Mat"), fit.kappa = T)
+q.sph <- fit.variogram(q, vgm("Sph"), fit.kappa = T)
+
+par(mfrow = c(1,3))
+
+plot(q, q.exp)
+plot(q, q.mat)
+plot(q, q.sph)
+
+
 
 
 #### Predictions and confidince bounds ####
