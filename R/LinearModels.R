@@ -357,7 +357,32 @@ survivalFat <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
   }
   return(out.s)
 }
-mod.big <- fread("D://Dropbox/winTor_aux/data/myluModHUGE.csv")
+# mod.big <- fread("D://Dropbox/winTor_aux/data/myluModHUGE.csv")
+# win <- raster(file.path(win.res, "durationRaster_p.tif"))
+# rh <- raster("D://Dropbox/batwintor_aux/paramFiles/RH_NA.tif")
+# mat <- raster("D://WorldClim/bclim/bio_1.bil")
+# 
+# rh.fix <- projectRaster(rh, win); rm(rh)
+# mat. <- projectRaster(mat, win); rm(mat)
+# mat.fix <- calc(mat., function(x){x/10}); rm(mat.)
+# 
+# library(batwintor)
+# 
+# fat.rast <- survivalFat(mod.df = mod.big,
+#                         pct.rh.rast = rh.fix,
+#                         temp.rast = mat.fix,
+#                         win.rast = win)
+# writeRaster(fat.rast,
+#             filename = file.path(win.res, "MYLU_fatRequired.tif"),
+#             format = "GTiff",
+#             bylayer = T,
+#             suffix = "names",
+#             overwrite = T)
+
+## Creating alternative hibernatin estimate ones
+library(data.table);library(raster)
+
+mod.alt <- fread("D://Dropbox/winTor_aux/data/myluHibernation_Alt.csv")
 win <- raster(file.path(win.res, "durationRaster_p.tif"))
 rh <- raster("D://Dropbox/batwintor_aux/paramFiles/RH_NA.tif")
 mat <- raster("D://WorldClim/bclim/bio_1.bil")
@@ -373,12 +398,11 @@ fat.rast <- survivalFat(mod.df = mod.big,
                         temp.rast = mat.fix,
                         win.rast = win)
 writeRaster(fat.rast,
-            filename = file.path(win.res, "MYLU_fatRequired.tif"),
+            filename = file.path(win.res, "MYLU_fatRequired_Alt.tif"),
             format = "GTiff",
             bylayer = T,
             suffix = "names",
             overwrite = T)
-
 #### uncertianty win ####
 win.lwr <- raster(file.path(win.res, "durationRaster_lwr.tif"))
 
