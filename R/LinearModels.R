@@ -391,14 +391,19 @@ rh.fix <- projectRaster(rh, win); rm(rh)
 mat. <- projectRaster(mat, win); rm(mat)
 mat.fix <- calc(mat., function(x){x/10}); rm(mat.)
 
+## Exchange for 4 and 98
+temp4 <- calc(mat.fix, function(x) ifelse(!is.na(x),4,NA))
+rh98 <- calc(rh.fix, function(x) ifelse(!is.na(x), 98, NA))
+
+
 library(batwintor)
 
-fat.rast <- survivalFat(mod.df = mod.big,
-                        pct.rh.rast = rh.fix,
-                        temp.rast = mat.fix,
+fat.rast <- survivalFat(mod.df = mod.alt,
+                        pct.rh.rast = rh98,
+                        temp.rast = temp4,
                         win.rast = win)
 writeRaster(fat.rast,
-            filename = file.path(win.res, "MYLU_fatRequired_Alt.tif"),
+            filename = file.path(win.res, "MYLU_fatRequired_98_4_Alt.tif"),
             format = "GTiff",
             bylayer = T,
             suffix = "names",
