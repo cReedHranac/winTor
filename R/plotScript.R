@@ -213,10 +213,19 @@ ggsave(file.path(win.res, "fig", "Mass_Fat.pdf"),
 ## Static conditions 
 fatReq984.null <- raster(file.path(win.res, "MYLU_fatRequired_98_4_fat.null.tif"))
 fatReq984.inf <- raster(file.path(win.res, "MYLU_fatRequired_98_4_fat.inf.tif"))
-
+fatReq984_a.null <- raster(file.path(win.res, "MYLU_fatRequired_98_4_Alt_fat.null.tif"))
+fatReq984_a.inf <- raster(file.path(win.res, "MYLU_fatRequired_98_4_Alt_fat.inf.tif"))
 survStatic.null <- fatMean - fatReq984.null
-
 survStatic.inf <- fatMean - fatReq984.inf
+
+
+survA.n <- fatMean - fatReq984_a.null
+survA.i <- fatMean - fatReq984_a.inf
+
+
+fatDiff.null <- fatReq984.null - fatReq984_a.null
+fatDiff.inf <- fatReq984.inf - fatReq984_a.inf
+
 
 # writeRaster(survStatic.null,
 #             filename = file.path(win.res, "myluSurvStativNull.tif"),
@@ -332,8 +341,8 @@ survColors.Pos <- colorRampPalette(c( "#ffffff", "#b2abd2","#5e3c99"))
                              dist.map = mylu.dist,
                              c.string = survColors(5),
                              legend.key = "Predicted\nBody Fat\nRemaining (g)",
-                             surv.countours = T))
-                             save.name = "infSurvuve4_98_Dist",
+                             surv.countours = T,
+                             save.name = "infSurvive4_98_Dist",
                              device.out = "pdf"))
 
 fatSurvivalHistograms <- function(survNULL, survINF, dist.map, c.string,
