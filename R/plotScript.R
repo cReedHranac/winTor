@@ -39,7 +39,8 @@ dumb.fun <- function(x){
 #          layer = "NorthAmerica",
 #          driver = "ESRI Shapefile")
 library(rgdal)
-North.America <- readOGR(dsn = win.dat,layer = "NorthAmerica")
+North.America <- readOGR(dsn = win.dat,
+                         layer = "NorthAmerica")
 mylu.dist <- readOGR(dsn = "D:/Dropbox/batwintor_aux/paramFiles/ShapeFiles", 
                      layer = "myotis_lucifugus")
 proj4string(mylu.dist) <- proj4string(massmean)
@@ -234,7 +235,7 @@ fatDiff.inf <- fatReq984.inf - fatReq984_a.inf
 #             filename = file.path(win.res, "myluSurvStativInf.tif"),
 #             format = "GTiff")
 
-survColors <- colorRampPalette(c( "#fdb863", "#e66101","#ffffff", "#b2abd2","#5e3c99"))
+survColors <- colorRampPalette(c(  "#e66101","#fdb863","#ffffff", "#b2abd2","#5e3c99"))
 Surv.plot <- function(x,  res.agg = 25, dist.map = NULL,
                       north.america = North.America, canada.focus = F,
                       save.name = NULL,  device.out = NULL,  ...){
@@ -327,22 +328,134 @@ Surv.plot <- function(x,  res.agg = 25, dist.map = NULL,
   return(g.win)
 }
 survColors.Pos <- colorRampPalette(c( "#ffffff", "#b2abd2","#5e3c99"))
+masterPlotter.Surv <- function(x,  res.agg = 25, dist.map = NULL,
+                          north.america = North.America, canada.focus = F,
+                          legend.key, surv.countours = F,
+                          save.name = NULL,  device.out = NULL,  ...){
+  ##Function for plotting all  wintor spatil figurs   
+  
+  ## Create DataFrame (aggragation is mainly for the dev period)
+  if(!is.null(res.agg)){ #aggratetion bits
+    x.ag <- raster::aggregate(x, res.agg)
+  }
+  else{
+    x.ag <- x}
+  ## Crop and mask to distribution
+  if(!is.null(dist.map)){
+    x.ag <- mask(crop(x.ag, dist.map), dist.map)
+  }
+  
+  ## Convert to df
+  x.pts <- rasterToPoints(x.ag) #to points
+  x.df <- data.frame(x.pts)
+  colnames(x.df) <- c("long", "lat", "winter")
+  
+  
+  g.win <- ggplot(data = x.df, aes(x = long, y = lat, z = winter)) +
+    coord_fixed(xlim = extent(x.ag)[1:2], ylim = extent(x.ag)[3:4]) +
+    #Raster fill
+    geom_raster(aes(fill = winter),  interpolate = T) +
+    #oooohhhhh pretty colors
+    scale_fill_gradientn(legend.key,
+                         colors = c(  "#e66101","#fdb863","#ffffff", "#b2abd2","#5e3c99"),
+                         # mid = "#ffffff",
+                         # midpoint = 0, 
+                         limits=  c(floor(minValue(x.ag)),
+                                    ceiling(maxValue(x.ag)))) +
+    #border lines
+    geom_polygon(data= fortify(North.America),
+                 aes(long,lat,group=group),
+                 color="grey20",
+                 fill=NA,
+                 inherit.aes = F) +
+    #general malarkey
+    scale_x_continuous(expand = c(0,0))+
+    scale_y_continuous(expand = c(0,0))+
+    theme_bw()+
+    theme(legend.position = c(0.1,0.40),
+          legend.margin = margin(),
+          legend.key.width = unit(0.5, "cm"),
+          legend.key.height = unit(0.4, "cm"),
+          legend.text=element_text(size=7),
+          legend.title=element_text(size=9),
+          axis.title = element_blank())
+  
+  ##Distribution map flag
+  if(!is.null(dist.map)){
+    g.win <- g.win +
+      geom_polygon(data = fortify(dist.map),
+                   aes(long,lat, group = group),
+                   colour = "black",
+                   fill = NA,
+                   inherit.aes = F) 
+  }
+  
+  ## Canada focus flag
+  if(canada.focus==T){
+    can.ext <- c(-140,-104,41,60)
+    g.win <- g.win +
+      coord_cartesian(xlim = can.ext[1:2],
+                      ylim = can.ext[3:4]) +
+      scale_x_continuous(expand = c(0,0)) +
+      scale_y_continuous(expand = c(0,0)) 
+  } 
+  
+  ## Contour flag
+  if(surv.countours == T) {
+    g.win <- g.win + 
+      geom_contour(aes(z = winter,
+                       color = factor(..level.. == 0 ,
+                                      levels = c(T,F),
+                                      labels = c(expression(fat=0),
+                                                 expression(fat>0.5)))),
+                   breaks=c(-0.5, 0,0.5)) +
+      
+      
+      scale_colour_manual(values = c( "red","blue")) +
+      labs(color = "Contours")
+  }
+  
+  
+  
+  ## Save Flag  
+  if(!is.null(save.name)){
+    if(device.out == "pdf"){
+      dev.ext <- cairo_pdf
+    } else if (device.out =="eps"){
+      dev.ext <- cairo_ps
+    } else {
+      dev.ext <- device.out
+    }
+    ex <- as.vector(extent(x))
+    if(canada.focus==T){
+      aspect.ratio <- (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]])
+    } else{
+      aspect.ratio <-(ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])  
+    }
+    
+    ggsave(filename = file.path(win.res,"fig", paste0(save.name,".", device.out)),
+           g.win, 
+           width = 9, height = 9/aspect.ratio, unit = "in",
+           dpi = 300,
+           device = dev.ext)}
+  
+  return(g.win)
+}
 
 
-(staticNull.plot <- masterPlotter(x = survStatic.null,
+
+(staticNull.plot <- masterPlotter.Surv(x = survA.n,
                               canada.focus = F,
                               dist.map = mylu.dist,
-                              c.string = survColors.Pos(5),
                               legend.key = "Predicted\nBody Fat\nRemaining (g)",
-                              save.name = "nullSurvive4_98_Dist",
+                              save.name = "nullSurvive4_98_Dist_ALT",
                               device.out = "pdf"))
-(staticInf.plot <- masterPlotter(x = survStatic.inf,
+(staticInf.plot <- masterPlotter.Surv(x = survA.i,
                              canada.focus = F,
                              dist.map = mylu.dist,
-                             c.string = survColors(5),
                              legend.key = "Predicted\nBody Fat\nRemaining (g)",
                              surv.countours = T,
-                             save.name = "infSurvive4_98_Dist",
+                             save.name = "infSurvive4_98_Dist_ALT",
                              device.out = "pdf"))
 
 fatSurvivalHistograms <- function(survNULL, survINF, dist.map, c.string,
