@@ -382,7 +382,7 @@ survivalFat <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
 ## Creating alternative hibernatin estimate ones
 library(data.table);library(raster)
 
-mod.alt <- fread("D://Dropbox/winTor_aux/data/myluHibernation_Alt.csv")
+mod.alt <- fread("D://Dropbox/winTor_aux/data/myluHibernation_default.csv")
 win <- raster(file.path(win.res, "durationRaster_p.tif"))
 rh <- raster("D://Dropbox/batwintor_aux/paramFiles/RH_NA.tif")
 mat <- raster("D://WorldClim/bclim/bio_1.bil")
@@ -403,7 +403,7 @@ fat.rast <- survivalFat(mod.df = mod.alt,
                         temp.rast = temp4,
                         win.rast = win)
 writeRaster(fat.rast,
-            filename = file.path(win.res, "MYLU_fatRequired_98_4_Alt.tif"),
+            filename = file.path(win.res, "MYLU_fatRequired_98_4.tif"),
             format = "GTiff",
             bylayer = T,
             suffix = "names",
@@ -411,7 +411,7 @@ writeRaster(fat.rast,
 #### uncertianty win ####
 win.lwr <- raster(file.path(win.res, "durationRaster_lwr.tif"))
 
-fat.lwr <- survivalFat(mod.df = mod.big,
+fat.lwr <- survivalFat(mod.df = mod.alt,
                        pct.rh.rast = rh.fix,
                        temp.rast = mat.fix,
                        win.rast = win.lwr)
@@ -428,7 +428,7 @@ gc()
 
 win.upr <- raster(file.path(win.res, "durationRaster_upr.tif"))
 
-fat.upr <- survivalFat(mod.df = mod.big,
+fat.upr <- survivalFat(mod.df = mod.alt,
                        pct.rh.rast = rh.fix,
                        temp.rast = mat.fix,
                        win.rast = win.upr)
