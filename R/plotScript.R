@@ -45,6 +45,33 @@ mylu.dist <- readOGR(dsn = "D:/Dropbox/batwintor_aux/paramFiles/ShapeFiles",
                      layer = "myotis_lucifugus")
 proj4string(mylu.dist) <- proj4string(massmean)
 
+#### Create cropped estimates for mapping ####
+# listIn <- list(durationMean, massmean, fatMean,
+#                fatReq984.null, fatReq984.inf,
+#                survStatic.null, survStatic.inf)
+# 
+# cropMask <- function(x, y = mylu.dist){
+#   z <- mask(crop(x, y), y)
+#   return(z)
+# }
+# 
+# cropedList <- lapply(listIn, cropMask)
+# 
+# 
+# croppedStk <- do.call(stack, cropedList)
+# names(croppedStk) <- c("dur", "mass", "fat", 
+#                        "fatNull", "fatInf",
+#                        "survNull", "survInf")
+# 
+# writeRaster(croppedStk,
+#             file.path(win.res, "myluCropped_.tif"), 
+#             format = "GTiff",
+#             bylayer = T, 
+#             suffix = "names")
+
+plotStk <- stack(list.files(win.res, pattern = "myluCropped_*", full.names = T))
+names(plotStk) <- sapply(strsplit(names(plotStk), "_"), tail, 1)
+
 #### Winter duration plots ####
 library(tidyverse);library(raster);
 library(gridExtra)
@@ -177,7 +204,7 @@ winterColors <- colorRampPalette(c("#e0ecf4", "#9ebcda","#8856a7"))
 massmean <- raster(file.path(win.res, "massRaster_p.tif"))
 massColors <- colorRampPalette(c("#f7fcb9", "#31a354"))
 
-(massMean.plot <- masterPlotter(x = massmean,
+(massMean.plot <- masterPlotter(x = plotStk$mass,
                             c.string = massColors(5),
                             canada.focus = F,
                             dist.map = mylu.dist,
@@ -188,7 +215,7 @@ massColors <- colorRampPalette(c("#f7fcb9", "#31a354"))
 fatMean <- calc(massmean, fun = function(x){-2.84 + 0.593*x})
 fatColors <- colorRampPalette(c("#fff7bc","#fec44f", "#d95f0e"))
 
-(fatMean.plot <- masterPlotter(x = fatMean,
+(fatMean.plot <- masterPlotter(x = plotStk$fat,
                           c.string = fatColors(5),
                           canada.focus = F,
                           legend.key = "Predicted\nBody\nFat (g)",
@@ -212,20 +239,12 @@ ggsave(file.path(win.res, "fig", "Mass_Fat.pdf"),
 
 
 ## Static conditions 
-fatReq984.null <- raster(file.path(win.res, "MYLU_fatRequired_98_4_fat.null.tif"))
-fatReq984.inf <- raster(file.path(win.res, "MYLU_fatRequired_98_4_fat.inf.tif"))
-fatReq984_a.null <- raster(file.path(win.res, "MYLU_fatRequired_98_4_Alt_fat.null.tif"))
-fatReq984_a.inf <- raster(file.path(win.res, "MYLU_fatRequired_98_4_Alt_fat.inf.tif"))
-survStatic.null <- fatMean - fatReq984.null
-survStatic.inf <- fatMean - fatReq984.inf
+# fatReq984.null <- raster(file.path(win.res, "MYLU_fatRequired_98_4_fat.null.tif"))
+# fatReq984.inf <- raster(file.path(win.res, "MYLU_fatRequired_98_4_fat.inf.tif"))
+# survStatic.null <- fatMean - fatReq984.null
+# survStatic.inf <- fatMean - fatReq984.inf
 
 
-survA.n <- fatMean - fatReq984_a.null
-survA.i <- fatMean - fatReq984_a.inf
-
-
-fatDiff.null <- fatReq984.null - fatReq984_a.null
-fatDiff.inf <- fatReq984.inf - fatReq984_a.inf
 
 
 # writeRaster(survStatic.null,
@@ -444,18 +463,18 @@ masterPlotter.Surv <- function(x,  res.agg = 25, dist.map = NULL,
 
 
 
-(staticNull.plot <- masterPlotter.Surv(x = survA.n,
+(staticNull.plot <- masterPlotter.Surv(x = plotStk$survNull,
                               canada.focus = F,
                               dist.map = mylu.dist,
                               legend.key = "Predicted\nBody Fat\nRemaining (g)",
-                              save.name = "nullSurvive4_98_Dist_ALT",
+                              save.name = "nullSurvive4_98_Dist",
                               device.out = "pdf"))
-(staticInf.plot <- masterPlotter.Surv(x = survA.i,
+(staticInf.plot <- masterPlotter.Surv(x = plotStk$survInf,
                              canada.focus = F,
                              dist.map = mylu.dist,
                              legend.key = "Predicted\nBody Fat\nRemaining (g)",
                              surv.countours = T,
-                             save.name = "infSurvive4_98_Dist_ALT",
+                             save.name = "infSurvive4_98_Dist",
                              device.out = "pdf"))
 
 fatSurvivalHistograms <- function(survNULL, survINF, dist.map, c.string,
@@ -509,8 +528,8 @@ fatSurvivalHistograms <- function(survNULL, survINF, dist.map, c.string,
                                      survINF =  survStatic.inf,
                                      mylu.dist,
                                      survColors(2),
-                                     canada.focus = T,
-                                     save.name = "fatSurvivalHistStaticCanada",
+                                     canada.focus = F,
+                                     save.name = "fatSurvivalHistStatic",
                                      device.out = "pdf"))
 
 ######### Sand Box ##########
@@ -608,16 +627,65 @@ thing
 
 
 ## Survival differential 
-## infected survival capacity /fat to start
-surv.0 <- mylu.survI
-values(surv.0)[which(values(surv.0)>=0)] <- 0
-b <- values(surv.0)[which(values(surv.0) != 0)]
+survDiff <- function(x, y = plotStk$fat){
+  #x is survival capacity
+  #y is predicted fat content
+  if(x<0){
+    val <- abs(x)/y
+  } else{ val <- 0}
+    
+  return(val)
+    
+}
+
+precNull <- calc(plotStk$survNull, survDiff) 
+precInf <- 
+  
+# lil hack hack to get it working  
+precNull <- plotStk$survNull  
+values(precNull)[which(values(precNull)>=0)] <- 0
+b <- values(precNull)[which(values(precNull) != 0)]
 summary(b)
-surv.pct <- (abs(surv.0)/fat.mylu) *100
+surv.pctNull <- (abs(precNull)/plotStk$fat) *100
+plot(surv.pctNull)
+a <- values(surv.pct)[which(values(surv.pct) != 0)]
+hist(a)
+summary(a)
+writeRaster(surv.pct, filename = file.path(win.res, "survivalPrecentNull.tif"), 
+            format = "GTiff", overwrite = T)
+
+precNull <- plotStk$survInf  
+values(precNull)[which(values(precNull)>=0)] <- 0
+b <- values(precNull)[which(values(precNull) != 0)]
+summary(b)
+surv.pctInf <- (abs(precNull)/plotStk$fat) *100
 plot(surv.pct)
 a <- values(surv.pct)[which(values(surv.pct) != 0)]
 hist(a)
 summary(a)
+writeRaster(surv.pct, filename = file.path(win.res, "survivalPrecentInf.tif"), 
+            format = "GTiff")
+
+## make plots for these?
+ colpal <- colorRampPalette(C( "#f1948a" , "#ec7063", "#cb4335"))
+
+ 
+ (precSurv.plot <- masterPlotter(x = surv.pctNull,
+                                c.string = colpal,
+                                canada.focus = F,
+                                legend.key = "Precent\nfat\nShortfall (g)",
+                                dist.map = mylu.dist,
+                                save.name = "precSurvNull_Dist",
+                                device.out = "pdf"))
+
+ (precSurvInf.plot <- masterPlotter(x = surv.pctInf,
+                                 c.string = colpal,
+                                 canada.focus = F,
+                                 legend.key = "Precent\nfat\nShortfall (g)",
+                                 dist.map = mylu.dist,
+                                 save.name = "precSurvInf_Dist",
+                                 device.out = "pdf"))
+ 
 
 ####No Longer needed ####
 # survColorsPOS <- colorRampPalette(c( "#ffffff", "#5e3c99","#b2abd2")) #"#fdb863", "#e66101"

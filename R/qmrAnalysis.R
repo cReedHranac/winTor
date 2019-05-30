@@ -2,6 +2,20 @@
 
 library(data.table); library(tidyverse)
 
+#### Extra Paths####
+if (!exists('base.path')) {
+  if(.Platform$"OS.type" == "windows"){
+    base.path = file.path("D:", "Dropbox", "wintor_aux")
+  } else {
+    base.path = "~/Dropbox/winTor_aux"
+  }
+}
+
+win.dat <- file.path(base.path, "data")
+win.res <- file.path(base.path, "Results")
+## The %!in% opperator 
+'%!in%' <- function(x,y)!('%in%'(x,y))
+
 # ##Serdp data 
 # qmr.dat <- fread("data/QMR_all.csv")
 # 
@@ -117,7 +131,7 @@ fat.mass.plot <- ggplot(dat.clean) +
 
 fat.plots <- gridExtra::grid.arrange(state.lean.plot, fat.mass.plot,
                                      nrow = 1)
-ggsave(file.path("D:", "Dropbox", "CanadaY3_2018", "Figures", "FatPlots.pdf"),
+ggsave(file.path(win.res, "fig", "stateXfat.pdf"),
        fat.plots,
        device = cairo_pdf,
        width = 9,

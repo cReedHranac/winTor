@@ -48,25 +48,26 @@ mylu.dist <- readOGR(dsn = "D:/Dropbox/batwintor_aux/paramFiles/ShapeFiles",
 (loc.plot <- ggplot(data = loc.full, aes(x= long, y = lat))+
   borders("world",
           xlim = na.ext[1:2], ylim = na.ext[3:4],
-          color = "black",
-          fill = "grey60") +
+          color = "grey80",
+          fill = "grey90") +
     geom_polygon(data = fortify(mylu.dist),
                  aes(long,lat, group = group),
                  colour = "dodgerblue4",
                  fill = NA,
                  inherit.aes = F) +
-    geom_point(aes(colour = type),
+    geom_point(aes(shape = type),
                alpha = .5,
                size = 1.3,
-               position = "jitter") +
-    # geom_point(data = as.data.frame(cbind(long= -111.007, lat  = 47.12429)),
-    #            aes(x= long, y = lat),size = 2)+
+               position = "jitter",
+               show.legend=FALSE)+
+    geom_point(data = as.data.frame(cbind(long= -111.007, lat  = 47.12429)),
+               aes(x= long, y = lat),size = 2)+
     scale_color_manual(values=c("#E69F00","#56B4E9")) +
     coord_cartesian(xlim = na.ext[1:2], ylim = na.ext[3:4])+
     scale_x_continuous(limits = na.ext[1:2]) +
     theme_bw()+
     guides(color=guide_legend(title="Data Type"))
-  
+
 )
 
 width_height <- diff(as.vector(na.ext))[c(1,3)]
@@ -87,7 +88,7 @@ aspect_map <- width_height[1] / width_height[2]
 
 
 
-ggsave(file.path("D:", "Dropbox", "CanadaY3_2018", "Figures", "locationDataType.pdf"),
+ggsave("C:/Users/crhranac/Git/PhD-Thesis/Chapter4/Figs/locationDataType.pdf",
        loc.plot,
        height = 7,
        width = 7*aspect_map,
