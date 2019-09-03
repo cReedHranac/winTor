@@ -382,7 +382,7 @@ survivalFat <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
 ## Creating alternative hibernatin estimate ones
 library(data.table);library(raster)
 
-mod.big <- fread("D://Dropbox/winTor_aux/data/myluHibernation_default.csv")
+mod.alt <- fread("D://Dropbox/winTor_aux/data/myluHibernation_Alt.csv")
 win <- raster(file.path(win.res, "durationRaster_p.tif"))
 rh <- raster("D://Dropbox/batwintor_aux/paramFiles/RH_NA.tif")
 mat <- raster("D://WorldClim/bclim/bio_1.bil")
@@ -394,6 +394,9 @@ mat.fix <- calc(mat., function(x){x/10}); rm(mat.)
 ## Exchange for 4 and 98
 temp4 <- calc(mat.fix, function(x) ifelse(!is.na(x),4,NA))
 rh98 <- calc(rh.fix, function(x) ifelse(!is.na(x), 98, NA))
+
+##Exchange for 2 and 98%
+temp2 <- calc(rh.fix, function(x) ifelse(!is.na(x),2,NA))
 
 
 library(batwintor)

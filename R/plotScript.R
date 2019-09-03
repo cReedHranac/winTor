@@ -14,18 +14,131 @@ win.res <- file.path(base.path, "Results")
 ## The %!in% opperator 
 '%!in%' <- function(x,y)!('%in%'(x,y))
 
-dumb.fun <- function(x){
-  if(x<0){
-    y <- 1
-  } else if(x==0){
-    y <- 2
-  } else if (x>0) {
-    y <- 3
-  } else{
-    y <- NA
+
+#### Functions ####
+masterPlotter <- function(x, c.string, res.agg = 25, dist.map = NULL,
+                          north.america = North.America, canada.focus = F,
+                          legend.key, surv.countours = F,
+                          save.name = NULL,  device.out = NULL,  ...){
+  ##Function for plotting all  wintor spatial figures   
+  # x <- item plotting, 
+  # res.agg <- unit of aggragation (generally for the dev period with large maps)
+  # dist.map <- species distribution map of you want it to be included in the plotting
+  # north.america <- geo-political boundries to plot on top of
+  # canada.focus <- Logical of wheather or not to focus on Western Canada
+  # legend.key <- string to place on the legend
+  # surv.countour <- Logical,countours for the survival mapping functionality
+  # save.name <- string for saving the figures
+  # device.out <- choose which driver is used to write out figures
+  # ... <- additional arguments to be passed to ggsave
+  
+  ## Create DataFrame (aggragation is mainly for the dev period)
+  if(!is.null(res.agg)){ #aggratetion bits
+    x.ag <- raster::aggregate(x, res.agg)
   }
-  return(y)
+  else{
+    x.ag <- x}
+  ## Crop and mask to distribution
+  if(!is.null(dist.map)){
+    x.ag <- mask(crop(x.ag, dist.map), dist.map)
+  }
+  
+  ## Convert to df
+  x.pts <- rasterToPoints(x.ag) #to points
+  x.df <- data.frame(x.pts)
+  colnames(x.df) <- c("long", "lat", "winter")
+  
+  
+  g.win <- ggplot(data = x.df, aes(x = long, y = lat, z = winter)) +
+    coord_fixed(xlim = extent(x.ag)[1:2], ylim = extent(x.ag)[3:4]) +
+    #Raster fill
+    geom_raster(aes(fill = winter),  interpolate = T) +
+    #oooohhhhh pretty colors
+    scale_fill_gradientn(legend.key,
+                         colors = c.string,
+                         limits=  c(floor(minValue(x.ag)),
+                                    ceiling(maxValue(x.ag)))) +
+    #border lines
+    geom_polygon(data= fortify(North.America),
+                 aes(long,lat,group=group),
+                 color="grey20",
+                 fill=NA,
+                 inherit.aes = F) +
+    #general malarkey
+    scale_x_continuous(expand = c(0,0))+
+    scale_y_continuous(expand = c(0,0))+
+    theme_bw()+
+    theme(legend.position = c(0.1,0.40),
+          legend.margin = margin(),
+          legend.key.width = unit(0.5, "cm"),
+          legend.key.height = unit(0.4, "cm"),
+          legend.text=element_text(size=7),
+          legend.title=element_text(size=9),
+          axis.title = element_blank())
+  
+  ##Distribution map flag
+  if(!is.null(dist.map)){
+    g.win <- g.win +
+      geom_polygon(data = fortify(dist.map),
+                   aes(long,lat, group = group),
+                   colour = "black",
+                   fill = NA,
+                   inherit.aes = F) 
+  }
+  
+  ## Canada focus flag
+  if(canada.focus==T){
+    can.ext <- c(-140,-104,41,60)
+    g.win <- g.win +
+      coord_cartesian(xlim = can.ext[1:2],
+                      ylim = can.ext[3:4]) +
+      scale_x_continuous(expand = c(0,0)) +
+      scale_y_continuous(expand = c(0,0)) 
+  } 
+  
+  ## Contour flag
+  if(surv.countours == T) {
+    g.win <- g.win + 
+      geom_contour(aes(z = winter,
+                       color = factor(..level.. == 0 ,
+                                      levels = c(T,F),
+                                      labels = c(expression(fat=0),
+                                                 expression(fat>0.5)))),
+                   breaks=c(-0.5, 0,0.5)) +
+      
+      
+      scale_colour_manual(values = c( "red","blue")) +
+      labs(color = "Contours")
+  }
+  
+  
+  
+  ## Save Flag  
+  if(!is.null(save.name)){
+    if(device.out == "pdf"){
+      dev.ext <- cairo_pdf
+    } else if (device.out =="eps"){
+      dev.ext <- cairo_ps
+    } else {
+      dev.ext <- device.out
+    }
+    ex <- as.vector(extent(x))
+    if(canada.focus==T){
+      aspect.ratio <- (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]])
+    } else{
+      aspect.ratio <-(ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])  
+    }
+    
+    ggsave(filename = file.path(win.res,"fig", paste0(save.name,".", device.out)),
+           g.win, 
+           width = 9, height = 9/aspect.ratio, unit = "in",
+           dpi = 300,
+           device = dev.ext)}
+  
+  return(g.win)
 }
+
+#### Creating North America Geo-political boundries for backround. ####
 
 ##creating North America political boundries 
 # can.ext <- c( -140,-104,41, 60)
@@ -38,11 +151,21 @@ dumb.fun <- function(x){
 #          dsn = win.dat, 
 #          layer = "NorthAmerica",
 #          driver = "ESRI Shapefile")
+
 library(rgdal)
 North.America <- readOGR(dsn = win.dat,
                          layer = "NorthAmerica")
 mylu.dist <- readOGR(dsn = "D:/Dropbox/batwintor_aux/paramFiles/ShapeFiles", 
                      layer = "myotis_lucifugus")
+proj4string(mylu.dist) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+
+#### Load data ####
+library(raster);library(tidyverse)
+raw.layers <- raster(list.files(win.res, pattern = "_p", full.names = T))
+
+
+
+
 
 
 #### Create cropped estimates for mapping ####
@@ -73,7 +196,7 @@ plotStk <- stack(list.files(win.res, pattern = "myluCropped_*", full.names = T))
 names(plotStk) <- sapply(strsplit(names(plotStk), "_"), tail, 1)
 proj4string(mylu.dist) <- proj4string(plotStk)
 #### Winter duration plots ####
-library(tidyverse);library(raster);
+;
 library(gridExtra)
 ## Plot Function 
 masterPlotter <- function(x, c.string, res.agg = 25, dist.map = NULL,
@@ -884,4 +1007,25 @@ fatMean.Dist <- fat.plot(fatMean,
 massFat <- grid.arrange(massMean.Dist, 
                         fatMean.Dist,
                         ncol = 1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
