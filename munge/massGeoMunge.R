@@ -117,6 +117,7 @@ vert.loc <- vert.df %>%
 
 vert.df <- as.data.frame(vert.loc)
 colnames(vert.df)[1:2] <- c("Lat", "Long")
+vert.df$Ref <- "VertNet"
 
 coordinates(vert.loc) <- ~ decimallongitude + decimallatitude
 proj4string(vert.loc) <- "+proj=longlat +ellps=WGS84 +datum=WGS84"
@@ -141,7 +142,7 @@ mapview(vert.loc)
 
 #### Canada data munge ####
 
-can.raw <- fread("data/WoodbufflowNWT.csv")
+can.raw <- fread(file.path(win.dat,"junk from repo", "WoodbufflowNWT.csv"))
 
 can.sub <- can.raw %>%
   dplyr::select(Bat_ID, Species, Capture_date, Location, Sex, weight) %>%
@@ -171,7 +172,7 @@ can.loc <- can.sub %>%
 
 ## combining with the spatial locations
 
-sitesList <- fread("data/WoodbufflowNWT_Locations.csv")
+sitesList <- fread(file.path(win.dat,"junk from repo","WoodbufflowNWT_Locations.csv"))
 match(can.loc$Location, sitesList$Survey_Site_Name)
 
 ## bind with sub
@@ -187,11 +188,12 @@ can.sp <- spTransform(can.bind,  CRS("+proj=longlat +ellps=WGS84 +datum=WGS84"))
 
 can.df <- as.data.frame(can.sp)
 colnames(can.df)[3:4] <- c("Long", "Lat")
+can.df$Ref <- "WCS Canada"
 
 
 #### SERDP Data munge ####
 
-serdp.raw <- fread("data/SERDPmorphometricJuly2018.csv")
+serdp.raw <- fread(file.path(win.dat,"junk from repo","SERDPmorphometricJuly2018.csv"))
 
 serdp.sub <- serdp.raw %>%
   dplyr::select(`Bat ID`, `Bat Species`, `Site Name`, `Date Captured`, Latitude, Longitude, Sex, `Mass (prior resp)`) %>%
@@ -220,22 +222,23 @@ proj4string(serdp.loc) <-  CRS("+proj=longlat +ellps=WGS84 +datum=WGS84")
 mapview(serdp.loc)
 
 serdp.df <- as.data.frame(serdp.loc)
-
+serdp.df$Ref <- "SERDP"
 
 #### Litature data ###
 lit.dat <- fread('data/litData.csv')
 #rename for merge
 lit.df <- lit.dat %>%
-  group_by(Location) %>%
+  group_by(Location, Reference) %>%
   dplyr::select(Location, Lat, Long, Mass) %>%
   summarise(avgMass = mean(Mass), 
             Lat = unique(Lat),
-            Long = unique(Long))
+            Long = unique(Long),
+            Ref = unique(Reference))
 
 
 
 #### Yukon Data (added 05/11/2018)####
-Yk.dat <- fread('data/YukonClean.csv')
+Yk.dat <- fread(file.path(win.dat,"junk from repo", '/YukonClean.csv'))
 
 yk.df <- Yk.dat %>%
   group_by(Location) %>%
@@ -243,9 +246,14 @@ yk.df <- Yk.dat %>%
   summarise(avgMass = mean(Mass), 
             Lat = unique(lat),
             Long = unique(long))
+yk.df$Ref <- "WCS Canada Yukon"
 
 #### Bind and add grams fat ####
 full <- rbind(vert.df, can.df[,-1], serdp.df[,-1], lit.df[,-1], yk.df[,-1])
+
+zq1 <- bind_rows(vert.df, can.df, serdp.df, lit.df, yk.df)
+write.csv(zq1, file = file.path(win.res, "massDataReferenced.csv"), row.names = F)
+
 # equation lifted from the qmrAnalysis script
 full$g.fat <- -2.8400 + 0.5932*full$avgMass
 

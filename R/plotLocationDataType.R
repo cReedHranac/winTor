@@ -39,7 +39,7 @@ loc.full <- rbind(dur.sub, mass.sub)
 library(raster); library(rgdal)
 ## dem raster for extent and proj4
 na.rast <- raster(file.path(win.dat, "NA_dem.tif"))
-na.ext <- extent(na.rast)
+na.ext <-  c(-168, -50, 23.5, 66.5) #extent(na.rast)
 
 mylu.dist <- readOGR(dsn = "D:/Dropbox/batwintor_aux/paramFiles/ShapeFiles", 
                      layer = "myotis_lucifugus")
@@ -55,16 +55,17 @@ mylu.dist <- readOGR(dsn = "D:/Dropbox/batwintor_aux/paramFiles/ShapeFiles",
                  colour = "dodgerblue4",
                  fill = NA,
                  inherit.aes = F) +
-    geom_point(aes(shape = type),
+    geom_jitter(aes(shape = type),
                alpha = .5,
-               size = 1.3,
-               position = "jitter",
+               size = 2,
+               # position = "jitter",
                show.legend=FALSE)+
-    geom_point(data = as.data.frame(cbind(long= -111.007, lat  = 47.12429)),
-               aes(x= long, y = lat),size = 2)+
+    # geom_point(data = as.data.frame(cbind(long= -111.007, lat  = 47.12429)),
+    #            aes(x= long, y = lat),size = 2)+
     scale_color_manual(values=c("#E69F00","#56B4E9")) +
     coord_cartesian(xlim = na.ext[1:2], ylim = na.ext[3:4])+
-    scale_x_continuous(limits = na.ext[1:2]) +
+    scale_x_continuous(expand = c(0,0)) +
+    scale_y_continuous(expand = c(0,0))
     theme_bw()+
     guides(color=guide_legend(title="Data Type"))
 

@@ -43,7 +43,7 @@ North.America <- readOGR(dsn = win.dat,
                          layer = "NorthAmerica")
 mylu.dist <- readOGR(dsn = "D:/Dropbox/batwintor_aux/paramFiles/ShapeFiles", 
                      layer = "myotis_lucifugus")
-proj4string(mylu.dist) <- proj4string(massmean)
+
 
 #### Create cropped estimates for mapping ####
 # listIn <- list(durationMean, massmean, fatMean,
@@ -71,7 +71,7 @@ proj4string(mylu.dist) <- proj4string(massmean)
 
 plotStk <- stack(list.files(win.res, pattern = "myluCropped_*", full.names = T))
 names(plotStk) <- sapply(strsplit(names(plotStk), "_"), tail, 1)
-
+proj4string(mylu.dist) <- proj4string(plotStk)
 #### Winter duration plots ####
 library(tidyverse);library(raster);
 library(gridExtra)
@@ -111,7 +111,7 @@ masterPlotter <- function(x, c.string, res.agg = 25, dist.map = NULL,
     #border lines
     geom_polygon(data= fortify(North.America),
                  aes(long,lat,group=group),
-                 color="grey20",
+                 color="grey90",
                  fill=NA,
                  inherit.aes = F) +
     #general malarkey
@@ -182,7 +182,7 @@ masterPlotter <- function(x, c.string, res.agg = 25, dist.map = NULL,
     ggsave(filename = file.path(win.res,"fig", paste0(save.name,".", device.out)),
            g.win, 
            width = 9, height = 9/aspect.ratio, unit = "in",
-           dpi = 300,
+           dpi = 600,
            device = dev.ext)}
   
   return(g.win)
@@ -255,6 +255,7 @@ ggsave(file.path(win.res, "fig", "Mass_Fat.pdf"),
 #             format = "GTiff")
 
 survColors <- colorRampPalette(c(  "#e66101","#fdb863","#ffffff", "#b2abd2","#5e3c99"))
+
 Surv.plot <- function(x,  res.agg = 25, dist.map = NULL,
                       north.america = North.America, canada.focus = F,
                       save.name = NULL,  device.out = NULL,  ...){
@@ -346,10 +347,12 @@ Surv.plot <- function(x,  res.agg = 25, dist.map = NULL,
   
   return(g.win)
 }
-survColors.Pos <- colorRampPalette(c( "#ffffff", "#b2abd2","#5e3c99"))
+survColors.Pos <- colorRampPalette(c("#fdb863","#ffffff", "#B2ABD2", "#8873B5", "#5E3C99"))
+reqColors.Pos <- colorRampPalette(c("#ffffff", "#5E3C99"))
+
 masterPlotter.Surv <- function(x,  res.agg = 25, dist.map = NULL,
                           north.america = North.America, canada.focus = F,
-                          legend.key, surv.countours = F,
+                          legend.key, surv.countours = F, col.string,
                           save.name = NULL,  device.out = NULL,  ...){
   ##Function for plotting all  wintor spatil figurs   
   
@@ -376,7 +379,7 @@ masterPlotter.Surv <- function(x,  res.agg = 25, dist.map = NULL,
     geom_raster(aes(fill = winter),  interpolate = T) +
     #oooohhhhh pretty colors
     scale_fill_gradientn(legend.key,
-                         colors = c(  "#e66101","#fdb863","#ffffff", "#b2abd2","#5e3c99"),
+                         colors = col.string,
                          # mid = "#ffffff",
                          # midpoint = 0, 
                          limits=  c(floor(minValue(x.ag)),
@@ -384,7 +387,7 @@ masterPlotter.Surv <- function(x,  res.agg = 25, dist.map = NULL,
     #border lines
     geom_polygon(data= fortify(North.America),
                  aes(long,lat,group=group),
-                 color="grey20",
+                 color="grey90",
                  fill=NA,
                  inherit.aes = F) +
     #general malarkey
@@ -461,21 +464,41 @@ masterPlotter.Surv <- function(x,  res.agg = 25, dist.map = NULL,
   return(g.win)
 }
 
+(fatreq.plot <- masterPlotter(x = plotStk$fatNull,
+                              canada.focus = F,
+                              dist.map = mylu.dist,
+                              c.string = reqColors.Pos(5),
+                              legend.key = "Predicted\nBody Fat\nRequired (g)",
+                              save.name = "fatRequired4_98_Dist",
+                              device.out = "pdf"))
 
 
 (staticNull.plot <- masterPlotter.Surv(x = plotStk$survNull,
                               canada.focus = F,
                               dist.map = mylu.dist,
-                              legend.key = "Predicted\nBody Fat\nRemaining (g)",
-                              save.name = "nullSurvive4_98_Dist",
-                              device.out = "pdf"))
+                              col.string = survColors.Pos(5),
+                              legend.key = "Predicted\nBody Fat\nRemaining (g)"))#,
+                              # save.name = "nullsurvive4_98_Dist",
+                              # device.out = "pdf"))
 (staticInf.plot <- masterPlotter.Surv(x = plotStk$survInf,
                              canada.focus = F,
                              dist.map = mylu.dist,
                              legend.key = "Predicted\nBody Fat\nRemaining (g)",
-                             surv.countours = T,
-                             save.name = "infSurvive4_98_Dist",
-                             device.out = "pdf"))
+                             # surv.countours = T,
+                             col.string = survColors(5)))#,
+                             # save.name = "infSurvive4_98_Dist",
+                             # device.out = "pdf"))
+
+surFig <- grid.arrange(staticNull.plot, 
+                       staticInf.plot, 
+                       ncol = 1)
+ggsave(file.path(win.res, "fig", "SurvFig.pdf"),
+       surFig,
+       device = cairo_pdf,
+       width = 9,
+       height = 6.5, 
+       units = "in")
+
 
 fatSurvivalHistograms <- function(survNULL, survINF, dist.map, c.string,
                                   canada.focus = F, 
@@ -524,8 +547,8 @@ fatSurvivalHistograms <- function(survNULL, survINF, dist.map, c.string,
   
 }
 
-(staticHist <- fatSurvivalHistograms(survNULL = survStatic.null,
-                                     survINF =  survStatic.inf,
+(staticHist <- fatSurvivalHistograms(survNULL = plotStk$survNull,
+                                     survINF =  plotStk$survInf,
                                      mylu.dist,
                                      survColors(2),
                                      canada.focus = F,
@@ -659,7 +682,7 @@ values(precNull)[which(values(precNull)>=0)] <- 0
 b <- values(precNull)[which(values(precNull) != 0)]
 summary(b)
 surv.pctInf <- (abs(precNull)/plotStk$fat) *100
-plot(surv.pct)
+plot(surv.pctInf)
 a <- values(surv.pct)[which(values(surv.pct) != 0)]
 hist(a)
 summary(a)
@@ -679,13 +702,13 @@ writeRaster(surv.pct, filename = file.path(win.res, "survivalPrecentInf.tif"),
                                 device.out = "pdf"))
 
  (precSurvInf.plot <- masterPlotter(x = surv.pctInf,
-                                 c.string = colpal,
+                                 c.string = fdiffcolors(3),
                                  canada.focus = F,
                                  legend.key = "Precent\nfat\nShortfall (g)",
                                  dist.map = mylu.dist,
-                                 save.name = "precSurvInf_Dist",
+                                 save.name = "fatShortfallPrecentInf",
                                  device.out = "pdf"))
- 
+                                  
 
 ####No Longer needed ####
 # survColorsPOS <- colorRampPalette(c( "#ffffff", "#5e3c99","#b2abd2")) #"#fdb863", "#e66101"

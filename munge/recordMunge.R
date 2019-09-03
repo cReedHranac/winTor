@@ -109,6 +109,7 @@ colnames(rec.collapse) <- c("ID",
                             "Start",
                             "End",
                             "winter.duration") # rename to conform
+rec.collapse$Ref <- "WCS Recorder"
 
 
 #### literature data ####
@@ -131,7 +132,7 @@ for(i in 1:nrow(lit.dat)){ # Create duration since there's one already in there
 }
 ## final clean
 lit.clean <- lit.dat %>%
-  dplyr::select(ID, lat, long, Start, End, winter.duration)
+  dplyr::select(ID, lat, long, Start, End, winter.duration, Ref)
 
 #### Complete data frame ####
 ## Include the MTHP data stream    ## This data sucks
@@ -141,6 +142,7 @@ lit.clean <- lit.dat %>%
 # dat.comp <- bind_rows(lit.clean, rec.clean, mthp)
 
 dat.comp <- bind_rows(lit.clean, rec.collapse)
+write.csv(dat.comp, file.path(win.res, "durationDataReferenced.csv"),row.names = F)
 #create id col for binding with env 
 dat.comp$env_ID <- 1:nrow(dat.comp)
 
