@@ -338,8 +338,6 @@ gc()
 #### Creating the fat required rasters #####
 
 ## Step one run the batwintor model on mylu
-## N.B. batwintor can be downloaded via
-# devtools::install_github("cReedHranac/batwintor", ref = "Testing")
 library(batwintor)
 ## creating hibernation model 
 # mylu.params <- batLoad(bat.params, "MYLU")
@@ -454,6 +452,13 @@ win <- raster(file.path(win.res, "durationRaster_p.tif"))
 # Condition 1: 4 Degrees C and 98% relative humidity
 temp4 <- calc(win, function(x) ifelse(!is.na(x),4,NA))
 rh98 <- calc(win, function(x) ifelse(!is.na(x), 98, NA))
+
+# Condition 2: 2 Degrees C and 100% relative humidity
+temp2 <- calc(win, function(x) ifelse(!is.na(x),2,NA))
+rh100 <- calc(win, function(x) ifelse(!is.na(x),100,NA))
+
+## Applyy the function for the 2 situations
+## C1
 fat.C1 <- survivalFat(mod.df = mylu.mod,
                       pct.rh.rast = rh98,
                       temp.rast = temp4,
@@ -464,6 +469,36 @@ writeRaster(fat.C1,
             bylayer = T,
             suffix = "names",
             overwrite = T)
+## Clean up for ram 
+rm(fat.C1,rh98,temp4);gc()
+
+## C2
+fat.C2 <- survivalFat(mod.df = mylu.mod,
+                      pct.rh.rast = rh100,
+                      temp.rast = temp2,
+                      win.rast = win)
+writeRaster(fat.C2,
+            filename = file.path(win.res, "MYLU_fatRequired__2_100.tif"),
+## define the static hibernation conditions
+# Condition 1: 4 Degrees C and 98% relative humidity
+temp4 <- calc(win, function(x) ifelse(!is.na(x),4,NA))
+rh98 <- calc(win, function(x) ifelse(!is.na(x), 98, NA))
+fat.C1 <- survivalFat(mod.df = mylu.mod,
+                      pct.rh.rast = rh98,
+                      temp.rast = temp4,
+                      win.rast = win)
+writeRaster(fat.C1,
+            filename = file.path(win.res, "MYLU_fatRequired__4_98.tif"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "names",
+            overwrite = T)
+## Clean up for ram 
+rm(fat.C2,rh98,temp4);gc()
+
+
+#### uncertianty win ####
+win.lwr <- raster(file.path(win.res, "durationRaster_lwr.tif"))
 ## Clean up for ram 
 rm(fat.C1,rh98,temp4);gc()
 
@@ -482,6 +517,23 @@ writeRaster(fat.C2,
             overwrite = T)
 ## Clean up for ram 
 rm(fat.C2,rh100,temp2);gc()
+
+
+win.upr <- raster(file.path(win.res, "durationRaster_upr.tif"))
+
+fat.upr <- survivalFat(mod.df = mod.alt,
+                       pct.rh.rast = rh.fix,
+                       temp.rast = mat.fix,
+                       win.rast = win.upr)
+
+writeRaster(fat.upr,
+            filename = file.path(win.res, "MYLU_fatRequired_upr.tif"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "names",
+            overwrite = T)
+rm(win.upr, fat.upr)
+gc()
 
 
 #### uncertianty win ####
