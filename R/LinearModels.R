@@ -18,8 +18,8 @@ win.res <- file.path(base.path, "Results")
 
 
 #### Data ####
-dur.df <- read.csv("data/durationUpdate.csv")
-mass <- read.csv("data/massLocations.csv")
+dur <- read.csv("data/durationDataReferenced.csv")
+mass <- read.csv("data/massDataReferenced.csv")
 
 ## Co-variates
 library(raster)
@@ -27,15 +27,19 @@ env.names <- c("NA_dem", "NA_northing", "NA_nFrostyDays",
                "NA_nonGrowingDays", "NA_nDaysFreeze", "NA_OG1k")
 env.stk <- raster::subset(stack(list.files(win.dat, pattern = "NA_*", full.names = T)), env.names)
 
-## ammending mass to have co-variate data
+## ammending to have co-variate data
 coordinates(mass) <- ~ Long + Lat
-proj4string(mass) <- proj4string(mass)
+proj4string(mass) <- proj4string(env.stk)
 mass.df <- as.data.frame(cbind(mass, raster::extract(env.stk, mass)))
 
+coordinates(dur) <- ~ Long + Lat
+proj4string(dur) <- proj4string(env.stk)
+dur.df <- as.data.frame(cbind(dur, raster::extract(env.stk, dur)))
 
 #### preliminary lm to determine potential outlier points ####
-
+library(tidyverse)
 mod.form <- function(x, coVar){
+  ##Function to write out the formulas for me
   ## x is to be the item predicted
   ## covar is to be a list of the names oc covariates
   
@@ -140,11 +144,13 @@ cross.wrapper <- function(predictor, coVarNames, df){
 }
 
 
+##Duration
 dur.points <- cross.wrapper(predictor = "winter.duration", 
                        coVarNames = env.names,
                        df = dur.df)
 ## 2 points, but never that low of adj p=val
 ## acptable adjusted p-values so I'd say they're fine
+## Ask Jonathan: Are these values accecptible? 
 
 mass.points <- cross.wrapper(predictor = "avgMass",
                              coVarNames = env.names,
@@ -159,6 +165,29 @@ dur.mods <- lapply(mod.form("winter.duration",coVar = env.names),
 
 mass.mods <- lapply(mod.form("avgMass",coVar = env.names),
                     FUN = lm, data = mass.df )
+## Extracting adj.R2 as a vector from each
+modnames = c("dem",
+             "northing",
+             "frost",
+             "growing",
+             "freeze",
+             "OG",
+             "north + dem",
+             "north + frost",
+             "north + growing",
+             "north + freeze",
+             "north + OG",
+             "north + dem + frost",
+             "north + dem + growing",
+             "north + dem + freeze",
+             "north + dem + OG")
+
+r2.durModels <- as.data.frame(cbind(Modnames=unlist(modnames),
+                      R2 =unlist(lapply(dur.mods,
+                             function(x){summary(x)$ adj.r.squared}))))
+r2.massModels <- as.data.frame(cbind(Modnames=unlist(modnames),
+                       R2 =unlist(lapply(mass.mods,
+                              function(x){summary(x)$ adj.r.squared}))))
 
 #### AIC Model Selection ####
 library(AICcmodavg)
@@ -196,8 +225,14 @@ mass.AIC <- aictab(mass.mods,
                                 "north + dem + freeze",
                                 "north + dem + OG"))
 ##Write Tables out
-write.csv(dur.AIC, file =  file.path(win.res, 'durationAICtable.csv'), row.names = F)
-write.csv(mass.AIC, file =  file.path(win.res, 'massAICtable.csv'), row.names = F)
+#append R2 onto them * Assumes that model order has not been shifted at all. 
+durTableOut <- left_join(dur.AIC, r2.durModels)
+massTableOut <- left_join(mass.AIC, r2.massModels)
+
+
+
+write.csv(durTableOut, file =  file.path(win.res, 'durationResultsTable.csv'), row.names = F)
+write.csv(massTableOut, file =  file.path(win.res, 'massResultsTable.csv'), row.names = F)
 
 #### Variogram of the top models ####
 library(gstat)

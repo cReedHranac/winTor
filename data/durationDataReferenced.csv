@@ -1,4 +1,4 @@
-ID,lat,long,Start,End,winter.duration,Ref
+ID,Lat,Long,Start,End,winter.duration,Ref
 L1,53.12,-99.19,15/09/2018,15/05/2019,242,Czenze & Willis 2015
 L2,51.44,-97.38,13/09/2018,15/05/2019,244,Norwuay & Willis 2014
 L3,53.12,-99.19,15/09/2018,15/05/2019,242,Jonasson and Willis 2012
