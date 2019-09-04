@@ -337,8 +337,40 @@ lmRasterIntervals(mass.top.mod,
 gc()
 #### Creating the fat required rasters #####
 
-library(data.table);library(raster)
+## Step one run the batwintor model on mylu
+## N.B. batwintor can be downloaded via
+# devtools::install_github("cReedHranac/batwintor", ref = "Testing")
+library(batwintor)
+## creating hibernation model 
+# mylu.params <- batLoad(bat.params, "MYLU")
+# 
+# fung.ch <- fungalSelect("Chaturvedi")
+# env <- buildEnv(temp = c(-4,10), #temperatures in degrees C
+#                 pct.rh = c(46, 100), #precent humidity
+#                 range.res.temp = 1, #resolution of the temperature
+#                 range.res.rh = 1, #resolution of the humidithy
+#                 twinter = 12, #maximal length of winter (in this case I have months)
+#                 winter.res = 1) #resolution of the time vector in vectors
+# 
+# mylu.mod <- hibernationModel(env = env,
+#                              bat.params = mylu.params,
+#                              fung.params = fung.ch)
+# 
+# data.table::fwrite(x = mylu.mod,
+#                    file = "D://Dropbox/winTor_aux/data/myluDynamicModel.csv" )
+# 
+
+mylu.mod <- fread(file.path(win.dat, "myluDynamicModel.csv"))
+
+## step two, add spatial aspect
 survivalFat <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
+  ### Function for converting the amount dynamic hibernation model results into 
+  ### grams of fat and appling those againt winter duration
+  ## mod.df <- dynamic hibernation model results
+  ## pch.rh.rast <- relative humidity raster to apply spatially
+  ## temp.rast <- temperature raster to apply spatially
+  ## win.rast <- winter duration raster to apply spatially
+  
   #Raster modifications for Kelvin temperatures
   if(summary(temp.rast)[1] > 200){
     temp.c <- temp.rast - 273
@@ -416,66 +448,50 @@ survivalFat <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
   }
   return(out.s)
 }
-# mod.big <- fread("D://Dropbox/winTor_aux/data/myluModHUGE.csv")
-# win <- raster(file.path(win.res, "durationRaster_p.tif"))
-# rh <- raster("D://Dropbox/batwintor_aux/paramFiles/RH_NA.tif")
-# mat <- raster("D://WorldClim/bclim/bio_1.bil")
-# 
-# rh.fix <- projectRaster(rh, win); rm(rh)
-# mat. <- projectRaster(mat, win); rm(mat)
-# mat.fix <- calc(mat., function(x){x/10}); rm(mat.)
-# 
-# library(batwintor)
-# 
-# fat.rast <- survivalFat(mod.df = mod.big,
-#                         pct.rh.rast = rh.fix,
-#                         temp.rast = mat.fix,
-#                         win.rast = win)
-# writeRaster(fat.rast,
-#             filename = file.path(win.res, "MYLU_fatRequired.tif"),
-#             format = "GTiff",
-#             bylayer = T,
-#             suffix = "names",
-#             overwrite = T)
 
-## Creating alternative hibernatin estimate ones
-library(data.table);library(raster)
-
-mod.alt <- fread("D://Dropbox/winTor_aux/data/myluHibernation_Alt.csv")
 win <- raster(file.path(win.res, "durationRaster_p.tif"))
-rh <- raster("D://Dropbox/batwintor_aux/paramFiles/RH_NA.tif")
-mat <- raster("D://WorldClim/bclim/bio_1.bil")
-
-rh.fix <- projectRaster(rh, win); rm(rh)
-mat. <- projectRaster(mat, win); rm(mat)
-mat.fix <- calc(mat., function(x){x/10}); rm(mat.)
-
-## Exchange for 4 and 98
-temp4 <- calc(mat.fix, function(x) ifelse(!is.na(x),4,NA))
-rh98 <- calc(rh.fix, function(x) ifelse(!is.na(x), 98, NA))
-
-##Exchange for 2 and 98%
-temp2 <- calc(rh.fix, function(x) ifelse(!is.na(x),2,NA))
-
-
-library(batwintor)
-
-fat.rast <- survivalFat(mod.df = mod.big,
-                        pct.rh.rast = rh98,
-                        temp.rast = temp2,
-                        win.rast = win)
-writeRaster(fat.rast,
-            filename = file.path(win.res, "MYLU_fatRequired_98_2.tif"),
+## define the static hibernation conditions
+# Condition 1: 4 Degrees C and 98% relative humidity
+temp4 <- calc(win, function(x) ifelse(!is.na(x),4,NA))
+rh98 <- calc(win, function(x) ifelse(!is.na(x), 98, NA))
+fat.C1 <- survivalFat(mod.df = mylu.mod,
+                      pct.rh.rast = rh98,
+                      temp.rast = temp4,
+                      win.rast = win)
+writeRaster(fat.C1,
+            filename = file.path(win.res, "MYLU_fatRequired__4_98.tif"),
             format = "GTiff",
             bylayer = T,
             suffix = "names",
             overwrite = T)
+## Clean up for ram 
+rm(fat.C1,rh98,temp4);gc()
+
+## Condition 2: 2 Degrees C and 100% relative humidity
+temp2 <- calc(win, function(x) ifelse(!is.na(x),2,NA))
+rh100 <- calc(win, function(x) ifelse(!is.na(x),100,NA))
+fat.C2 <- survivalFat(mod.df = mylu.mod,
+                      pct.rh.rast = rh100,
+                      temp.rast = temp2,
+                      win.rast = win)
+writeRaster(fat.C2,
+            filename = file.path(win.res, "MYLU_fatRequired__2_100.tif"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "names",
+            overwrite = T)
+## Clean up for ram 
+rm(fat.C2,rh100,temp2);gc()
+
+
 #### uncertianty win ####
+temp4 <- calc(win, function(x) ifelse(!is.na(x),4,NA))
+rh98 <- calc(win, function(x) ifelse(!is.na(x), 98, NA))
 win.lwr <- raster(file.path(win.res, "durationRaster_lwr.tif"))
 
-fat.lwr <- survivalFat(mod.df = mod.alt,
-                       pct.rh.rast = rh.fix,
-                       temp.rast = mat.fix,
+fat.lwr <- survivalFat(mod.df = mylu.mod,
+                       pct.rh.rast = rh100,
+                       temp.rast = temp2,
                        win.rast = win.lwr)
 
 writeRaster(fat.lwr,
@@ -490,9 +506,9 @@ gc()
 
 win.upr <- raster(file.path(win.res, "durationRaster_upr.tif"))
 
-fat.upr <- survivalFat(mod.df = mod.alt,
-                       pct.rh.rast = rh.fix,
-                       temp.rast = mat.fix,
+fat.upr <- survivalFat(mod.df = mylu.mod,
+                       pct.rh.rast = rh100,
+                       temp.rast = temp2,
                        win.rast = win.upr)
 
 writeRaster(fat.upr,
@@ -504,59 +520,3 @@ writeRaster(fat.upr,
 rm(win.upr, fat.upr)
 gc()
 
-#### Fixed conditions ####
-## create mock laters to represent bats choosing to hibernate at 98% and 4deg
-#for Coi
-temp2 <- calc(mat.fix, function(x) ifelse(!is.na(x),2,NA))
-
-temp4 <- calc(mat.fix, function(x) ifelse(!is.na(x),4,NA))
-rh98 <- calc(rh.fix, function(x) ifelse(!is.na(x), 98, NA))
-
-fat.rast <- survivalFat(mod.df = mod.big,
-                        pct.rh.rast = rh98,
-                        temp.rast = temp2,
-                        win.rast = win)
-writeRaster(fat.rast,
-            filename = file.path(win.res, "MYLU_fatRequired_98_2.tif"),
-            format = "GTiff",
-            bylayer = T,
-            suffix = "names",
-            overwrite = T)
-rm(fat.rast)
-
-
-#
-win.lwr <- raster(file.path(win.res, "durationRaster_lwr.tif"))
-
-
-fat.lwr <- survivalFat(mod.df = mod.big,
-                       pct.rh.rast = rh98,
-                       temp.rast = temp4,
-                       win.rast = win.lwr)
-
-writeRaster(fat.lwr,
-            filename = file.path(win.res, "MYLU_fatRequired_lwr_98_4.tif"),
-            format = "GTiff",
-            bylayer = T,
-            suffix = "names",
-            overwrite = T)
-rm(win.lwr, fat.lwr)
-gc()
-
-
-win.upr <- raster(file.path(win.res, "durationRaster_upr.tif"))
-
-fat.upr <- survivalFat(mod.df = mod.big,
-                       pct.rh.rast = rh98,
-                       temp.rast = temp4,
-                       win.rast = win.upr)
-
-writeRaster(fat.upr,
-            filename = file.path(win.res, "MYLU_fatRequired_upr_98_4.tif"),
-            format = "GTiff",
-            bylayer = T,
-            suffix = "names",
-            overwrite = T)
-rm(win.upr, fat.upr)
-
-#### fixed 2 degrees x 100% ####
