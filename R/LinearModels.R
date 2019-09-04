@@ -242,7 +242,7 @@ dur.mod <- formula(dur.mods[[12]])
 dur.mod.df <- dur.df
 
 #Create locations points
-coordinates(dur.mod.df) <- ~ long + lat
+coordinates(dur.mod.df) <- ~ Long + Lat
 proj4string(dur.mod.df) <- proj4string(env.stk)
 
 v <- variogram(dur.mod,
@@ -256,6 +256,19 @@ par(mfrow = c(1,3))
 plot(v, v.exp)
 plot(v, v.mat)
 plot(v, v.sph)
+
+library(gridExtra)
+Variogram.dur <- grid.arrange(plot(v, v.exp),
+                              plot(v, v.mat),
+                              plot(v, v.sph),
+                              ncol = 1)
+
+ggsave( file.path(win.res,"fig", "varioDuration.pdf"),
+       plot = Variogram.dur,
+       device = cairo_pdf,
+       width = 4,
+       height = 4,
+       units = "in")
 
 ### same for Mass
 mass.mod <- formula(mass.mods[[10]])
@@ -276,6 +289,17 @@ plot(q, q.exp)
 plot(q, q.mat)
 plot(q, q.sph)
 
+Variogram.mass <-  grid.arrange(plot(q, q.exp),
+                                plot(q, q.mat),
+                                plot(q, q.sph),
+                                ncol = 1)
+
+ggsave( file.path(win.res,"fig", "varioMass.pdf"),
+        plot = Variogram.mass,
+        device = cairo_pdf,
+        width = 4,
+        height = 4,
+        units = "in")
 
 
 
