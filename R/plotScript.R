@@ -161,170 +161,66 @@ proj4string(mylu.dist) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +tow
 
 #### Load data ####
 library(raster);library(tidyverse)
-raw.layers <- raster(list.files(win.res, pattern = "_p", full.names = T))
-
-
-
-
-
-
-#### Create cropped estimates for mapping ####
-# listIn <- list(durationMean, massmean, fatMean,
-#                fatReq984.null, fatReq984.inf,
-#                survStatic.null, survStatic.inf)
+# raw.layers <- stack(list.files(win.res, pattern = "_p", full.names = T))
+# ## Create the fat layer
+# raw.layers$fat_p <- calc(raw.layers$massRaster_p, fun = function(x){-2.84 + 0.593*x})
+# ## Changing names for simplicity
+# names(raw.layers) <- c("win", "mass", "fat")
 # 
-# cropMask <- function(x, y = mylu.dist){
-#   z <- mask(crop(x, y), y)
-#   return(z)
+# ## Survival layers
+# fatReq.layers <- stack(list.files(win.res, pattern = "MYLU_fat", full.names = T))
+# names(fatReq.layers) <- c("fatReq_2_100_inf", "fatReq_2_100_null",
+#                         "fatReq_4_98_inf", "fatReq_4_98_null")
+# ##Creating survival capacities for each of the simulations
+#   ## Issues with running out of ram on my 32 Gb machine
+# surv.layers <- list()
+# for(i in 1:nlayers(fatReq.layers)){
+#   
+#   out <- raw.layers$fat -fatReq.layers[[i]]
+#   names(out) <- paste(c("surv",sapply(strsplit(names(fatReq.layers[[i]]), "_"),tail,3)),collapse = "_")
+#   surv.layers[[i]] <- out
 # }
+# surv.stk <- do.call(stack, surv.layers)
 # 
-# cropedList <- lapply(listIn, cropMask)
+# full.stk <- stack(raw.layers, fatReq.layers, surv.layers)
+# rm(raw.layers, fatReq.layers,surv.layers, surv.stk)
 # 
+# #### Create cropped estimates for mapping ####
+# crop.stk <- mask(crop(full.stk, mylu.dist), mylu.dist)
 # 
-# croppedStk <- do.call(stack, cropedList)
-# names(croppedStk) <- c("dur", "mass", "fat", 
-#                        "fatNull", "fatInf",
-#                        "survNull", "survInf")
-# 
-# writeRaster(croppedStk,
-#             file.path(win.res, "myluCropped_.tif"), 
+# writeRaster(crop.stk,
+#             file.path(win.res, "myluCropped_.tif"),
 #             format = "GTiff",
-#             bylayer = T, 
-#             suffix = "names")
+#             bylayer = T,
+#             suffix = "names",
+#             overwrite=T)
 
 plotStk <- stack(list.files(win.res, pattern = "myluCropped_*", full.names = T))
-names(plotStk) <- sapply(strsplit(names(plotStk), "_"), tail, 1)
-proj4string(mylu.dist) <- proj4string(plotStk)
+names(plotStk) <- sub(".*?__", "", names(plotStk))
+
 #### Winter duration plots ####
-;
+
 library(gridExtra)
 ## Plot Function 
-masterPlotter <- function(x, c.string, res.agg = 25, dist.map = NULL,
-                          north.america = North.America, canada.focus = F,
-                          legend.key, surv.countours = F,
-                          save.name = NULL,  device.out = NULL,  ...){
-  ##Function for plotting all  wintor spatil figurs   
-  
-  ## Create DataFrame (aggragation is mainly for the dev period)
-  if(!is.null(res.agg)){ #aggratetion bits
-    x.ag <- raster::aggregate(x, res.agg)
-  }
-  else{
-    x.ag <- x}
-  ## Crop and mask to distribution
-  if(!is.null(dist.map)){
-    x.ag <- mask(crop(x.ag, dist.map), dist.map)
-  }
-  
-  ## Convert to df
-  x.pts <- rasterToPoints(x.ag) #to points
-  x.df <- data.frame(x.pts)
-  colnames(x.df) <- c("long", "lat", "winter")
-  
-  
-  g.win <- ggplot(data = x.df, aes(x = long, y = lat, z = winter)) +
-    coord_fixed(xlim = extent(x.ag)[1:2], ylim = extent(x.ag)[3:4]) +
-    #Raster fill
-    geom_raster(aes(fill = winter),  interpolate = T) +
-    #oooohhhhh pretty colors
-    scale_fill_gradientn(legend.key,
-                         colors = c.string,
-                         limits=  c(floor(minValue(x.ag)),
-                                    ceiling(maxValue(x.ag)))) +
-    #border lines
-    geom_polygon(data= fortify(North.America),
-                 aes(long,lat,group=group),
-                 color="grey90",
-                 fill=NA,
-                 inherit.aes = F) +
-    #general malarkey
-    scale_x_continuous(expand = c(0,0))+
-    scale_y_continuous(expand = c(0,0))+
-    theme_bw()+
-    theme(legend.position = c(0.1,0.40),
-          legend.margin = margin(),
-          legend.key.width = unit(0.5, "cm"),
-          legend.key.height = unit(0.4, "cm"),
-          legend.text=element_text(size=7),
-          legend.title=element_text(size=9),
-          axis.title = element_blank())
-  
-  ##Distribution map flag
-  if(!is.null(dist.map)){
-    g.win <- g.win +
-      geom_polygon(data = fortify(dist.map),
-                   aes(long,lat, group = group),
-                   colour = "black",
-                   fill = NA,
-                   inherit.aes = F) 
-  }
-  
-  ## Canada focus flag
-  if(canada.focus==T){
-    can.ext <- c(-140,-104,41,60)
-    g.win <- g.win +
-      coord_cartesian(xlim = can.ext[1:2],
-                      ylim = can.ext[3:4]) +
-      scale_x_continuous(expand = c(0,0)) +
-      scale_y_continuous(expand = c(0,0)) 
-  } 
-  
-  ## Contour flag
-  if(surv.countours == T) {
-    g.win <- g.win + 
-      geom_contour(aes(z = winter,
-                       color = factor(..level.. == 0 ,
-                                      levels = c(T,F),
-                                      labels = c(expression(fat=0),
-                                                 expression(fat>0.5)))),
-                   breaks=c(-0.5, 0,0.5)) +
-      
-      
-      scale_colour_manual(values = c( "red","blue")) +
-      labs(color = "Contours")
-  }
-  
-  
-  
-  ## Save Flag  
-  if(!is.null(save.name)){
-    if(device.out == "pdf"){
-      dev.ext <- cairo_pdf
-    } else if (device.out =="eps"){
-      dev.ext <- cairo_ps
-    } else {
-      dev.ext <- device.out
-    }
-    ex <- as.vector(extent(x))
-    if(canada.focus==T){
-      aspect.ratio <- (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]])
-    } else{
-      aspect.ratio <-(ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])  
-    }
-    
-    ggsave(filename = file.path(win.res,"fig", paste0(save.name,".", device.out)),
-           g.win, 
-           width = 9, height = 9/aspect.ratio, unit = "in",
-           dpi = 600,
-           device = dev.ext)}
-  
-  return(g.win)
-}
-
 
 #Winter duration raster
-durationMean <- raster(file.path(win.res, "durationRaster_p.tif"))
 winterColors <- colorRampPalette(c("#e0ecf4", "#9ebcda","#8856a7"))
 
-
-(winMean.plot <- masterPlotter(x = durationMean,
+(winMean.plot <- masterPlotter(x = plotStk$win,
                                c.string = winterColors(5),
                                canada.focus = F,
                                legend.key = "Predicted\nDuration\nWnter\n(Days)",
-                               save.name = "winDuration_Mean",
+                               save.name = "winDuration_Mean_MYLU",
                                device.out = "pdf"))
+(winMean.plot.canada <- masterPlotter(x = plotStk$win,
+                                      c.string = winterColors(5),
+                                      canada.focus = T,
+                                      legend.key = "Predicted\nDuration\nWnter\n(Days)",
+                                      save.name = "winDuration_Mean_MYLU_Canada",
+                                      device.out = "pdf"))
+
+
  #### Body Mass and Fat Mass Plots####
-massmean <- raster(file.path(win.res, "massRaster_p.tif"))
 massColors <- colorRampPalette(c("#f7fcb9", "#31a354"))
 
 (massMean.plot <- masterPlotter(x = plotStk$mass,
@@ -332,10 +228,16 @@ massColors <- colorRampPalette(c("#f7fcb9", "#31a354"))
                             canada.focus = F,
                             dist.map = mylu.dist,
                             legend.key = "Predicted\nBody\nMass (g)",
-                            save.name = "massMean_Dist",
+                            save.name = "massMean_MYLU",
                             device.out = "pdf"))
+(massMean.plot.canada <- masterPlotter(x = plotStk$mass,
+                                c.string = massColors(5),
+                                canada.focus = T,
+                                dist.map = mylu.dist,
+                                legend.key = "Predicted\nBody\nMass (g)",
+                                save.name = "massMean_MYLU_Canada",
+                                device.out = "pdf"))
 
-fatMean <- calc(massmean, fun = function(x){-2.84 + 0.593*x})
 fatColors <- colorRampPalette(c("#fff7bc","#fec44f", "#d95f0e"))
 
 (fatMean.plot <- masterPlotter(x = plotStk$fat,
@@ -343,15 +245,33 @@ fatColors <- colorRampPalette(c("#fff7bc","#fec44f", "#d95f0e"))
                           canada.focus = F,
                           legend.key = "Predicted\nBody\nFat (g)",
                           dist.map = mylu.dist,
-                          save.name = "fatMean_Dist",
+                          save.name = "fatMean_MYLU",
                           device.out = "pdf"))
-## Single figure
 
+(fatMean.plot.canada <- masterPlotter(x = plotStk$fat,
+                               c.string = fatColors(5),
+                               canada.focus = T,
+                               legend.key = "Predicted\nBody\nFat (g)",
+                               dist.map = mylu.dist,
+                               save.name = "fatMean_MYLU_Canada",
+                               device.out = "pdf"))
+## Single figure
+library(gridExtra)
 fig3 <- grid.arrange(massMean.plot, 
                      fatMean.plot, 
                      ncol = 1)
-ggsave(file.path(win.res, "fig", "Mass_Fat.pdf"),
+ggsave(file.path(win.res, "fig", "Mass_Fat_MYLU.pdf"),
        fig3,
+       device = cairo_pdf,
+       width = 9,
+       height = 6.5, 
+       units = "in")
+
+fig3Canada <- grid.arrange(massMean.plot, 
+                           fatMean.plot, 
+                           ncol = 1)
+ggsave(file.path(win.res, "fig", "Mass_Fat_MYLU_Canda.pdf"),
+       fig3Canada,
        device = cairo_pdf,
        width = 9,
        height = 6.5, 
@@ -359,118 +279,9 @@ ggsave(file.path(win.res, "fig", "Mass_Fat.pdf"),
 
 
 #### Survival mapping ####
-
-
-## Static conditions 
-# fatReq984.null <- raster(file.path(win.res, "MYLU_fatRequired_98_4_fat.null.tif"))
-# fatReq984.inf <- raster(file.path(win.res, "MYLU_fatRequired_98_4_fat.inf.tif"))
-# survStatic.null <- fatMean - fatReq984.null
-# survStatic.inf <- fatMean - fatReq984.inf
-
-
-
-
-# writeRaster(survStatic.null,
-#             filename = file.path(win.res, "myluSurvStativNull.tif"),
-#             format = "GTiff")
-# writeRaster(survStatic.inf,
-#             filename = file.path(win.res, "myluSurvStativInf.tif"),
-#             format = "GTiff")
-
 survColors <- colorRampPalette(c(  "#e66101","#fdb863","#ffffff", "#b2abd2","#5e3c99"))
-
-Surv.plot <- function(x,  res.agg = 25, dist.map = NULL,
-                      north.america = North.America, canada.focus = F,
-                      save.name = NULL,  device.out = NULL,  ...){
-  ## Create DataFrame (aggragation is mainly for the dev period)
-  if(!is.null(res.agg)){ #aggratetion bits
-    x.ag <- raster::aggregate(x, res.agg)
-  }
-  else{
-    x.ag <- x}
-  ## Crop and mask to distribution
-  if(!is.null(dist.map)){
-    x.ag <- mask(crop(x.ag, dist.map), dist.map)
-  }
-  if(canada.focus == T){
-    can.ext <- extent(-140,-104,41,60)
-    x.ag <-crop(x.ag, can.ext)
-  }
-  
-  ## Convert to df
-  x.pts <- rasterToPoints(x.ag) #to points
-  x.df <- data.frame(x.pts)
-  colnames(x.df) <- c("long", "lat", "winter")
-  
-  (g.win <- ggplot(data = x.df, aes(x = long, y = lat, z = winter)) +
-    coord_fixed(xlim = extent(x.ag)[1:2], ylim = extent(x.ag)[3:4]) +
-    #Raster fill
-    geom_raster(aes(fill = winter),  interpolate = T) +
-    #oooohhhhh pretty colors
-    scale_fill_gradient2("Predicted\nBody\nFat\nRemaining (g)",
-                         low = "#fdb863", mid = "#ffffff", high = "#b2abd2",
-                         midpoint = 0,
-                         limits=  c(minValue(x.ag),
-                                    maxValue(x.ag))) +
-    #border lines
-    geom_polygon(data= fortify(North.America),
-                 aes(long,lat,group=group),
-                 color="grey20",
-                 fill=NA,
-                 inherit.aes = F) +
-    #contour lines
-      geom_contour(aes(z = winter,
-                       color = factor(..level.. == 0 ,
-                                      levels = c(T,F),
-                                      labels = c(expression(fat=0),
-                                                 expression(fat>0.5)))),
-                   breaks=c(-0.5, 0,0.5)) +
-
-     
-      scale_colour_manual(values = c( "red","blue")) +
-      labs(color = "Contours")+
-    
-    #general malarkey
-    scale_x_continuous(expand = c(0,0))+
-    scale_y_continuous(expand = c(0,0))+
-    theme(plot.title = element_text(hjust = .05))+
-    #ggtitle("Predicted Body Mass") + 
-    theme_bw())
-  
-  ##Distribution map flag
-  if(!is.null(dist.map)){
-    g.win <- g.win +
-      geom_polygon(data = fortify(dist.map),
-                   aes(long,lat, group = group),
-                   colour = "black",
-                   fill = NA,
-                   inherit.aes = F) 
-  }
-  
-  if(!is.null(save.name)){
-    if(device.out == "pdf"){
-      dev.ext <- cairo_pdf
-    } else if (device.out =="eps"){
-      dev.ext <- cairo_ps
-    } else {
-      dev.ext <- device.out
-    }
-    ex <- as.vector(extent(x))
-    if(canada.focus==T){
-      aspect.ratio <- (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]])
-    } else{
-      aspect.ratio <-(ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])  
-    }
-    ggsave(filename = file.path(win.res,"fig", paste0(save.name,".", device.out)),
-           g.win, 
-           width = 9, height = 9/aspect.ratio, unit = "in",
-           dpi = 300,
-           device = dev.ext,
-           ...)}
-  
-  return(g.win)
-}
-survColors.Pos <- colorRampPalette(c("#fdb863","#ffffff", "#B2ABD2", "#8873B5", "#5E3C99"))
+## Doesn't go below 0
+survColors.Pos <- colorRampPalette(c("#ffffff", "#B2ABD2", "#8873B5", "#5E3C99"))
 reqColors.Pos <- colorRampPalette(c("#ffffff", "#5E3C99"))
 
 masterPlotter.Surv <- function(x,  res.agg = 25, dist.map = NULL,
@@ -587,19 +398,21 @@ masterPlotter.Surv <- function(x,  res.agg = 25, dist.map = NULL,
   return(g.win)
 }
 
-(fatreq.plot <- masterPlotter(x = plotStk$fatNull,
+(fatreq.plot <- masterPlotter.Surv(x = plotStk$fatReq_4_98_null,
                               canada.focus = F,
                               dist.map = mylu.dist,
                               c.string = reqColors.Pos(5),
-                              legend.key = "Predicted\nBody Fat\nRequired (g)",
-                              save.name = "fatRequired4_98_Dist",
-                              device.out = "pdf"))
+                              surv.countours = T,
+                              legend.key = "Predicted\nBody Fat\nRequired (g)"))#,
+                              # save.name = "fatRequired4_98_Dist",
+                              # device.out = "pdf"))
 
 
-(staticNull.plot <- masterPlotter.Surv(x = plotStk$survNull,
+(staticNull.plot <- masterPlotter.Surv(x = plotStk$surv_4_98_null,
                               canada.focus = F,
                               dist.map = mylu.dist,
-                              col.string = survColors.Pos(5),
+                              surv.countours = T,
+                              col.string = survColors.Pos(4),
                               legend.key = "Predicted\nBody Fat\nRemaining (g)"))#,
                               # save.name = "nullsurvive4_98_Dist",
                               # device.out = "pdf"))
@@ -607,7 +420,7 @@ masterPlotter.Surv <- function(x,  res.agg = 25, dist.map = NULL,
                              canada.focus = F,
                              dist.map = mylu.dist,
                              legend.key = "Predicted\nBody Fat\nRemaining (g)",
-                             # surv.countours = T,
+                              surv.countours = T,
                              col.string = survColors(5)))#,
                              # save.name = "infSurvive4_98_Dist",
                              # device.out = "pdf"))
