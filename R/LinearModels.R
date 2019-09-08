@@ -340,23 +340,23 @@ gc()
 ## Step one run the batwintor model on mylu
 library(batwintor)
 ## creating hibernation model 
-# mylu.params <- batLoad(bat.params, "MYLU")
-# 
-# fung.ch <- fungalSelect("Chaturvedi")
-# env <- buildEnv(temp = c(-4,10), #temperatures in degrees C
-#                 pct.rh = c(46, 100), #precent humidity
-#                 range.res.temp = 1, #resolution of the temperature
-#                 range.res.rh = 1, #resolution of the humidithy
-#                 twinter = 12, #maximal length of winter (in this case I have months)
-#                 winter.res = 1) #resolution of the time vector in vectors
-# 
-# mylu.mod <- hibernationModel(env = env,
-#                              bat.params = mylu.params,
-#                              fung.params = fung.ch)
-# 
-# data.table::fwrite(x = mylu.mod,
-#                    file = "D://Dropbox/winTor_aux/data/myluDynamicModel.csv" )
-# 
+mylu.params <- batLoad(bat.params, "MYLU")
+
+fung.ch <- fungalSelect("Chaturvedi")
+env <- buildEnv(temp = c(-4,10), #temperatures in degrees C
+                pct.rh = c(46, 100), #precent humidity
+                range.res.temp = 1, #resolution of the temperature
+                range.res.rh = 1, #resolution of the humidithy
+                twinter = 12, #maximal length of winter (in this case I have months)
+                winter.res = 1) #resolution of the time vector in vectors
+
+mylu.mod <- hibernationModel(env = env,
+                             bat.params = mylu.params,
+                             fung.params = fung.ch)
+
+data.table::fwrite(x = mylu.mod,
+                   file = "D://Dropbox/winTor_aux/data/myluDynamicModel.csv" )
+
 
 mylu.mod <- fread(file.path(win.dat, "myluDynamicModel.csv"))
 

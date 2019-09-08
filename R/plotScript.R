@@ -161,25 +161,25 @@ proj4string(mylu.dist) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +tow
 
 #### Load data ####
 library(raster);library(tidyverse)
-# raw.layers <- stack(list.files(win.res, pattern = "_p", full.names = T))
-# ## Create the fat layer
-# raw.layers$fat_p <- calc(raw.layers$massRaster_p, fun = function(x){-2.84 + 0.593*x})
-# ## Changing names for simplicity
-# names(raw.layers) <- c("win", "mass", "fat")
-# 
-# ## Survival layers
-# fatReq.layers <- stack(list.files(win.res, pattern = "MYLU_fat", full.names = T))
-# names(fatReq.layers) <- c("fatReq_2_100_inf", "fatReq_2_100_null",
-#                         "fatReq_4_98_inf", "fatReq_4_98_null")
-# ##Creating survival capacities for each of the simulations
-#   ## Issues with running out of ram on my 32 Gb machine
-# surv.layers <- list()
-# for(i in 1:nlayers(fatReq.layers)){
-#   
-#   out <- raw.layers$fat -fatReq.layers[[i]]
-#   names(out) <- paste(c("surv",sapply(strsplit(names(fatReq.layers[[i]]), "_"),tail,3)),collapse = "_")
-#   surv.layers[[i]] <- out
-# }
+raw.layers <- stack(list.files(win.res, pattern = "_p", full.names = T))
+## Create the fat layer
+raw.layers$fat_p <- calc(raw.layers$massRaster_p, fun = function(x){-2.84 + 0.593*x})
+## Changing names for simplicity
+names(raw.layers) <- c("win", "mass", "fat")
+
+## Survival layers
+fatReq.layers <- stack(list.files(win.res, pattern = "MYLU_fat", full.names = T))
+names(fatReq.layers) <- c("fatReq_2_100_inf", "fatReq_2_100_null",
+                        "fatReq_4_98_inf", "fatReq_4_98_null")
+##Creating survival capacities for each of the simulations
+  ## Issues with running out of ram on my 32 Gb machine
+surv.layers <- list()
+for(i in 1:nlayers(fatReq.layers)){
+
+  out <- raw.layers$fat -fatReq.layers[[i]]
+  names(out) <- paste(c("surv",sapply(strsplit(names(fatReq.layers[[i]]), "_"),tail,3)),collapse = "_")
+  surv.layers[[i]] <- out
+}
 # surv.stk <- do.call(stack, surv.layers)
 # 
 # full.stk <- stack(raw.layers, fatReq.layers, surv.layers)
