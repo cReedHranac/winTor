@@ -402,11 +402,22 @@ masterPlotter.Surv <- function(x,  res.agg = 25, dist.map = NULL,
                               canada.focus = F,
                               dist.map = mylu.dist,
                               c.string = reqColors.Pos(5),
-                              surv.countours = T,
-                              legend.key = "Predicted\nBody Fat\nRequired (g)"))#,
-                              # save.name = "fatRequired4_98_Dist",
-                              # device.out = "pdf"))
+                              surv.countours = F,
+                              legend.key = "Predicted\nBody Fat\nRequired (g)",
+                              save.name = "fatRequired_4_98_Dist",
+                              device.out = "pdf"))
 
+
+(fatreq.plot <- masterPlotter.Surv(x = plotStk$fatReq_2_100_null,
+                                   canada.focus = F,
+                                   dist.map = mylu.dist,
+                                   c.string = reqColors.Pos(5),
+                                   surv.countours = F,
+                                   legend.key = "Predicted\nBody Fat\nRequired (g)",
+                                   save.name = "fatRequired_2_100_Dist",
+                                   device.out = "pdf"))
+
+## Fat req
 
 (staticNull.plot <- masterPlotter.Surv(x = plotStk$surv_4_98_null,
                               canada.focus = F,
@@ -414,7 +425,7 @@ masterPlotter.Surv <- function(x,  res.agg = 25, dist.map = NULL,
                               surv.countours = T,
                               col.string = survColors.Pos(4),
                               legend.key = "Predicted\nBody Fat\nRemaining (g)"))#,
-                              # save.name = "nullsurvive4_98_Dist",
+                              # save.name = "nullsurvive_4_98_Dist",
                               # device.out = "pdf"))
 (staticInf.plot <- masterPlotter.Surv(x = plotStk$survInf,
                              canada.focus = F,
