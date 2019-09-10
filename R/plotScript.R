@@ -176,24 +176,24 @@ names(fatReq.layers) <- c("fatReq_2_100_inf", "fatReq_2_100_null",
 surv.layers <- list()
 for(i in 1:nlayers(fatReq.layers)){
 
-  out <- raw.layers$fat -fatReq.layers[[i]]
+  out <- raw.layers$fat - fatReq.layers[[i]]
   names(out) <- paste(c("surv",sapply(strsplit(names(fatReq.layers[[i]]), "_"),tail,3)),collapse = "_")
   surv.layers[[i]] <- out
 }
-# surv.stk <- do.call(stack, surv.layers)
-# 
-# full.stk <- stack(raw.layers, fatReq.layers, surv.layers)
-# rm(raw.layers, fatReq.layers,surv.layers, surv.stk)
-# 
-# #### Create cropped estimates for mapping ####
-# crop.stk <- mask(crop(full.stk, mylu.dist), mylu.dist)
-# 
-# writeRaster(crop.stk,
-#             file.path(win.res, "myluCropped_.tif"),
-#             format = "GTiff",
-#             bylayer = T,
-#             suffix = "names",
-#             overwrite=T)
+surv.stk <- do.call(stack, surv.layers)
+
+full.stk <- stack(raw.layers, fatReq.layers, surv.stk)
+rm(raw.layers, fatReq.layers,surv.layers, surv.stk)
+
+#### Create cropped estimates for mapping ####
+crop.stk <- mask(crop(full.stk, mylu.dist), mylu.dist)
+
+writeRaster(crop.stk,
+            file.path(win.res, "myluCropped_.tif"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "names",
+            overwrite=T)
 
 plotStk <- stack(list.files(win.res, pattern = "myluCropped_*", full.names = T))
 names(plotStk) <- sub(".*?__", "", names(plotStk))
@@ -483,13 +483,13 @@ fatSurvivalHistograms <- function(survNULL, survINF, dist.map, c.string,
   
 }
 
-(staticHist <- fatSurvivalHistograms(survNULL = plotStk$survNull,
-                                     survINF =  plotStk$survInf,
+(staticHist <- fatSurvivalHistograms(survNULL = full.stk$surv_4_98_null,
+                                     survINF =  full.stk$surv_4_98_inf,
                                      mylu.dist,
                                      survColors(2),
-                                     canada.focus = F,
-                                     save.name = "fatSurvivalHistStatic",
-                                     device.out = "pdf"))
+                                     canada.focus = F))
+                                     # save.name = "fatSurvivalHistStatic",
+                                     # device.out = "pdf"))
 
 ######### Sand Box ##########
 ## highest relative change: largest differences between infection and not
