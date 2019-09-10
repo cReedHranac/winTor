@@ -138,6 +138,102 @@ masterPlotter <- function(x, c.string, res.agg = 25, dist.map = NULL,
   return(g.win)
 }
 
+plotTanaka <- function(x, c.string, res.agg = 25, dist.map = NULL,
+                       north.america = North.America, canada.focus = F,
+                       legend.key, save.name = NULL,  device.out = NULL,  ...){
+  
+  ## Create DataFrame (aggragation is mainly for the dev period)
+  if(!is.null(res.agg)){ #aggratetion bits
+    x.ag <- raster::aggregate(x, res.agg)
+  }
+  else{
+    x.ag <- x}
+  ## Crop and mask to distribution
+  if(!is.null(dist.map)){
+    x.ag <- mask(crop(x.ag, dist.map), dist.map)
+  }
+  
+  ## Convert to df
+  x.pts <- rasterToPoints(x.ag) #to points
+  x.df <- data.frame(x.pts)
+  colnames(x.df) <- c("long", "lat", "winter")
+  
+  
+  (g.win <- ggplot(data = x.df, aes(x=long, y = lat, z = winter))+
+      coord_fixed(xlim = extent(x.ag)[1:2], ylim = extent(x.ag)[3:4]) +
+      geom_contour_fill(na.fill = -9999) +
+      geom_contour_tanaka() +
+      scale_fill_gradientn(legend.key,
+                           colors = c.string,
+                           limits=  c(floor(minValue(x.ag)),
+                                      ceiling(maxValue(x.ag)))) +
+      scale_x_longitude() +
+      scale_y_latitude() +
+      
+      #border lines
+      geom_polygon(data= fortify(North.America),
+                   aes(long,lat,group=group),
+                   color="grey20",
+                   fill=NA,
+                   inherit.aes = F) +
+      #general malarkey
+      scale_x_continuous(expand = c(0,0))+
+      scale_y_continuous(expand = c(0,0))+
+      theme_bw()+
+      theme(legend.position = c(0.1,0.40),
+            legend.margin = margin(),
+            legend.key.width = unit(0.5, "cm"),
+            legend.key.height = unit(0.4, "cm"),
+            legend.text=element_text(size=7),
+            legend.title=element_text(size=9),
+            axis.title = element_blank())
+  )
+  ##Distribution map flag
+  if(!is.null(dist.map)){
+    g.win <- g.win +
+      geom_polygon(data = fortify(dist.map),
+                   aes(long,lat, group = group),
+                   colour = "black",
+                   fill = NA,
+                   inherit.aes = F) 
+  }
+  
+  ## Canada focus flag
+  if(canada.focus==T){
+    can.ext <- c(-140,-104,41,60)
+    g.win <- g.win +
+      coord_cartesian(xlim = can.ext[1:2],
+                      ylim = can.ext[3:4]) +
+      scale_x_continuous(expand = c(0,0)) +
+      scale_y_continuous(expand = c(0,0)) 
+  }
+  
+  ## Save Flag  
+  if(!is.null(save.name)){
+    if(device.out == "pdf"){
+      dev.ext <- cairo_pdf
+    } else if (device.out =="eps"){
+      dev.ext <- cairo_ps
+    } else {
+      dev.ext <- device.out
+    }
+    ex <- as.vector(extent(x))
+    if(canada.focus==T){
+      aspect.ratio <- (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]])
+    } else{
+      aspect.ratio <-(ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])  
+    }
+    
+    ggsave(filename = file.path(win.res,"fig", paste0(save.name,".", device.out)),
+           g.win, 
+           width = 9, height = 9/aspect.ratio, unit = "in",
+           dpi = 300,
+           device = dev.ext)}
+  
+  return(g.win)
+}
+
+
 #### Creating North America Geo-political boundries for backround. ####
 
 ##creating North America political boundries 
@@ -218,7 +314,19 @@ winterColors <- colorRampPalette(c("#e0ecf4", "#9ebcda","#8856a7"))
                                       legend.key = "Predicted\nDuration\nWnter\n(Days)",
                                       save.name = "winDuration_Mean_MYLU_Canada",
                                       device.out = "pdf"))
-
+##Tanaka
+(winMean.plot <- plotTanaka(x = plotStk$win,
+                               c.string = winterColors(5),
+                               canada.focus = F,
+                               legend.key = "Predicted\nDuration\nWnter\n(Days)",
+                               save.name = "winDuration_Mean_MYLU_Tanaka",
+                               device.out = "pdf"))
+(winMean.plot.canada <- plotTanaka(x = plotStk$win,
+                                      c.string = winterColors(5),
+                                      canada.focus = T,
+                                      legend.key = "Predicted\nDuration\nWnter\n(Days)",
+                                      save.name = "winDuration_Mean_MYLU_Canada_Tanaka",
+                                      device.out = "pdf"))
 
  #### Body Mass and Fat Mass Plots####
 massColors <- colorRampPalette(c("#f7fcb9", "#31a354"))
@@ -238,8 +346,22 @@ massColors <- colorRampPalette(c("#f7fcb9", "#31a354"))
                                 save.name = "massMean_MYLU_Canada",
                                 device.out = "pdf"))
 
-fatColors <- colorRampPalette(c("#fff7bc","#fec44f", "#d95f0e"))
+(massMean.plot <- plotTanaka(x = plotStk$mass,
+                                c.string = massColors(5),
+                                canada.focus = F,
+                                dist.map = mylu.dist,
+                                legend.key = "Predicted\nBody\nMass (g)",
+                                save.name = "massMean_MYLU_Tanaka",
+                                device.out = "pdf"))
+(massMean.plot.canada <- plotTanaka(x = plotStk$mass,
+                                       c.string = massColors(5),
+                                       canada.focus = T,
+                                       dist.map = mylu.dist,
+                                       legend.key = "Predicted\nBody\nMass (g)",
+                                       save.name = "massMean_MYLU_Canada_Tanaka",
+                                       device.out = "pdf"))
 
+fatColors <- colorRampPalette(c("#fff7bc","#fec44f", "#d95f0e"))
 (fatMean.plot <- masterPlotter(x = plotStk$fat,
                           c.string = fatColors(5),
                           canada.focus = F,
@@ -255,6 +377,23 @@ fatColors <- colorRampPalette(c("#fff7bc","#fec44f", "#d95f0e"))
                                dist.map = mylu.dist,
                                save.name = "fatMean_MYLU_Canada",
                                device.out = "pdf"))
+(fatMean.plot.tanaka <- plotTanaka(x = plotStk$fat,
+                               c.string = fatColors(5),
+                               canada.focus = F,
+                               legend.key = "Predicted\nBody\nFat (g)",
+                               dist.map = mylu.dist,
+                               save.name = "fatMean_MYLU_Tanaka",
+                               device.out = "pdf"))
+
+(fatMean.plot.canada.tanaka <- plotTanaka(x = plotStk$fat,
+                                      c.string = fatColors(5),
+                                      canada.focus = T,
+                                      legend.key = "Predicted\nBody\nFat (g)",
+                                      dist.map = mylu.dist,
+                                      save.name = "fatMean_MYLU_Canada_Tanaka",
+                                      device.out = "pdf"))
+
+
 ## Single figure
 library(gridExtra)
 fig3 <- grid.arrange(massMean.plot, 
@@ -398,32 +537,124 @@ masterPlotter.Surv <- function(x,  res.agg = 25, dist.map = NULL,
   return(g.win)
 }
 
-(fatreq.plot <- masterPlotter.Surv(x = plotStk$fatReq_4_98_null,
+(fatreq.plot <- masterPlotter(x = plotStk$fatReq_4_98_null,
                               canada.focus = F,
                               dist.map = mylu.dist,
                               c.string = reqColors.Pos(5),
-                              surv.countours = T,
-                              legend.key = "Predicted\nBody Fat\nRequired (g)"))#,
-                              # save.name = "fatRequired4_98_Dist",
-                              # device.out = "pdf"))
+                              surv.countours = F,
+                              legend.key = "Predicted\nBody Fat\nRequired (g)",
+                              save.name = "fatRequired4_98_Dist",
+                              device.out = "pdf"))
+(fatreq.plot <- plotTanaka(x = plotStk$fatReq_4_98_null,
+                           canada.focus = F,
+                           dist.map = mylu.dist,
+                           c.string = reqColors.Pos(5),
+                           surv.countours = F,
+                           legend.key = "Predicted\nBody Fat\nRequired (g)",
+                           save.name = "fatRequired4_98_Dist_Tanaka",
+                           device.out = "pdf"))
 
+## 2x 100
+(fatreq.plot <- masterPlotter.Surv(x = plotStk$fatReq_2_100_null,
+                                   canada.focus = F,
+                                   dist.map = mylu.dist,
+                                   c.string = reqColors.Pos(5),
+                                   surv.countours = F,
+                                   legend.key = "Predicted\nBody Fat\nRequired (g)",
+                                   save.name = "fatRequired2_100_Dist",
+                                   device.out = "pdf"))
+(fatreq.plot <- plotTanaka(x = plotStk$fatReq_2_100_null,
+                                   canada.focus = F,
+                                   dist.map = mylu.dist,
+                                   c.string = reqColors.Pos(5),
+                                   surv.countours = F,
+                                   legend.key = "Predicted\nBody Fat\nRequired (g)",
+                                   save.name = "fatRequired2_100_Dist_Tanaka",
+                                   device.out = "pdf"))
 
+##SUrvival
+##4x98
 (staticNull.plot <- masterPlotter.Surv(x = plotStk$surv_4_98_null,
                               canada.focus = F,
                               dist.map = mylu.dist,
-                              surv.countours = T,
+                              surv.countours = F,
                               col.string = survColors.Pos(4),
-                              legend.key = "Predicted\nBody Fat\nRemaining (g)"))#,
-                              # save.name = "nullsurvive4_98_Dist",
-                              # device.out = "pdf"))
+                              legend.key = "Predicted\nBody Fat\nRemaining (g)",
+                              save.name = "nullsurvive4_98_Dist",
+                              device.out = "pdf"))
+(staticNull.plot <- masterPlotter.Surv(x = plotStk$surv_4_98_null,
+                                       canada.focus = T,
+                                       dist.map = mylu.dist,
+                                       surv.countours = F,
+                                       col.string = survColors.Pos(4),
+                                       legend.key = "Predicted\nBody Fat\nRemaining (g)",
+                                       save.name = "nullsurvive4_98_Dist_Canada",
+                                       device.out = "pdf"))
+(staticNull.plot <- plotTanaka(x = plotStk$surv_4_98_null,
+                               canada.focus = F,
+                               dist.map = mylu.dist,
+                               c.string = survColors.Pos(4),
+                               legend.key = "Predicted\nBody Fat\nRemaining (g)",
+                               save.name = "nullsurvive4_98_Dist_Tanaka",
+                               device.out = "pdf"))
+(staticNull.plot <- plotTanaka(x = plotStk$surv_4_98_null,
+                               canada.focus = T,
+                               dist.map = mylu.dist,
+                               c.string = survColors.Pos(4),
+                               legend.key = "Predicted\nBody Fat\nRemaining (g)",
+                               save.name = "nullsurvive4_98_Dist_Canada_Tanaka",
+                               device.out = "pdf"))
+
 (staticInf.plot <- masterPlotter.Surv(x = plotStk$survInf,
                              canada.focus = F,
                              dist.map = mylu.dist,
                              legend.key = "Predicted\nBody Fat\nRemaining (g)",
-                              surv.countours = T,
-                             col.string = survColors(5)))#,
-                             # save.name = "infSurvive4_98_Dist",
-                             # device.out = "pdf"))
+                              surv.countours = F,
+                             col.string = survColors(5),
+                             save.name = "infSurvive4_98_Dist",
+                             device.out = "pdf"))
+#2x100
+(staticNull.plot <- masterPlotter.Surv(x = plotStk$surv_2_100_null,
+                                       canada.focus = F,
+                                       dist.map = mylu.dist,
+                                       surv.countours = F,
+                                       col.string = survColors.Pos(4),
+                                       legend.key = "Predicted\nBody Fat\nRemaining (g)",
+                                       save.name = "nullsurvive2_100_Dist",
+                                       device.out = "pdf"))
+(staticNull.plot <- masterPlotter.Surv(x = plotStk$surv_2_100_null,
+                                       canada.focus = T,
+                                       dist.map = mylu.dist,
+                                       surv.countours = F,
+                                       col.string = survColors.Pos(4),
+                                       legend.key = "Predicted\nBody Fat\nRemaining (g)",
+                                       save.name = "nullsurvive2_100_Dist_Canada",
+                                       device.out = "pdf"))
+(staticNull.plot <- plotTanaka(x = plotStk$surv_2_100_null,
+                               canada.focus = F,
+                               dist.map = mylu.dist,
+                               c.string = survColors.Pos(4),
+                               legend.key = "Predicted\nBody Fat\nRemaining (g)",
+                               save.name = "nullsurvive2_100_Dist_Tanaka",
+                               device.out = "pdf"))
+(staticNull.plot <- plotTanaka(x = plotStk$surv_2_100_null,
+                               canada.focus = T,
+                               dist.map = mylu.dist,
+                               c.string = survColors.Pos(4),
+                               legend.key = "Predicted\nBody Fat\nRemaining (g)",
+                               save.name = "nullsurvive2_100_Dist_Canada_Tanaka",
+                               device.out = "pdf"))
+
+(staticInf.plot <- masterPlotter.Surv(x = plotStk$survInf,
+                                      canada.focus = F,
+                                      dist.map = mylu.dist,
+                                      legend.key = "Predicted\nBody Fat\nRemaining (g)",
+                                      surv.countours = F,
+                                      col.string = survColors(5),
+                                      save.name = "infSurvive2_100_Dist",
+                                      device.out = "pdf"))
+
+
 
 surFig <- grid.arrange(staticNull.plot, 
                        staticInf.plot, 
@@ -483,13 +714,23 @@ fatSurvivalHistograms <- function(survNULL, survINF, dist.map, c.string,
   
 }
 
-(staticHist <- fatSurvivalHistograms(survNULL = full.stk$surv_4_98_null,
-                                     survINF =  full.stk$surv_4_98_inf,
+(staticHist <- fatSurvivalHistograms(survNULL = plotStk$surv_4_98_null,
+                                     survINF =  plotStk$surv_4_98_inf,
                                      mylu.dist,
                                      survColors(2),
-                                     canada.focus = F))
-                                     # save.name = "fatSurvivalHistStatic",
-                                     # device.out = "pdf"))
+                                     canada.focus = F,
+                                     save.name = "fatSurvivalHist_4_98",
+                                     device.out = "pdf"))
+(staticHist <- fatSurvivalHistograms(survNULL = plotStk$surv_2_100_null,
+                                     survINF =  plotStk$surv_2_100_inf,
+                                     mylu.dist,
+                                     survColors(2),
+                                     canada.focus = F,
+                                     save.name = "fatSurvivalHist_2_100",
+                                     device.out = "pdf"))
+
+
+
 
 ######### Sand Box ##########
 ## highest relative change: largest differences between infection and not
