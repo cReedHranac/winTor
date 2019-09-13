@@ -346,6 +346,107 @@ masterPlotter.Surv <- function(x,  res.agg = 25, dist.map = NULL,
   return(g.win)
 }
 
+pairedPlotting <- function(x, parent.data = plotStk, 
+                           res.agg = 20,
+                           north.america = North.America,
+                           canada.focus = F, dist.map = mylu.dist,
+                           c.string, legend.limits,
+                           legend.key = "Fill this in",
+                           save.name = NULL, device.out = NULL){
+  ## Subset out the paired layers
+  target.data <- parent.data[[grep(pattern = x, 
+                                   names(parent.data))]]
+  
+  ## Create DataFrame (aggragation is mainly for the dev period)
+  if(!is.null(res.agg)){ #aggratetion bits
+    x.ag <- raster::aggregate(target.data, res.agg)
+  }
+  else{
+    x.ag <- target.data}
+  
+  ## Convert to df
+  x.pts <- rasterToPoints(x.ag) #to points
+  x.df <- data.frame(x.pts)
+  #Note infected and null are generally in that order 
+  colnames(x.df) <- c("long", "lat", "Infected", "Uninfected")
+  
+  x.df <- x.df %>%
+    gather(key = "Status", 
+           value = "Value",
+           c("Infected", "Uninfected"))
+  ##reorder factor levels
+  x.df$Status <- factor(x.df$Status, levels = c("Uninfected", "Infected"))
+  ##break points for the legend
+  breaks <- seq(legend.limits[[1]], legend.limits[[2]], by = 0.5)
+  (g.win <- ggplot(data = x.df, aes(x=long, y = lat, z = Value))+
+      coord_fixed(xlim = extent(x.ag)[1:2], ylim = extent(x.ag)[3:4]) +
+      geom_contour_fill(breaks = breaks,
+                        na.fill = -9999) +
+      scale_fill_gradientn(legend.key,
+                           colors = c.string,
+                           limits=  legend.limits) +
+      scale_x_longitude() +
+      scale_y_latitude() +
+      #border lines
+      geom_polygon(data= fortify(north.america),
+                   aes(long,lat,group=group),
+                   color="grey20",
+                   fill=NA,
+                   inherit.aes = F) +
+      ##Species distribution
+      geom_polygon(data = fortify(dist.map),
+                   aes(long,lat, group = group),
+                   colour = "black",
+                   fill = NA,
+                   inherit.aes = F) +
+      ## Labels
+      geom_text_contour(stroke = 0.2,
+                        min.size = 25,
+                        rotate = F, 
+                        check_overlap = T)+
+      #general malarkey
+      scale_x_continuous(expand = c(0,0))+
+      scale_y_continuous(expand = c(0,0))+
+      theme_bw()+
+      theme(legend.position = c(0.1,0.15),
+            legend.margin = margin(),
+            legend.key.width = unit(0.5, "cm"),
+            legend.key.height = unit(0.4, "cm"),
+            legend.text=element_text(size=7),
+            legend.title=element_text(size=9),
+            axis.title = element_blank()) +
+      facet_wrap( .~ Status,
+                  ncol = 1)
+  )
+  
+  ## Canada focus flag
+  if(canada.focus==T){
+    can.ext <- c(-140,-104,41,60)
+    g.win <- g.win +
+      coord_cartesian(xlim = can.ext[1:2],
+                      ylim = can.ext[3:4]) +
+      scale_x_continuous(expand = c(0,0)) +
+      scale_y_continuous(expand = c(0,0)) 
+  } 
+  
+  ## Save Flag  
+  if(!is.null(save.name)){
+    if(device.out == "pdf"){
+      dev.ext <- cairo_pdf
+    } else if (device.out =="eps"){
+      dev.ext <- cairo_ps
+    } else {
+      dev.ext <- device.out
+    }
+    
+    ggsave(filename = file.path(win.res,"fig", paste0(save.name,".", device.out)),
+           g.win, 
+           width = 8, height = 8, unit = "in",
+           dpi = 300,
+           device = dev.ext)}
+  
+  return(g.win)
+}
 
 #### Creating North America Geo-political boundries for backround. ####
 
@@ -685,7 +786,7 @@ breaks <- seq(0,6, by = .5)
     scale_fill_gradientn(legend.key,
                          colors = c.string,
                          limits=  c(1,
-                                    4) +
+                                    4)) +
     scale_x_longitude() +
     scale_y_latitude() +
     #border lines
@@ -743,27 +844,28 @@ ggsave(filename = file.path(win.res,"fig", "fat_HQ_Canada.pdf"),
 
 
 
+## Single figure is not currentely written something thing for the todo listI guess
 ## Single figure
-library(gridExtra)
-fig3 <- grid.arrange(massMean.plot, 
-                     fatMean.plot, 
-                     ncol = 1)
-ggsave(file.path(win.res, "fig", "Mass_Fat_MYLU.pdf"),
-       fig3,
-       device = cairo_pdf,
-       width = 9,
-       height = 6.5, 
-       units = "in")
-
-fig3Canada <- grid.arrange(massMean.plot, 
-                           fatMean.plot, 
-                           ncol = 1)
-ggsave(file.path(win.res, "fig", "Mass_Fat_MYLU_Canda.pdf"),
-       fig3Canada,
-       device = cairo_pdf,
-       width = 9,
-       height = 6.5, 
-       units = "in")
+# library(gridExtra)
+# fig3 <- grid.arrange(massMean.plot, 
+#                      fatMean.plot, 
+#                      ncol = 1)
+# ggsave(file.path(win.res, "fig", "Mass_Fat_MYLU.pdf"),
+#        fig3,
+#        device = cairo_pdf,
+#        width = 9,
+#        height = 6.5, 
+#        units = "in")
+# 
+# fig3Canada <- grid.arrange(massMean.plot, 
+#                            fatMean.plot, 
+#                            ncol = 1)
+# ggsave(file.path(win.res, "fig", "Mass_Fat_MYLU_Canda.pdf"),
+#        fig3Canada,
+#        device = cairo_pdf,
+#        width = 9,
+#        height = 6.5, 
+#        units = "in")
 
 
 #### Required Fat plots ####
@@ -787,7 +889,9 @@ reqColors <- colorRampPalette(c("#ffffff", "#5E3C99"))
                            save.name = "fatRequired4_98_Dist_Tanaka",
                            device.out = "pdf"))
 #### Survival Mapping ####
-survColors <- colorRampPalette(c(  "#e66101","#fdb863","#ffffff", "#b2abd2","#5e3c99"))
+survColors <- colorRampPalette(c(  "#e66101","#fdb863","#ffffff", "#b2abd2", "#8873b5", "#5e3c99"))
+a3 <- colorRampPalette(c("#b2abd2","#5e3c99"))
+a3(3)
 ## Doesn't go below 0
 survColors.Pos <- colorRampPalette(c("#ffffff", "#B2ABD2", "#8873B5", "#5E3C99"))
 
