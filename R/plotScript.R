@@ -889,13 +889,60 @@ reqColors <- colorRampPalette(c("#ffffff", "#5E3C99"))
                            save.name = "fatRequired4_98_Dist_Tanaka",
                            device.out = "pdf"))
 #### Survival Mapping ####
-survColors <- colorRampPalette(c(  "#e66101","#fdb863","#ffffff", "#b2abd2", "#8873b5", "#5e3c99"))
+survColors <- colorRampPalette(c(  "#e66101","#fdb863","#ffffff", "#B2ABD2", "#9685BF", "#7A61AC", "#5E3C99"))
 a3 <- colorRampPalette(c("#b2abd2","#5e3c99"))
 a3(3)
 ## Doesn't go below 0
 survColors.Pos <- colorRampPalette(c("#ffffff", "#B2ABD2", "#8873B5", "#5E3C99"))
 
 ## 2x 100
+survColors_2x100 <- colorRampPalette(c( "#e66101","#fdb863","#ffffff",
+                                        "#B2ABD2", "#9685BF", "#7A61AC", "#5E3C99"))
+(a <- pairedPlotting(x = "surv_2_100",
+                     parent.data = plotStk,
+                     c.string = survColors_2x100(7),
+                     legend.limits = c(-2,4),
+                     legend.key = "Predicted\nBody Fat\nRequired (g)",
+                     save.name = "survival_2x100", 
+                     device.out = "pdf"))
+(q <- pairedPlotting(x = "surv_2_100",
+                     parent.data = plotStk,
+                     c.string = survColors_2x100(7),
+                     legend.limits = c(-2,4),
+                     canada.focus = T,
+                     legend.key = "Predicted\nBody Fat\nRequired (g)",
+                     save.name = "survival_2x100_Canada", 
+                     device.out = "pdf"))
+
+
+
+
+## 4 x 98 Range is between -.22 - 6.62
+survColors_4x98 <- colorRampPalette(c("#fdb863","#ffffff",
+                                      "#E8E3F0", "#D1C7E1", "#BAABD3",
+                                      "#A38FC4", "#8C73B6", "#7557A7",
+                                      "#5E3C99"))
+
+(a <- pairedPlotting(x = "surv_4_98",
+                     parent.data = plotStk,
+                     c.string = survColors_4x98(9),
+                     legend.limits = c(-1,7),
+                     legend.key = "Predicted\nBody Fat\nRequired (g)",
+                     save.name = "survival_4x98", 
+                     device.out = "pdf"))
+(q <- pairedPlotting(x = "surv_4_98",
+                     parent.data = plotStk,
+                     c.string = survColors_4x98(9),
+                     legend.limits = c(-1,7),
+                     canada.focus = T,
+                     legend.key = "Predicted\nBody Fat\nRequired (g)",
+                     save.name = "survival_4x98_Canada", 
+                     device.out = "pdf"))
+
+
+
+
+
 (fatreq.plot <- masterPlotter.Surv(x = plotStk$fatReq_2_100_null,
                                    canada.focus = F,
                                    dist.map = mylu.dist,
