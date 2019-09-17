@@ -482,6 +482,7 @@ writeRaster(fat.C2,
             overwrite = T)
 ## Clean up for ram 
 rm(fat.C2,rh100,temp2);gc()
+
 #### uncertianty win ####
 win.lwr <- raster(file.path(win.res, "durationRaster_lwr.tif"))
 ## Clean up for ram 
