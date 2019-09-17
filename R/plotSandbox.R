@@ -21,7 +21,7 @@ win.res <- file.path(base.path, "Results")
 library(raster);library(rgdal);library(metR)
 
 ## Tesing variables
-x <- "fatReq_4_98"
+x <- "fatReq"
 reqColors <- colorRampPalette(c("#ffffff", "#5E3C99"))
 parent.data <- plotStk
 c.string <- reqColors(4)
@@ -29,20 +29,25 @@ res.agg = 20
 north.america = North.America
 canada.focus = F
 dist.map = mylu.dist
-legend.limits <- c(0, 3)
+legend.limits <- c(-1,4)
 legend.key = "Fill this in"
 
 
 
 
-pairedPlotting <- function(x, parent.data = plotStk, 
-                           res.agg = 20,
-                           north.america = North.America,
-                           canada.focus = F, dist.map = mylu.dist,
-                           c.string, legend.limits,
-                           legend.key = "Fill this in",
-                           save.name = NULL, device.out = NULL){
-  ## Subset out the paired layers
+quadPlot <- function(x,
+                     parent.data = plotStk, 
+                     res.agg = 20,
+                     north.america = North.America,
+                     canada.focus = F,
+                     dist.map = mylu.dist,
+                     c.string,
+                     legend.limits,
+                     legend.key = "Fill this in",
+                     save.name = NULL,
+                     device.out = NULL){
+  
+    ## Subset out the paired layers
   target.data <- parent.data[[grep(pattern = x, 
                                   names(parent.data))]]
   
@@ -57,14 +62,23 @@ pairedPlotting <- function(x, parent.data = plotStk,
   x.pts <- rasterToPoints(x.ag) #to points
   x.df <- data.frame(x.pts)
   #Note infected and null are generally in that order 
-  colnames(x.df) <- c("long", "lat", "Infected", "Uninfected")
+  colnames(x.df)[1:2] <- c("long", "lat")
   
   x.df <- x.df %>%
-    gather(key = "Status", 
+    gather(key ="Layer",
            value = "Value",
-           c("Infected", "Uninfected"))
+           starts_with(strsplit(names(x.ag),"_")[[1]][[1]])) %>% 
+    mutate(Infection_status = case_when(str_detect(Layer, "inf") ~ "Infected",
+                                        str_detect(Layer, "null") ~ "Uninfected"),
+           Hibernation_Condition = case_when(str_detect(Layer, "2_100") ~ "2x100",
+                                             str_detect(Layer, "4_98") ~ "4x98"))
+  
   ##reorder factor levels
-  x.df$Status <- factor(x.df$Status, levels = c("Uninfected", "Infected"))
+  x.df$Infection_status <- factor(x.df$Infection_status,
+                                  levels = c("Uninfected", "Infected"))
+  x.df$Hibernation_Condition <- factor(x.df$Hibernation_Condition,
+                                       levels = c("4x98", "2x100"))
+  
   ##break points for the legend
   breaks <- seq(legend.limits[[1]], legend.limits[[2]], by = 0.5)
   (g.win <- ggplot(data = x.df, aes(x=long, y = lat, z = Value))+
@@ -104,8 +118,8 @@ pairedPlotting <- function(x, parent.data = plotStk,
             legend.text=element_text(size=7),
             legend.title=element_text(size=9),
             axis.title = element_blank()) +
-    facet_wrap( .~ Status,
-                ncol = 1)
+    facet_grid( rows = vars(Hibernation_Condition),
+                cols = vars(Infection_status))
   )
   
   ## Canada focus flag
@@ -130,34 +144,28 @@ pairedPlotting <- function(x, parent.data = plotStk,
     
     ggsave(filename = file.path(win.res,"fig", paste0(save.name,".", device.out)),
            g.win, 
-           width = 8, height = 8, unit = "in",
+           width = 3, height = 8, unit = "in",
            dpi = 300,
            device = dev.ext)}
   
   return(g.win)
 }
 
-(a <- pairedPlotting(x = "surv_2_100",
-                     parent.data = plotStk,
-                     c.string = survColors(6),
-                     legend.limits = c(-2,3.5),
-                     legend.key = "Predicted\nBody Fat\nRequired (g)"))
+
+a <- quadPlot(x = "fatReq",
+              parent.data = plotStk,
+              c.string = reqColors(4),
+              res.agg = 20,
+              legend.limits =c(-1,4),
+              legend.key = "Fill this in")
 
 
 
+fuckedfunction <- function(a,
+                           b){
+  a.quo <- enquo(a)
+  foo <- !!a.quo=="fuck"
+  return(foo)
+}
 
-
-
-mod.dif <- mod.df %>%breaks <- seq(0,360, by = 30)
-
-
-##Distribution map flag
-g.win <- g.win +
-  geom_polygon(data = fortify(dist.map),
-               aes(long,lat, group = group),
-               colour = "black",
-               fill = NA,
-               inherit.aes = F)
-
-
-
+fuckedfunction(a=fuck)
