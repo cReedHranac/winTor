@@ -492,15 +492,15 @@ quadPlot <- function(x,
                                        levels = c("4x98", "2x100"))
   
   ##break points for the legend
-  
+  breaks <- seq(legend.limits[[1]], legend.limits[[2]], by = 0.5)
   (g.win <- ggplot(data = x.df, aes(x=long, y = lat, z = Value))+
       coord_fixed(xlim = extent(x.ag)[1:2], ylim = extent(x.ag)[3:4]) +
       geom_contour_fill(breaks = breaks,
-                        na.fill = -9999) +
+                        na.fill = -9999,
+                        guide = "colorstrip") +
       scale_fill_gradientn(legend.key,
                            colors = c.string,
-                           limits=  legend.limits, 
-                           guide = "colorstrip") +
+                           limits=  legend.limits) +
       scale_x_longitude() +
       scale_y_latitude() +
       #border lines
@@ -528,8 +528,8 @@ quadPlot <- function(x,
             # legend.margin = margin(),
             # legend.key.width = unit(0.5, "cm"),
             # legend.key.height = unit(0.4, "cm"),
-            # legend.text=element_text(size=7),
-            # legend.title=element_text(size=9),
+            legend.text=element_text(size=7),
+            legend.title=element_text(size=9),
             axis.title = element_blank()) +
       facet_grid( rows = vars(Hibernation_Condition),
                   cols = vars(Infection_status))
@@ -563,6 +563,7 @@ quadPlot <- function(x,
   
   return(g.win)
 }
+
 increasedExpendaturePlot <- function(x,
                                      parent.data = plotStk, 
                                      res.agg = 20,
@@ -928,29 +929,29 @@ breaks <- seq(6,17, by = .5)
   
 )
 
-aspect.ratio <-2.2
-ggsave(filename = file.path(win.res,"fig", "mass_HQ.pdf"),
-       g.win, 
-       width = 8, height = 8/aspect.ratio, unit = "in",
-       dpi = 300,
-       device = cairo_pdf)
+# aspect.ratio <-2.2
+# ggsave(filename = file.path(win.res,"fig", "mass_HQ.pdf"),
+#        g.win, 
+#        width = 8, height = 8/aspect.ratio, unit = "in",
+#        dpi = 300,
+#        device = cairo_pdf)
+
+mass.fig <- g.win
 
 
-
-
-## Canada focus flag
-can.ext <- c(-140,-104,41,60)
-g.win <- g.win +
-  coord_cartesian(xlim = can.ext[1:2],
-                  ylim = can.ext[3:4]) +
-  scale_x_continuous(expand = c(0,0)) +
-  scale_y_continuous(expand = c(0,0)) 
-aspect.ratio <- (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]])
-ggsave(filename = file.path(win.res,"fig", "mass_HQ_Canada.pdf"),
-       g.win, 
-       width = 8, height = 8/aspect.ratio, unit = "in",
-       dpi = 300,
-       device = cairo_pdf)
+# ## Canada focus flag
+# can.ext <- c(-140,-104,41,60)
+# g.win <- g.win +
+#   coord_cartesian(xlim = can.ext[1:2],
+#                   ylim = can.ext[3:4]) +
+#   scale_x_continuous(expand = c(0,0)) +
+#   scale_y_continuous(expand = c(0,0)) 
+# aspect.ratio <- (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]])
+# ggsave(filename = file.path(win.res,"fig", "mass_HQ_Canada.pdf"),
+#        g.win, 
+#        width = 8, height = 8/aspect.ratio, unit = "in",
+#        dpi = 300,
+#        device = cairo_pdf)
 
 
 
@@ -1036,30 +1037,30 @@ breaks <- seq(0,6, by = .5)
   
 )
 
-aspect.ratio <-2.2
-ggsave(filename = file.path(win.res,"fig", "fat_HQ.pdf"),
-       g.win, 
-       width = 8, height = 8/aspect.ratio, unit = "in",
-       dpi = 300,
-       device = cairo_pdf)
+# aspect.ratio <-2.2
+# ggsave(filename = file.path(win.res,"fig", "fat_HQ.pdf"),
+#        g.win, 
+#        width = 8, height = 8/aspect.ratio, unit = "in",
+#        dpi = 300,
+#        device = cairo_pdf)
+
+fat.fig <- g.win
 
 
-
-
-## Canada focus flag
-can.ext <- c(-140,-104,41,60)
-g.win <- g.win +
-  coord_cartesian(xlim = can.ext[1:2],
-                  ylim = can.ext[3:4]) +
-  scale_x_continuous(expand = c(0,0)) +
-  scale_y_continuous(expand = c(0,0)) 
-aspect.ratio <- (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]])
-ggsave(filename = file.path(win.res,"fig", "fat_HQ_Canada.pdf"),
-       g.win, 
-       width = 8, height = 8/aspect.ratio, unit = "in",
-       dpi = 300,
-       device = cairo_pdf)
-
+# ## Canada focus flag
+# can.ext <- c(-140,-104,41,60)
+# g.win <- g.win +
+#   coord_cartesian(xlim = can.ext[1:2],
+#                   ylim = can.ext[3:4]) +
+#   scale_x_continuous(expand = c(0,0)) +
+#   scale_y_continuous(expand = c(0,0)) 
+# aspect.ratio <- (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]])
+# ggsave(filename = file.path(win.res,"fig", "fat_HQ_Canada.pdf"),
+#        g.win, 
+#        width = 8, height = 8/aspect.ratio, unit = "in",
+#        dpi = 300,
+#        device = cairo_pdf)
+# 
 
 
 ## Single figure is not currentely written something thing for the todo listI guess
@@ -1702,17 +1703,19 @@ library(gridExtra)
 
 ## figure 2: Top Models 
   ## alternaticly may just be the winMean.plot
-topMods <- grid.arrange(winMean.plot + theme(axis.text.x = element_blank(),
-                                             axis.title.x = element_blank(),
-                                             axis.ticks.x = element_blank(),
-                                             axis.title.y = element_blank()), 
-                        massMean.plot+ theme(axis.text.x = element_blank(),
-                                             axis.ticks.x = element_blank(),
-                                             axis.title.x = element_blank(),
-                                             axis.title.y = element_blank()),
-                        fatMean.plot + theme(axis.title.y = element_blank(),
+topMods <- grid.arrange(mass.fig+ theme(axis.title.y = element_blank()),
+                        fat.fig + theme(axis.title.y = element_blank(),
                                              axis.title.x = element_blank()),
                         ncol = 1)
+
+ggsave(file.path(win.res, "fig", "Mass_Fat.pdf"),
+       topMods,
+       device = cairo_pdf,
+       width = 8,
+       height = 6.5,
+       units = "in")
+
+
 ## Issue: don't know how to get things to be the same sizes (issues come from 
   ## dropping the x axis attributes in the first two instances)
 
