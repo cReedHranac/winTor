@@ -688,6 +688,11 @@ mylu.dist <- readOGR(dsn = "D:/Dropbox/batwintor_aux/paramFiles/ShapeFiles",
                      layer = "myotis_lucifugus")
 proj4string(mylu.dist) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
 
+library(sf)
+test <- st_read(win.dat, layer="NorthAmerica")
+
+ggplot(test, aes(fill=NAME_1)) + geom_sf()
+
 #### Load data ####
  library(raster);library(tidyverse); library(metR)
 # raw.layers <- stack(list.files(win.res, pattern = "_p", full.names = T))
