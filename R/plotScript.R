@@ -16,18 +16,20 @@ win.res <- file.path(base.path, "Results")
 
 
 #### Functions ####
-masterPlotter <- function(x, c.string, res.agg = 25, dist.map = NULL,
-                          north.america = North.America, canada.focus = F,
-                          legend.key, surv.countours = F,
-                          save.name = NULL,  device.out = NULL,  ...){
+masterPlotter2 <- function(x, c.string, break.string, res.agg = 20, dist.map = NULL,
+                           north.america = North.America, canada.focus = F,
+                           legend.key, text.min =25,
+                           save.name = NULL,  device.out = NULL,  ...){
   ##Function for plotting all  wintor spatial figures   
   # x <- item plotting, 
+  # c.string <- for colors
+  # breaks.by <- for handling the number of breaks to appear in the data
   # res.agg <- unit of aggragation (generally for the dev period with large maps)
   # dist.map <- species distribution map of you want it to be included in the plotting
   # north.america <- geo-political boundries to plot on top of
   # canada.focus <- Logical of wheather or not to focus on Western Canada
   # legend.key <- string to place on the legend
-  # surv.countour <- Logical,countours for the survival mapping functionality
+  # text.min <- minimum size for text appearance
   # save.name <- string for saving the figures
   # device.out <- choose which driver is used to write out figures
   # ... <- additional arguments to be passed to ggsave
@@ -41,6 +43,14 @@ masterPlotter <- function(x, c.string, res.agg = 25, dist.map = NULL,
   ## Crop and mask to distribution
   if(!is.null(dist.map)){
     x.ag <- mask(crop(x.ag, dist.map), dist.map)
+    north.america <- st_crop(north.america, extent(x.ag))
+  }
+  
+  ## Canada focus flag
+  if(canada.focus==T){
+    can.ex <- c(-127.2429, 101.3304, 43.9173, 64.1641)
+    x.ag <- crop(x.ag, extent(can.ex))
+    north.america <- st_crop(north.america, extent(x.ag))
   }
   
   ## Convert to df
@@ -48,70 +58,57 @@ masterPlotter <- function(x, c.string, res.agg = 25, dist.map = NULL,
   x.df <- data.frame(x.pts)
   colnames(x.df) <- c("long", "lat", "winter")
   
+  ## handing breaks for the visuals
+  breaks <- break.string
   
-  g.win <- ggplot(data = x.df, aes(x = long, y = lat, z = winter)) +
-    coord_fixed(xlim = extent(x.ag)[1:2], ylim = extent(x.ag)[3:4]) +
-    #Raster fill
-    geom_raster(aes(fill = winter),  interpolate = T) +
+  g.win <- ggplot() +
+    ##Contouring
+    geom_contour_fill(data = x.df,
+                      aes(x= long, y = lat, z = winter),
+                      breaks = breaks,
+                      na.fill = -9999)+
+    #handling the NA 
+    stat_subset(data = x.df, 
+                aes(x= long, y = lat, subset = winter == -9999),
+                geom = "raster",
+                fill = "#ffffff")+
+    
     #oooohhhhh pretty colors
     scale_fill_gradientn(legend.key,
                          colors = c.string,
                          limits=  c(floor(minValue(x.ag)),
                                     ceiling(maxValue(x.ag)))) +
-    #border lines
-    geom_polygon(data= fortify(North.America),
-                 aes(long,lat,group=group),
-                 color="grey20",
-                 fill=NA,
-                 inherit.aes = F) +
-    #general malarkey
+    
+    ##North American political boundries
+    geom_sf(data = north.america,
+            aes(group = "Name_1"),
+            color="grey20",
+            fill=NA)+
+    
+    #Lables
+    geom_text_contour(data = x.df, 
+                      aes(x= long, y = lat, z = winter),
+                      stroke = 0.2, min.size = text.min,
+                      rotate = F, check_overlap = T)+
+    
+    theme_bw()+
     scale_x_continuous(expand = c(0,0))+
     scale_y_continuous(expand = c(0,0))+
-    theme_bw()+
-    theme(legend.position = c(0.1,0.40),
-          legend.margin = margin(),
-          legend.key.width = unit(0.5, "cm"),
-          legend.key.height = unit(0.4, "cm"),
+    theme(legend.position = "bottom",
           legend.text=element_text(size=7),
           legend.title=element_text(size=9),
           axis.title = element_blank())
   
   ##Distribution map flag
   if(!is.null(dist.map)){
+    dist.crop <- st_crop(dist.map, x.ag)
+    
     g.win <- g.win +
-      geom_polygon(data = fortify(dist.map),
-                   aes(long,lat, group = group),
-                   colour = "black",
-                   fill = NA,
-                   inherit.aes = F) 
+      geom_sf(data = dist.crop,
+              aes(group = "SP_ID"),
+              colour = "black",
+              fill = NA) 
   }
-  
-  ## Canada focus flag
-  if(canada.focus==T){
-    can.ext <- c(-140,-104,41,60)
-    g.win <- g.win +
-      coord_cartesian(xlim = can.ext[1:2],
-                      ylim = can.ext[3:4]) +
-      scale_x_continuous(expand = c(0,0)) +
-      scale_y_continuous(expand = c(0,0)) 
-  } 
-  
-  ## Contour flag
-  if(surv.countours == T) {
-    g.win <- g.win + 
-      geom_contour(aes(z = winter,
-                       color = factor(..level.. == 0 ,
-                                      levels = c(T,F),
-                                      labels = c(expression(fat=0),
-                                                 expression(fat>0.5)))),
-                   breaks=c(-0.5, 0,0.5)) +
-      
-      
-      scale_colour_manual(values = c( "red","blue")) +
-      labs(color = "Contours")
-  }
-  
-  
   
   ## Save Flag  
   if(!is.null(save.name)){
@@ -122,116 +119,16 @@ masterPlotter <- function(x, c.string, res.agg = 25, dist.map = NULL,
     } else {
       dev.ext <- device.out
     }
-    ex <- as.vector(extent(x))
-    if(canada.focus==T){
-      aspect.ratio <- (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]])
-    } else{
-      aspect.ratio <-(ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])  
-    }
     
     ggsave(filename = file.path(win.res,"fig", paste0(save.name,".", device.out)),
            g.win, 
-           width = 9, height = 9/aspect.ratio, unit = "in",
-           dpi = 300,
-           device = dev.ext)}
+           dpi = 400,
+           device = dev.ext,
+           ...)}
   
   return(g.win)
 }
 
-plotTanaka <- function(x, c.string, res.agg = 25, dist.map = NULL,
-                       north.america = North.America, canada.focus = F,
-                       legend.key, save.name = NULL,  device.out = NULL,  ...){
-  
-  ## Create DataFrame (aggragation is mainly for the dev period)
-  if(!is.null(res.agg)){ #aggratetion bits
-    x.ag <- raster::aggregate(x, res.agg)
-  }
-  else{
-    x.ag <- x}
-  ## Crop and mask to distribution
-  if(!is.null(dist.map)){
-    x.ag <- mask(crop(x.ag, dist.map), dist.map)
-  }
-  
-  ## Convert to df
-  x.pts <- rasterToPoints(x.ag) #to points
-  x.df <- data.frame(x.pts)
-  colnames(x.df) <- c("long", "lat", "winter")
-  
-  
-  (g.win <- ggplot(data = x.df, aes(x=long, y = lat, z = winter))+
-      coord_fixed(xlim = extent(x.ag)[1:2], ylim = extent(x.ag)[3:4]) +
-      geom_contour_fill(na.fill = 0) +
-      geom_contour_tanaka() +
-      scale_fill_gradientn(legend.key,
-                           colors = c.string,
-                           limits=  c(floor(minValue(x.ag)),
-                                      ceiling(maxValue(x.ag)))) +
-      scale_x_longitude() +
-      scale_y_latitude() +
-      
-      #border lines
-      geom_polygon(data= fortify(North.America),
-                   aes(long,lat,group=group),
-                   color="grey20",
-                   fill=NA,
-                   inherit.aes = F) +
-      #general malarkey
-      scale_x_continuous(expand = c(0,0))+
-      scale_y_continuous(expand = c(0,0))+
-      theme_bw()+
-      theme(legend.position = c(0.1,0.40),
-            legend.margin = margin(),
-            legend.key.width = unit(0.5, "cm"),
-            legend.key.height = unit(0.4, "cm"),
-            legend.text=element_text(size=7),
-            legend.title=element_text(size=9),
-            axis.title = element_blank())
-  )
-  ##Distribution map flag
-  if(!is.null(dist.map)){
-    g.win <- g.win +
-      geom_polygon(data = fortify(dist.map),
-                   aes(long,lat, group = group),
-                   colour = "black",
-                   fill = NA,
-                   inherit.aes = F) 
-  }
-  
-  ## Canada focus flag
-  if(canada.focus==T){
-    can.ext <- c(-140,-104,41,60)
-    g.win <- g.win +
-      coord_cartesian(xlim = can.ext[1:2],
-                      ylim = can.ext[3:4]) +
-      scale_x_continuous(expand = c(0,0)) +
-      scale_y_continuous(expand = c(0,0)) 
-  }
-  
-  ## Save Flag  
-  if(!is.null(save.name)){
-    if(device.out == "pdf"){
-      dev.ext <- cairo_pdf
-    } else if (device.out =="eps"){
-      dev.ext <- cairo_ps
-    } else {
-      dev.ext <- device.out
-    }
-    ex <- as.vector(extent(x))
-    if(canada.focus==T){
-      aspect.ratio <- (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]])
-    } else{
-      aspect.ratio <-(ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])  
-    }
-    
-    ggsave(filename = file.path(win.res,"fig", paste0(save.name,".", device.out)),
-           g.win, 
-           width = 9, height = 9/aspect.ratio, unit = "in",
-           dpi = 300,
-           device = dev.ext)}
-  
-  return(g.win)
-}
 masterPlotter.Surv <- function(x,  res.agg = 25, dist.map = NULL,
                                north.america = North.America, canada.focus = F,
                                legend.key, surv.countours = F, c.string,
@@ -681,17 +578,11 @@ increasedExpendaturePlot <- function(x,
 #          layer = "NorthAmerica",
 #          driver = "ESRI Shapefile")
 
-library(rgdal)
-North.America <- readOGR(dsn = win.dat,
-                         layer = "NorthAmerica")
-mylu.dist <- readOGR(dsn = "D:/Dropbox/batwintor_aux/paramFiles/ShapeFiles", 
+library(sf);library(rgdal)
+North.America <- st_read(win.dat, layer="NorthAmerica")
+mylu.dist <- st_read("D:/Dropbox/batwintor_aux/paramFiles/ShapeFiles", 
                      layer = "myotis_lucifugus")
-proj4string(mylu.dist) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
-
-library(sf)
-test <- st_read(win.dat, layer="NorthAmerica")
-
-ggplot(test, aes(fill=NAME_1)) + geom_sf()
+st_crs(mylu.dist) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
 
 #### Load data ####
  library(raster);library(tidyverse); library(metR)
@@ -743,353 +634,100 @@ library(gridExtra)
 
 #Winter duration raster
 winterColors <- colorRampPalette(c("#e0ecf4", "#9ebcda","#8856a7"))
-
-# (winMean.plot <- masterPlotter(x = plotStk$win,
-#                                c.string = winterColors(5),
-#                                canada.focus = F,
-#                                legend.key = "Predicted\nDuration\nWnter\n(Days)",
-#                                save.name = "winDuration_Mean_MYLU",
-#                                device.out = "pdf"))
-# (winMean.plot.canada <- masterPlotter(x = plotStk$win,
-#                                       c.string = winterColors(5),
-#                                       canada.focus = T,
-#                                       legend.key = "Predicted\nDuration\nWnter\n(Days)",
-#                                       save.name = "winDuration_Mean_MYLU_Canada",
-#                                       device.out = "pdf"))
-##Tanaka
-# (winMean.plot <- plotTanaka(x = plotStk$win,
-#                                c.string = winterColors(5),
-#                                canada.focus = F,
-#                                legend.key = "Predicted\nDuration\nWnter\n(Days)",
-#                                save.name = "winDuration_Mean_MYLU_Tanaka",
-#                                device.out = "pdf"))
-# (winMean.plot.canada <- plotTanaka(x = plotStk$win,
-#                                       c.string = winterColors(5),
-#                                       canada.focus = T,
-#                                       legend.key = "Predicted\nDuration\nWnter\n(Days)",
-#                                       save.name = "winDuration_Mean_MYLU_Canada_Tanaka",
-#                                       device.out = "pdf"))
-
-### Manual Control plots
-winterColors <- colorRampPalette(c("#e0ecf4", "#9ebcda","#8856a7"))
-c.string <- winterColors(5)
-## Aggregrate for dev period
-x<- plotStk$win
-
-x.ag <- raster::aggregate(x, 20)
-## Convert to df
-x.pts <- rasterToPoints(x.ag) #to points
-x.df <- data.frame(x.pts)
-colnames(x.df) <- c("long", "lat", "winter")
-x.df$winter <- as.double(x.df$winter)
-legend.key = "Predicted\nDuration\nWnter\n(Days)"
-dist.map <- mylu.dist
-breaks <- seq(0,360, by = 30)
-(g.win <- ggplot(data = x.df, aes(x=long, y = lat, z = winter))+
-    coord_fixed(xlim = extent(x.ag)[1:2], ylim = extent(x.ag)[3:4]) +
-    geom_contour_fill(breaks = breaks, na.fill = -9999) +
-    # geom_contour_tanaka( breaks = breaks) +
-    scale_fill_gradientn(legend.key,
-                         colors = c.string,
-                         limits=  c(60,
-                                    260)) +
-    scale_x_longitude() +
-    scale_y_latitude() +
-    #border lines
-    geom_polygon(data= fortify(North.America),
-                 aes(long,lat,group=group),
-                 color="grey20",
-                 fill=NA,
-                 inherit.aes = F) +
-    ##Species distribution
-    geom_polygon(data = fortify(dist.map),
-                 aes(long,lat, group = group),
-                 colour = "black",
-                 fill = NA,
-                 inherit.aes = F) +
-    #Lables
-    geom_text_contour(stroke = 0.2, min.size = 40,
-                      skip = 1, rotate = F, check_overlap = T)+
-    #general malarkey
-    scale_x_continuous(expand = c(0,0))+
-    scale_y_continuous(expand = c(0,0))+
-    theme_bw()+
-    theme(legend.position = c(0.1,0.40),
-          legend.margin = margin(),
-          legend.key.width = unit(0.5, "cm"),
-          legend.key.height = unit(0.4, "cm"),
-          legend.text=element_text(size=7),
-          legend.title=element_text(size=9),
-          axis.title = element_blank())) 
-  
+winter.full <- masterPlotter2(x = plotStk$win,
+                              c.string = winterColors(5),
+                              break.string = seq(0,360, by= 30),
+                              canada.focus = F,
+                              legend.key = "Predicted\nDuration\nWnter\n(Days)",
+                              text.min = 40,
+                              save.name = "winDuration_Mean_MYLU",
+                              device.out = "pdf",
+                              width = 6,
+                              unit = "in")
+winter.can <- masterPlotter2(x = plotStk$win,
+                              c.string = winterColors(5),
+                              canada.focus = T,
+                             break.string = seq(0,360, by= 30), 
+                             legend.key = "Predicted\nDuration\nWnter\n(Days)",
+                              text.min = 40,
+                              save.name = "winDuration_Mean_MYLU_Canada",
+                              device.out = "pdf",
+                              width = 6,
+                              unit = "in")
 
 
 
 
-aspect.ratio <-2.2
-ggsave(filename = file.path(win.res,"fig", "winDuration_HQ.pdf"),
-       g.win, 
-       width = 8, height = 8/aspect.ratio, unit = "in",
-       dpi = 300,
-       device = cairo_pdf)
-
-
-
-
-## Canada focus flag
-can.ext <- c(-140,-104,41,60)
-g.win <- g.win +
-  coord_cartesian(xlim = can.ext[1:2],
-                  ylim = can.ext[3:4]) +
-  scale_x_continuous(expand = c(0,0)) +
-  scale_y_continuous(expand = c(0,0)) 
-aspect.ratio <- (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]])
-ggsave(filename = file.path(win.res,"fig", "winDuration_HQ_Canada.pdf"),
-       g.win, 
-       width = 8, height = 8/aspect.ratio, unit = "in",
-       dpi = 300,
-       device = cairo_pdf)
 
 
 #### Body Mass and Fat Mass Plots####
 massColors <- colorRampPalette(c("#f7fcb9", "#31a354"))
+mass.full <- masterPlotter2(x = plotStk$mass,
+                             c.string = massColors(5),
+                             break.string = seq(6,12., by= 5),
+                             canada.focus = F,
+                             dist.map = mylu.dist,
+                             legend.key = "Predicted\nBody\nMass (g)",
+                             save.name = "massMean_MYLU",
+                             device.out = "pdf",
+                             width = 6,
+                             unit = "in")
 
-# (massMean.plot <- masterPlotter(x = plotStk$mass,
-#                             c.string = massColors(5),
-#                             canada.focus = F,
-#                             dist.map = mylu.dist,
-#                             legend.key = "Predicted\nBody\nMass (g)",
-#                             save.name = "massMean_MYLU",
-#                             device.out = "pdf"))
-# (massMean.plot.canada <- masterPlotter(x = plotStk$mass,
-#                                 c.string = massColors(5),
-#                                 canada.focus = T,
-#                                 dist.map = mylu.dist,
-#                                 legend.key = "Predicted\nBody\nMass (g)",
-#                                 save.name = "massMean_MYLU_Canada",
-#                                 device.out = "pdf"))
-# 
-# (massMean.plot <- plotTanaka(x = plotStk$mass,
-#                                 c.string = massColors(5),
-#                                 canada.focus = F,
-#                                 dist.map = mylu.dist,
-#                                 legend.key = "Predicted\nBody\nMass (g)",
-#                                 save.name = "massMean_MYLU_Tanaka",
-#                                 device.out = "pdf"))
-# (massMean.plot.canada <- plotTanaka(x = plotStk$mass,
-#                                        c.string = massColors(5),
-#                                        canada.focus = T,
-#                                        dist.map = mylu.dist,
-#                                        legend.key = "Predicted\nBody\nMass (g)",
-#                                        save.name = "massMean_MYLU_Canada_Tanaka",
-#                                        device.out = "pdf"))
-
-x <- plotStk$mass
-x.ag <- raster::aggregate(x, 20)
-## Convert to df
-x.pts <- rasterToPoints(x.ag) #to points
-x.df <- data.frame(x.pts)
-colnames(x.df) <- c("long", "lat", "winter")
-x.df$winter <- as.double(x.df$winter)
-legend.key = "Predicted\nBody\nMass (g)"
-dist.map <- mylu.dist
-c.string <- massColors(5)
-breaks <- seq(6,17, by = .5)
-(g.win <- ggplot(data = x.df, aes(x=long, y = lat, z = winter))+
-    coord_fixed(xlim = extent(x.ag)[1:2], ylim = extent(x.ag)[3:4]) +
-    geom_contour_fill(breaks = breaks, na.fill = -9999) +
-    # geom_contour_tanaka( breaks = breaks) +
-    scale_fill_gradientn(legend.key,
-                         colors = c.string,
-                         limits=  c(6,
-                                    12)) +
-    scale_x_longitude() +
-    scale_y_latitude() +
-    #border lines
-    geom_polygon(data= fortify(North.America),
-                 aes(long,lat,group=group),
-                 color="grey20",
-                 fill=NA,
-                 inherit.aes = F) +
-    ##Species distribution
-    geom_polygon(data = fortify(dist.map),
-                 aes(long,lat, group = group),
-                 colour = "black",
-                 fill = NA,
-                 inherit.aes = F) +
-    #Lables
-    geom_text_contour(stroke = 0.2, min.size = 25,
-                      rotate = F, check_overlap = T)+
-    #general malarkey
-    scale_x_continuous(expand = c(0,0))+
-    scale_y_continuous(expand = c(0,0))+
-    theme_bw()+
-    theme(legend.position = c(0.1,0.40),
-          legend.margin = margin(),
-          legend.key.width = unit(0.5, "cm"),
-          legend.key.height = unit(0.4, "cm"),
-          legend.text=element_text(size=7),
-          legend.title=element_text(size=9),
-          axis.title = element_blank()) 
-  
-)
-
-# aspect.ratio <-2.2
-# ggsave(filename = file.path(win.res,"fig", "mass_HQ.pdf"),
-#        g.win, 
-#        width = 8, height = 8/aspect.ratio, unit = "in",
-#        dpi = 300,
-#        device = cairo_pdf)
-
-mass.fig <- g.win
-
-
-# ## Canada focus flag
-# can.ext <- c(-140,-104,41,60)
-# g.win <- g.win +
-#   coord_cartesian(xlim = can.ext[1:2],
-#                   ylim = can.ext[3:4]) +
-#   scale_x_continuous(expand = c(0,0)) +
-#   scale_y_continuous(expand = c(0,0)) 
-# aspect.ratio <- (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]])
-# ggsave(filename = file.path(win.res,"fig", "mass_HQ_Canada.pdf"),
-#        g.win, 
-#        width = 8, height = 8/aspect.ratio, unit = "in",
-#        dpi = 300,
-#        device = cairo_pdf)
-
+mass.can <- masterPlotter2(x = plotStk$mass,
+                            c.string = massColors(5),
+                            break.string = seq(6,12., by= 5),
+                            canada.focus = F,
+                            dist.map = mylu.dist,
+                            legend.key = "Predicted\nBody\nMass (g)",
+                            save.name = "massMean_MYLU_Canada",
+                            device.out = "pdf",
+                            width = 6,
+                            unit = "in")
 
 
 fatColors <- colorRampPalette(c("#fff7bc","#fec44f", "#d95f0e"))
-# (fatMean.plot <- masterPlotter(x = plotStk$fat,
-#                           c.string = fatColors(5),
-#                           canada.focus = F,
-#                           legend.key = "Predicted\nBody\nFat (g)",
-#                           dist.map = mylu.dist,
-#                           save.name = "fatMean_MYLU",
-#                           device.out = "pdf"))
-# 
-# (fatMean.plot.canada <- masterPlotter(x = plotStk$fat,
-#                                c.string = fatColors(5),
-#                                canada.focus = T,
-#                                legend.key = "Predicted\nBody\nFat (g)",
-#                                dist.map = mylu.dist,
-#                                save.name = "fatMean_MYLU_Canada",
-#                                device.out = "pdf"))
-# (fatMean.plot.tanaka <- plotTanaka(x = plotStk$fat,
-#                                c.string = fatColors(5),
-#                                canada.focus = F,
-#                                legend.key = "Predicted\nBody\nFat (g)",
-#                                dist.map = mylu.dist,
-#                                save.name = "fatMean_MYLU_Tanaka",
-#                                device.out = "pdf"))
-# 
-# (fatMean.plot.canada.tanaka <- plotTanaka(x = plotStk$fat,
-#                                       c.string = fatColors(5),
-#                                       canada.focus = T,
-#                                       legend.key = "Predicted\nBody\nFat (g)",
-#                                       dist.map = mylu.dist,
-#                                       save.name = "fatMean_MYLU_Canada_Tanaka",
-#                                       device.out = "pdf"))
+fat.full <- masterPlotter2(x = plotStk$fat,
+                           c.string = fatColors(5),
+                           break.string = seq(0,6,by=.5),
+                           canada.focus = F,
+                           legend.key = "Predicted\nBody\nFat (g)",
+                           dist.map = mylu.dist,
+                           save.name = "fatMean_MYLU",
+                           device.out = "pdf",
+                           width = 6,
+                           unit = "in")
 
-x <- plotStk$fat
-x.ag <- raster::aggregate(x, 20)
-## Convert to df
-x.pts <- rasterToPoints(x.ag) #to points
-x.df <- data.frame(x.pts)
-colnames(x.df) <- c("long", "lat", "winter")
-x.df$winter <- as.double(x.df$winter)
-legend.key = "Predicted\nBody\nFat (g)"
-dist.map <- mylu.dist
-c.string <- fatColors(5)
-breaks <- seq(0,6, by = .5)
-(g.win <- ggplot(data = x.df, aes(x=long, y = lat, z = winter))+
-    coord_fixed(xlim = extent(x.ag)[1:2], ylim = extent(x.ag)[3:4]) +
-    geom_contour_fill(breaks = breaks, na.fill = -9999) +
-    # geom_contour_tanaka( breaks = breaks) +
-    scale_fill_gradientn(legend.key,
-                         colors = c.string,
-                         limits=  c(1,
-                                    4)) +
-    scale_x_longitude() +
-    scale_y_latitude() +
-    #border lines
-    geom_polygon(data= fortify(North.America),
-                 aes(long,lat,group=group),
-                 color="grey20",
-                 fill=NA,
-                 inherit.aes = F) +
-    ##Species distribution
-    geom_polygon(data = fortify(dist.map),
-                 aes(long,lat, group = group),
-                 colour = "black",
-                 fill = NA,
-                 inherit.aes = F) +
-    #Lables
-    geom_text_contour(stroke = 0.2, min.size = 25,
-                      rotate = F, check_overlap = T)+
-    #general malarkey
-    scale_x_continuous(expand = c(0,0))+
-    scale_y_continuous(expand = c(0,0))+
-    theme_bw()+
-    theme(legend.position = c(0.1,0.40),
-          legend.margin = margin(),
-          legend.key.width = unit(0.5, "cm"),
-          legend.key.height = unit(0.4, "cm"),
-          legend.text=element_text(size=7),
-          legend.title=element_text(size=9),
-          axis.title = element_blank()) 
-  
-)
-
-# aspect.ratio <-2.2
-# ggsave(filename = file.path(win.res,"fig", "fat_HQ.pdf"),
-#        g.win, 
-#        width = 8, height = 8/aspect.ratio, unit = "in",
-#        dpi = 300,
-#        device = cairo_pdf)
-
-fat.fig <- g.win
+fat.can <- masterPlotter2(x = plotStk$fat,
+                          c.string = fatColors(5),
+                          break.string = seq(0,6,by=.5),
+                          canada.focus = F,
+                          legend.key = "Predicted\nBody\nFat (g)",
+                          dist.map = mylu.dist,
+                          save.name = "fatMean_MYLU_Canada",
+                          device.out = "pdf",
+                          width = 6,
+                          unit = "in")
 
 
-# ## Canada focus flag
-# can.ext <- c(-140,-104,41,60)
-# g.win <- g.win +
-#   coord_cartesian(xlim = can.ext[1:2],
-#                   ylim = can.ext[3:4]) +
-#   scale_x_continuous(expand = c(0,0)) +
-#   scale_y_continuous(expand = c(0,0)) 
-# aspect.ratio <- (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]])
-# ggsave(filename = file.path(win.res,"fig", "fat_HQ_Canada.pdf"),
-#        g.win, 
-#        width = 8, height = 8/aspect.ratio, unit = "in",
-#        dpi = 300,
-#        device = cairo_pdf)
-# 
-
-
-## Single figure is not currentely written something thing for the todo listI guess
 ## Single figure
-# library(gridExtra)
-# fig3 <- grid.arrange(massMean.plot, 
-#                      fatMean.plot, 
-#                      ncol = 1)
-# ggsave(file.path(win.res, "fig", "Mass_Fat_MYLU.pdf"),
-#        fig3,
-#        device = cairo_pdf,
-#        width = 9,
-#        height = 6.5, 
-#        units = "in")
-# 
-# fig3Canada <- grid.arrange(massMean.plot, 
-#                            fatMean.plot, 
-#                            ncol = 1)
-# ggsave(file.path(win.res, "fig", "Mass_Fat_MYLU_Canda.pdf"),
-#        fig3Canada,
-#        device = cairo_pdf,
-#        width = 9,
-#        height = 6.5, 
-#        units = "in")
+library(gridExtra)
+fig3 <- grid.arrange(mass.full,
+                     fat.full,
+                     ncol = 1)
+ggsave(file.path(win.res, "fig", "Mass_Fat_MYLU.pdf"),
+       fig3,
+       device = cairo_pdf,
+       width = 6,
+       units = "in")
+
+fig3Canada <- grid.arrange(mass.can,
+                           fat.can,
+                           ncol = 1)
+ggsave(file.path(win.res, "fig", "Mass_Fat_MYLU_Canda.pdf"),
+       fig3Canada,
+       device = cairo_pdf,
+       width = 6,
+       units = "in")
 
 
 #### Required Fat plots ####
