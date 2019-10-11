@@ -16,14 +16,14 @@ win.res <- file.path(base.path, "Results")
 
 
 #### Functions ####
-masterPlotter2 <- function(x, c.string, break.string, res.agg = 20, dist.map = NULL,
+masterPlotter2 <- function(x, c.string, res.agg = 20, dist.map = NULL,
                            north.america = North.America, canada.focus = F,
                            legend.key, text.min =25,
                            save.name = NULL,  device.out = NULL,  ...){
   ##Function for plotting all  wintor spatial figures   
   # x <- item plotting, 
   # c.string <- for colors
-  # breaks.by <- for handling the number of breaks to appear in the data
+  # break.by <- for handling the number of break to appear in the data
   # res.agg <- unit of aggragation (generally for the dev period with large maps)
   # dist.map <- species distribution map of you want it to be included in the plotting
   # north.america <- geo-political boundries to plot on top of
@@ -58,15 +58,16 @@ masterPlotter2 <- function(x, c.string, break.string, res.agg = 20, dist.map = N
   x.df <- data.frame(x.pts)
   colnames(x.df) <- c("long", "lat", "winter")
   
-  ## handing breaks for the visuals
-  breaks <- break.string
+  ## handing break for the visuals
+  break.string <- seq(floor(min(x.df$winter)), ceiling(max(x.df$winter)), by = .5)
   
   g.win <- ggplot() +
     ##Contouring
     geom_contour_fill(data = x.df,
                       aes(x= long, y = lat, z = winter),
-                      breaks = breaks,
-                      na.fill = -9999)+
+                      breaks = break.string,
+                      na.fill = -9999,
+                      guide = "colorstrip")+
     #handling the NA 
     stat_subset(data = x.df, 
                 aes(x= long, y = lat, subset = winter == -9999),
@@ -76,8 +77,8 @@ masterPlotter2 <- function(x, c.string, break.string, res.agg = 20, dist.map = N
     #oooohhhhh pretty colors
     scale_fill_gradientn(legend.key,
                          colors = c.string,
-                         limits=  c(floor(minValue(x.ag)),
-                                    ceiling(maxValue(x.ag)))) +
+                         limits=  c(min(break.string),
+                                    max(break.string))) +
     
     ##North American political boundries
     geom_sf(data = north.america,
@@ -129,127 +130,14 @@ masterPlotter2 <- function(x, c.string, break.string, res.agg = 20, dist.map = N
   return(g.win)
 }
 
-masterPlotter.Surv <- function(x,  res.agg = 25, dist.map = NULL,
-                               north.america = North.America, canada.focus = F,
-                               legend.key, surv.countours = F, c.string,
-                               save.name = NULL,  device.out = NULL,  ...){
-  ##Function for plotting all  wintor spatil figurs   
-  
-  ## Create DataFrame (aggragation is mainly for the dev period)
-  if(!is.null(res.agg)){ #aggratetion bits
-    x.ag <- raster::aggregate(x, res.agg)
-  }
-  else{
-    x.ag <- x}
-  ## Crop and mask to distribution
-  if(!is.null(dist.map)){
-    x.ag <- mask(crop(x.ag, dist.map), dist.map)
-  }
-  
-  ## Convert to df
-  x.pts <- rasterToPoints(x.ag) #to points
-  x.df <- data.frame(x.pts)
-  colnames(x.df) <- c("long", "lat", "winter")
-  
-  
-  g.win <- ggplot(data = x.df, aes(x = long, y = lat, z = winter)) +
-    coord_fixed(xlim = extent(x.ag)[1:2], ylim = extent(x.ag)[3:4]) +
-    #Raster fill
-    geom_raster(aes(fill = winter),  interpolate = T) +
-    #oooohhhhh pretty colors
-    scale_fill_gradientn(legend.key,
-                         colors = c.string,
-                         # mid = "#ffffff",
-                         # midpoint = 0, 
-                         limits=  c(floor(minValue(x.ag)),
-                                    ceiling(maxValue(x.ag)))) +
-    #border lines
-    geom_polygon(data= fortify(North.America),
-                 aes(long,lat,group=group),
-                 color="grey90",
-                 fill=NA,
-                 inherit.aes = F) +
-    #general malarkey
-    scale_x_continuous(expand = c(0,0))+
-    scale_y_continuous(expand = c(0,0))+
-    theme_bw()+
-    theme(legend.position = c(0.1,0.40),
-          legend.margin = margin(),
-          legend.key.width = unit(0.5, "cm"),
-          legend.key.height = unit(0.4, "cm"),
-          legend.text=element_text(size=7),
-          legend.title=element_text(size=9),
-          axis.title = element_blank())
-  
-  ##Distribution map flag
-  if(!is.null(dist.map)){
-    g.win <- g.win +
-      geom_polygon(data = fortify(dist.map),
-                   aes(long,lat, group = group),
-                   colour = "black",
-                   fill = NA,
-                   inherit.aes = F) 
-  }
-  
-  ## Canada focus flag
-  if(canada.focus==T){
-    can.ext <- c(-140,-104,41,60)
-    g.win <- g.win +
-      coord_cartesian(xlim = can.ext[1:2],
-                      ylim = can.ext[3:4]) +
-      scale_x_continuous(expand = c(0,0)) +
-      scale_y_continuous(expand = c(0,0)) 
-  } 
-  
-  ## Contour flag
-  if(surv.countours == T) {
-    g.win <- g.win + 
-      geom_contour(aes(z = winter,
-                       color = factor(..level.. == 0 ,
-                                      levels = c(T,F),
-                                      labels = c(expression(fat=0),
-                                                 expression(fat>0.5)))),
-                   breaks=c(-0.5, 0,0.5)) +
-      
-      
-      scale_colour_manual(values = c( "red","blue")) +
-      labs(color = "Contours")
-  }
-  
-  
-  
-  ## Save Flag  
-  if(!is.null(save.name)){
-    if(device.out == "pdf"){
-      dev.ext <- cairo_pdf
-    } else if (device.out =="eps"){
-      dev.ext <- cairo_ps
-    } else {
-      dev.ext <- device.out
-    }
-    ex <- as.vector(extent(x))
-    if(canada.focus==T){
-      aspect.ratio <- (can.ext[[2]] - can.ext[[1]])/(can.ext[[4]] - can.ext[[3]])
-    } else{
-      aspect.ratio <-(ex[[2]] - ex[[1]])/(ex[[4]] - ex[[3]])  
-    }
-    
-    ggsave(filename = file.path(win.res,"fig", paste0(save.name,".", device.out)),
-           g.win, 
-           width = 9, height = 9/aspect.ratio, unit = "in",
-           dpi = 300,
-           device = dev.ext)}
-  
-  return(g.win)
-}
-
-pairedPlotting <- function(x, parent.data = plotStk, 
-                           res.agg = 20,
-                           north.america = North.America,
-                           canada.focus = F, dist.map = mylu.dist,
-                           c.string, legend.limits,
-                           legend.key = "Fill this in",
-                           save.name = NULL, device.out = NULL){
+pairedPlotting2 <- function(x, parent.data = plotStk, 
+                            res.agg = 20,
+                            text.min = 25,
+                            north.america = North.America,
+                            canada.focus = F, dist.map = mylu.dist,
+                            c.string, 
+                            legend.key = "Fill this in",
+                            save.name = NULL, device.out = NULL){
   ## Subset out the paired layers
   target.data <- parent.data[[grep(pattern = x, 
                                    names(parent.data))]]
@@ -260,6 +148,18 @@ pairedPlotting <- function(x, parent.data = plotStk,
   }
   else{
     x.ag <- target.data}
+  ## Crop and mask to distribution
+  if(!is.null(dist.map)){
+    x.ag <- mask(crop(x.ag, dist.map), dist.map)
+    north.america <- st_crop(north.america, extent(x.ag))
+  }
+  
+  ## Canada focus flag
+  if(canada.focus==T){
+    can.ex <- c(-127.2429, 101.3304, 43.9173, 64.1641)
+    x.ag <- crop(x.ag, extent(can.ex))
+    north.america <- st_crop(north.america, extent(x.ag))
+  }
   
   ## Convert to df
   x.pts <- rasterToPoints(x.ag) #to points
@@ -274,57 +174,59 @@ pairedPlotting <- function(x, parent.data = plotStk,
   ##reorder factor levels
   x.df$Status <- factor(x.df$Status, levels = c("Uninfected", "Infected"))
   ##break points for the legend
-  breaks <- seq(legend.limits[[1]], legend.limits[[2]], by = 0.5)
-  (g.win <- ggplot(data = x.df, aes(x=long, y = lat, z = Value))+
-      coord_fixed(xlim = extent(x.ag)[1:2], ylim = extent(x.ag)[3:4]) +
-      geom_contour_fill(breaks = breaks,
-                        na.fill = -9999) +
+  break.string <- seq(floor(min(x.df$Value)), ceiling(max(x.df$Value)), by = .5)
+  
+  (g.win <- ggplot()+
+      geom_contour_fill(data = x.df,
+                        aes(x= long, y = lat, z = Value),
+                        breaks = break.string,
+                        na.fill = -9999,
+                        guide = "colorstrip")+
+      #handling the NA 
+      stat_subset(data = x.df, 
+                  aes(x= long, y = lat, subset = Value == -9999),
+                  geom = "raster",
+                  fill = "#ffffff")+
+      
+      #oooohhhhh pretty colors
       scale_fill_gradientn(legend.key,
                            colors = c.string,
-                           limits=  legend.limits) +
-      scale_x_longitude() +
-      scale_y_latitude() +
-      #border lines
-      geom_polygon(data= fortify(north.america),
-                   aes(long,lat,group=group),
-                   color="grey20",
-                   fill=NA,
-                   inherit.aes = F) +
-      ##Species distribution
-      geom_polygon(data = fortify(dist.map),
-                   aes(long,lat, group = group),
-                   colour = "black",
-                   fill = NA,
-                   inherit.aes = F) +
-      ## Labels
-      geom_text_contour(stroke = 0.2,
-                        min.size = 25,
-                        rotate = F, 
-                        check_overlap = T)+
-      #general malarkey
+                           limits=  c(min(break.string),
+                                      max(break.string))) +
+      
+      ##North American political boundries
+      geom_sf(data = north.america,
+              aes(group = "Name_1"),
+              color="grey20",
+              fill=NA)+
+      
+      #Lables
+      geom_text_contour(data = x.df, 
+                        aes(x= long, y = lat, z = Value),
+                        stroke = 0.2, min.size = text.min,
+                        rotate = F, check_overlap = T)+
+      
+      theme_bw()+
       scale_x_continuous(expand = c(0,0))+
       scale_y_continuous(expand = c(0,0))+
-      theme_bw()+
-      theme(legend.position = c(0.1,0.15),
-            legend.margin = margin(),
-            legend.key.width = unit(0.5, "cm"),
-            legend.key.height = unit(0.4, "cm"),
+      theme(legend.position = "bottom",
             legend.text=element_text(size=7),
             legend.title=element_text(size=9),
-            axis.title = element_blank()) +
+            axis.title = element_blank())+
       facet_wrap( .~ Status,
-                  ncol = 1)
-  )
+                  ncol = 1))
   
-  ## Canada focus flag
-  if(canada.focus==T){
-    can.ext <- c(-140,-104,41,60)
+  ##Distribution map flag
+  if(!is.null(dist.map)){
+    dist.crop <- st_crop(dist.map, x.ag)
+    
     g.win <- g.win +
-      coord_cartesian(xlim = can.ext[1:2],
-                      ylim = can.ext[3:4]) +
-      scale_x_continuous(expand = c(0,0)) +
-      scale_y_continuous(expand = c(0,0)) 
-  } 
+      geom_sf(data = dist.crop,
+              aes(group = "SP_ID"),
+              colour = "black",
+              fill = NA) 
+  }
+  
   
   ## Save Flag  
   if(!is.null(save.name)){
@@ -338,20 +240,22 @@ pairedPlotting <- function(x, parent.data = plotStk,
     
     ggsave(filename = file.path(win.res,"fig", paste0(save.name,".", device.out)),
            g.win, 
-           width = 8, height = 8, unit = "in",
-           dpi = 300,
-           device = dev.ext)}
+           dpi = 400,
+           device = dev.ext,
+           ...)}
   
   return(g.win)
 }
-quadPlot <- function(x,
+
+
+quadPlot2 <- function(x,
                      parent.data = plotStk, 
                      res.agg = 20,
                      north.america = North.America,
                      canada.focus = F,
                      dist.map = mylu.dist,
+                     text.min = 35,
                      c.string,
-                     legend.limits,
                      legend.key = "Fill this in",
                      save.name = NULL,
                      device.out = NULL){
@@ -366,6 +270,18 @@ quadPlot <- function(x,
   }
   else{
     x.ag <- target.data}
+  ## Crop and mask to distribution
+  if(!is.null(dist.map)){
+    x.ag <- mask(crop(x.ag, dist.map), dist.map)
+    north.america <- st_crop(north.america, extent(x.ag))
+  }
+  
+  ## Canada focus flag
+  if(canada.focus==T){
+    can.ex <- c(-127.2429, 101.3304, 43.9173, 64.1641)
+    x.ag <- crop(x.ag, extent(can.ex))
+    north.america <- st_crop(north.america, extent(x.ag))
+  }
   
   ## Convert to df
   x.pts <- rasterToPoints(x.ag) #to points
@@ -389,58 +305,59 @@ quadPlot <- function(x,
                                        levels = c("4x98", "2x100"))
   
   ##break points for the legend
-  breaks <- seq(legend.limits[[1]], legend.limits[[2]], by = 0.5)
-  (g.win <- ggplot(data = x.df, aes(x=long, y = lat, z = Value))+
-      coord_fixed(xlim = extent(x.ag)[1:2], ylim = extent(x.ag)[3:4]) +
-      geom_contour_fill(breaks = breaks,
+  break.string <- seq(floor(min(x.df$Value)), ceiling(max(x.df$Value)), by = .5)
+  
+  (g.win <- ggplot()+
+      geom_contour_fill(data = x.df,
+                        aes(x= long, y = lat, z = Value),
+                        breaks = break.string,
                         na.fill = -9999,
-                        guide = "colorstrip") +
+                        guide = "colorstrip")+
+      #handling the NA 
+      stat_subset(data = x.df, 
+                  aes(x= long, y = lat, subset = Value == -9999),
+                  geom = "raster",
+                  fill = "#ffffff")+
+      
+      #oooohhhhh pretty colors
       scale_fill_gradientn(legend.key,
                            colors = c.string,
-                           limits=  legend.limits) +
-      scale_x_longitude() +
-      scale_y_latitude() +
-      #border lines
-      geom_polygon(data= fortify(north.america),
-                   aes(long,lat,group=group),
-                   color="grey20",
-                   fill=NA,
-                   inherit.aes = F) +
-      ##Species distribution
-      geom_polygon(data = fortify(dist.map),
-                   aes(long,lat, group = group),
-                   colour = "black",
-                   fill = NA,
-                   inherit.aes = F) +
-      ## Labels
-      geom_text_contour(stroke = 0.2,
-                        min.size = 25,
-                        rotate = F, 
-                        check_overlap = T)+
-      #general malarkey
+                           limits=  c(min(break.string),
+                                      max(break.string))) +
+      
+      ##North American political boundries
+      geom_sf(data = north.america,
+              aes(group = "Name_1"),
+              color="grey20",
+              fill=NA)+
+      
+      #Lables
+      geom_text_contour(data = x.df, 
+                        aes(x= long, y = lat, z = Value),
+                        stroke = 0.2, min.size = text.min,
+                        rotate = F, check_overlap = T)+
+      
+      theme_bw()+
       scale_x_continuous(expand = c(0,0))+
       scale_y_continuous(expand = c(0,0))+
-      theme_bw()+
       theme(legend.position = "bottom",
-            # legend.margin = margin(),
-            # legend.key.width = unit(0.5, "cm"),
-            # legend.key.height = unit(0.4, "cm"),
             legend.text=element_text(size=7),
             legend.title=element_text(size=9),
-            axis.title = element_blank()) +
+            axis.title = element_blank())+
       facet_grid( rows = vars(Hibernation_Condition),
                   cols = vars(Infection_status))
   )
   
-  ## Canada focus flag
-  if(canada.focus==T){
-    can.ext <- c(-140,-104,41,60)
+  ##Distribution map flag
+  if(!is.null(dist.map)){
+    dist.crop <- st_crop(dist.map, x.ag)
+    
     g.win <- g.win +
-      coord_cartesian(xlim = can.ext[1:2],
-                      ylim = can.ext[3:4]) +
-      scale_x_continuous(expand = c(0,0)) +
-      scale_y_continuous(expand = c(0,0)) 
-  } 
+      geom_sf(data = dist.crop,
+              aes(group = "SP_ID"),
+              colour = "black",
+              fill = NA) 
+  }
   
   ## Save Flag  
   if(!is.null(save.name)){
@@ -454,23 +371,24 @@ quadPlot <- function(x,
     
     ggsave(filename = file.path(win.res,"fig", paste0(save.name,".", device.out)),
            g.win, 
-           width = 10.5, height = 8, unit = "in",
-           dpi = 300,
-           device = dev.ext)}
+           dpi = 400,
+           device = dev.ext,
+           ...)}
   
   return(g.win)
 }
 
-increasedExpendaturePlot <- function(x,
-                                     parent.data = plotStk, 
-                                     res.agg = 20,
-                                     north.america = North.America,
-                                     canada.focus = F,
-                                     dist.map = mylu.dist,
-                                     legend.limits,
-                                     legend.key = "Fill this in",
-                                     save.name = NULL,
-                                     device.out = NULL){
+
+increasedExpendaturePlot2 <- function(x,
+                                      parent.data = plotStk, 
+                                      res.agg = 20,
+                                      north.america = North.America,
+                                      canada.focus = F,
+                                      dist.map = mylu.dist,
+                                      text.min = 35,
+                                      legend.key = "Fill this in",
+                                      save.name = NULL,
+                                      device.out = NULL){
   
   ## Subset out the paired layers
   target.data <- parent.data[[grep(pattern = x, 
@@ -482,6 +400,19 @@ increasedExpendaturePlot <- function(x,
   }
   else{
     x.ag <- target.data}
+  ## Crop and mask to distribution
+  if(!is.null(dist.map)){
+    x.ag <- mask(crop(x.ag, dist.map), dist.map)
+    north.america <- st_crop(north.america, extent(x.ag))
+  }
+  
+  ## Canada focus flag
+  if(canada.focus==T){
+    can.ex <- c(-127.2429, 101.3304, 43.9173, 64.1641)
+    x.ag <- crop(x.ag, extent(can.ex))
+    north.america <- st_crop(north.america, extent(x.ag))
+  }
+  
   
   ## Convert to df
   x.pts <- rasterToPoints(x.ag) #to points
@@ -493,57 +424,61 @@ increasedExpendaturePlot <- function(x,
     mutate(precIncrease = (Infected/Uninfected)*100)
   
   ## create breaks
-  breaks <- seq(legend.limits[[1]], legend.limits[[2]], by = 25)
-  colourCount = length(breaks)
-  getPalette = colorRampPalette(brewer.pal(colourCount, "Spectral"))
+  break.string <- seq(floor(min(x.df$precIncrease)),
+                      ceiling(max(x.df$precIncrease)),
+                      by = 25)
+  colourCount = length(break.string)
+  getPalette = colorRampPalette(RColorBrewer::brewer.pal(colourCount, "Spectral"))
   
-  (g.win <- ggplot(data = x.df, aes(x=long, y = lat, z = precIncrease))+
-      coord_fixed(xlim = extent(x.ag)[1:2], ylim = extent(x.ag)[3:4]) +
-      geom_contour_fill(breaks = breaks,
-                        na.fill = -9999) +
-      scale_fill_gradientn(legend.key,
-                           colors = rev(getPalette(colourCount)),
-                           limits = legend.limits) +
-      scale_x_longitude() +
-      scale_y_latitude() +
-      #border lines
-      geom_polygon(data= fortify(north.america),
-                   aes(long,lat,group=group),
-                   color="grey20",
-                   fill=NA,
-                   inherit.aes = F) +
-      ##Species distribution
-      geom_polygon(data = fortify(dist.map),
-                   aes(long,lat, group = group),
-                   colour = "black",
-                   fill = NA,
-                   inherit.aes = F) +
-      ## Labels
-      geom_text_contour(stroke = 0.2,
-                        min.size = 25,
-                        rotate = F, 
-                        check_overlap = T)+
-      #general malarkey
-      scale_x_continuous(expand = c(0,0))+
-      scale_y_continuous(expand = c(0,0))+
-      theme_bw()+
-      theme(legend.position = c(0.1,0.40),
-            legend.margin = margin(),
-            legend.key.width = unit(0.5, "cm"),
-            legend.key.height = unit(0.4, "cm"),
-            legend.text=element_text(size=7),
-            legend.title=element_text(size=9),
-            axis.title = element_blank()))
+  g.win <- ggplot() +
+    ##Contouring
+    geom_contour_fill(data = x.df,
+                      aes(x= long, y = lat, z = precIncrease),
+                      breaks = break.string,
+                      na.fill = -9999,
+                      guide = "colorstrip")+
+    #handling the NA 
+    stat_subset(data = x.df, 
+                aes(x= long, y = lat, subset = precIncrease == -9999),
+                geom = "raster",
+                fill = "#ffffff")+
+    
+    scale_fill_gradientn(legend.key,
+                         colors = rev(getPalette(colourCount)),
+                         limits=  c(min(break.string),
+                                    max(break.string))) +
+    ##North American political boundries
+    geom_sf(data = north.america,
+            aes(group = "Name_1"),
+            color="grey20",
+            fill=NA)+
+    
+    #Lables
+    geom_text_contour(data = x.df, 
+                      aes(x= long, y = lat, z = precIncrease),
+                      stroke = 0.2, min.size = text.min,
+                      rotate = F, check_overlap = T)+
+    
+    theme_bw()+
+    scale_x_continuous(expand = c(0,0))+
+    scale_y_continuous(expand = c(0,0))+
+    theme(legend.position = "bottom",
+          legend.text=element_text(size=7),
+          legend.title=element_text(size=9),
+          axis.title = element_blank())
   
-  ## Canada focus flag
-  if(canada.focus==T){
-    can.ext <- c(-140,-104,41,60)
+  
+  
+  ##Distribution map flag
+  if(!is.null(dist.map)){
+    dist.crop <- st_crop(dist.map, x.ag)
+    
     g.win <- g.win +
-      coord_cartesian(xlim = can.ext[1:2],
-                      ylim = can.ext[3:4]) +
-      scale_x_continuous(expand = c(0,0)) +
-      scale_y_continuous(expand = c(0,0)) 
-  } 
+      geom_sf(data = dist.crop,
+              aes(group = "SP_ID"),
+              colour = "black",
+              fill = NA) 
+  }
   
   ## Save Flag  
   if(!is.null(save.name)){
@@ -554,15 +489,16 @@ increasedExpendaturePlot <- function(x,
     } else {
       dev.ext <- device.out
     }
-    aspect.ratio <-2.2
+    
     ggsave(filename = file.path(win.res,"fig", paste0(save.name,".", device.out)),
            g.win, 
-           width = 8, height = 8/aspect.ratio, unit = "in",
-           dpi = 300,
-           device = dev.ext)}
+           dpi = 400,
+           device = dev.ext,
+           ...)}
   
   return(g.win)
 }
+
 
 #### Creating North America Geo-political boundries for backround. ####
 
@@ -610,7 +546,7 @@ st_crs(mylu.dist) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=
 # full.stk <- stack(raw.layers, fatReq.layers, surv.stk)
 # rm(raw.layers, fatReq.layers,surv.layers, surv.stk)
 # 
-# #### Create cropped estimates for mapping ####
+#### Create cropped estimates for mapping ####
 # crop.stk <- mask(crop(full.stk, mylu.dist), mylu.dist)
 # 
 # writeRaster(crop.stk,
@@ -636,7 +572,6 @@ library(gridExtra)
 winterColors <- colorRampPalette(c("#e0ecf4", "#9ebcda","#8856a7"))
 winter.full <- masterPlotter2(x = plotStk$win,
                               c.string = winterColors(5),
-                              break.string = seq(0,360, by= 30),
                               canada.focus = F,
                               legend.key = "Predicted\nDuration\nWnter\n(Days)",
                               text.min = 40,
@@ -645,50 +580,48 @@ winter.full <- masterPlotter2(x = plotStk$win,
                               width = 6,
                               unit = "in")
 winter.can <- masterPlotter2(x = plotStk$win,
-                              c.string = winterColors(5),
-                              canada.focus = T,
-                             break.string = seq(0,360, by= 30), 
+                             c.string = winterColors(5),
+                             canada.focus = T,
                              legend.key = "Predicted\nDuration\nWnter\n(Days)",
-                              text.min = 40,
-                              save.name = "winDuration_Mean_MYLU_Canada",
-                              device.out = "pdf",
-                              width = 6,
-                              unit = "in")
-
-
-
-
-
-
-#### Body Mass and Fat Mass Plots####
-massColors <- colorRampPalette(c("#f7fcb9", "#31a354"))
-mass.full <- masterPlotter2(x = plotStk$mass,
-                             c.string = massColors(5),
-                             break.string = seq(6,12., by= 5),
-                             canada.focus = F,
-                             dist.map = mylu.dist,
-                             legend.key = "Predicted\nBody\nMass (g)",
-                             save.name = "massMean_MYLU",
+                             text.min = 40,
+                             save.name = "winDuration_Mean_MYLU_Canada",
                              device.out = "pdf",
                              width = 6,
                              unit = "in")
 
-mass.can <- masterPlotter2(x = plotStk$mass,
+
+rm(winter.full, winter.can, winterColors)
+gc()
+
+#### Body Mass and Fat Mass Plots####
+massColors <- colorRampPalette(c("#f7fcb9", "#31a354"))
+mass.full <- masterPlotter2(x = plotStk$mass,
                             c.string = massColors(5),
-                            break.string = seq(6,12., by= 5),
+                            text.min = 25,
                             canada.focus = F,
                             dist.map = mylu.dist,
                             legend.key = "Predicted\nBody\nMass (g)",
-                            save.name = "massMean_MYLU_Canada",
+                            save.name = "massMean_MYLU",
                             device.out = "pdf",
                             width = 6,
                             unit = "in")
+
+mass.can <- masterPlotter2(x = plotStk$mass,
+                           c.string = massColors(5),
+                           text.min = 25,
+                           canada.focus = F,
+                           dist.map = mylu.dist,
+                           legend.key = "Predicted\nBody\nMass (g)",
+                           save.name = "massMean_MYLU_Canada",
+                           device.out = "pdf",
+                           width = 6,
+                           unit = "in")
 
 
 fatColors <- colorRampPalette(c("#fff7bc","#fec44f", "#d95f0e"))
 fat.full <- masterPlotter2(x = plotStk$fat,
                            c.string = fatColors(5),
-                           break.string = seq(0,6,by=.5),
+                           text.min = 25,
                            canada.focus = F,
                            legend.key = "Predicted\nBody\nFat (g)",
                            dist.map = mylu.dist,
@@ -699,7 +632,7 @@ fat.full <- masterPlotter2(x = plotStk$fat,
 
 fat.can <- masterPlotter2(x = plotStk$fat,
                           c.string = fatColors(5),
-                          break.string = seq(0,6,by=.5),
+                          text.min = 25,
                           canada.focus = F,
                           legend.key = "Predicted\nBody\nFat (g)",
                           dist.map = mylu.dist,
@@ -728,84 +661,78 @@ ggsave(file.path(win.res, "fig", "Mass_Fat_MYLU_Canda.pdf"),
        device = cairo_pdf,
        width = 6,
        units = "in")
-
+rm(mass.can,mass.full,massColors,fat.can,fat.full,fatColors,fig3Canada,fig3)
+gc()
 
 #### Required Fat plots ####
 reqColors <- colorRampPalette(c("#ffffff", "#5E3C99"))
 
- 
-# (fatreq.plot <- masterPlotter(x = plotStk$fatReq_4_98_null,
-#                               canada.focus = F,
-#                               dist.map = mylu.dist,
-#                               c.string = reqColors.Pos(5),
-#                               surv.countours = F,
-#                               legend.key = "Predicted\nBody Fat\nRequired (g)",
-#                               save.name = "fatRequired4_98_Dist",
-#                               device.out = "pdf"))
-# (fatreq.plot <- plotTanaka(x = plotStk$fatReq_4_98_null,
-#                            canada.focus = F,
-#                            dist.map = mylu.dist,
-#                            c.string = reqColors.Pos(5),
-#                            surv.countours = F,
-#                            legend.key = "Predicted\nBody Fat\nRequired (g)",
-#                            save.name = "fatRequired4_98_Dist_Tanaka",
-#                            device.out = "pdf"))
-
-(fatReq4x98 <- pairedPlotting(x = "fatReq_4_98",
+fatReq4x98 <- pairedPlotting2(x = "fatReq_4_98",
                              parent.data = plotStk,
                              c.string = reqColors(3),
-                             legend.limits = c(0,3),
                              canada.focus = F,
                              legend.key = "Predicted\nBody Fat\nRequired (g)",
                              save.name = "fatRequired4_98_pair",
-                             device.out = "pdf"))
-(fatReq4x98 <- pairedPlotting(x = "fatReq_4_98",
+                             device.out = "pdf",
+                             width = 6,
+                             unit = "in")
+fatReq4x98 <- pairedPlotting2(x = "fatReq_4_98",
                               parent.data = plotStk,
                               c.string = reqColors(3),
-                              legend.limits = c(0,3),
                               canada.focus = T,
                               legend.key = "Predicted\nBody Fat\nRequired (g)",
                               save.name = "fatRequired4_98_Canada",
-                              device.out = "pdf"))
+                              device.out = "pdf",
+                              width = 6,
+                              unit = "in")
 
-(fatReq2x100 <- pairedPlotting(x = "fatReq_2_100",
+fatReq2x100 <- pairedPlotting2(x = "fatReq_2_100",
                               parent.data = plotStk,
                               c.string = reqColors(4),
-                              legend.limits = c(0,3.5),
                               canada.focus = F,
                               legend.key = "Predicted\nBody Fat\nRequired (g)",
                               save.name = "fatRequired2_100_pair",
-                              device.out = "pdf"))
-(fatReq2x100 <- pairedPlotting(x = "fatReq_2_100",
+                              device.out = "pdf",
+                              width = 6,
+                              unit = "in")
+fatReq2x100 <- pairedPlotting2(x = "fatReq_2_100",
                               parent.data = plotStk,
                               c.string = reqColors(4),
-                              legend.limits = c(0,3.5),
                               canada.focus = T,
                               legend.key = "Predicted\nBody Fat\nRequired (g)",
                               save.name = "fatRequired2_100_pair_Canada",
-                              device.out = "pdf"))
+                              device.out = "pdf",
+                              width = 6,
+                              unit = "in")
+rm(fatReq4x98,fatReq2x100,reqColors)
+gc()
 
 #### Survival Mapping ####
 
 ## 2x 100
-survColors_2x100 <- colorRampPalette(c("#fdb863",
-                                       "#E8E3F0", "#A38FC4", "#5E3C99"))
-(a <- pairedPlotting(x = "surv_2_100",
+## Colors need to be between -1 and 5
+above0 <- colorRampPalette(c("#E8E3F0", "#5E3C99"))
+
+survColors_2x100 <- colorRampPalette(c("#fdb863",## The one below 0
+                                       above0(5)))
+a <- pairedPlotting2(x = "surv_2_100",
                      parent.data = plotStk,
-                     c.string = survColors_2x100(4),
-                     legend.limits = c(-1,3.5),
+                     c.string = survColors_2x100(6),
                      legend.key = "Predicted\nBody Fat\nRequired (g)",
                      save.name = "survival_2x100", 
-                     device.out = "pdf"))
+                     device.out = "pdf",
+                     width = 6,
+                     unit = "in")
 
-(q <- pairedPlotting(x = "surv_2_100",
+q <- pairedPlotting2(x = "surv_2_100",
                      parent.data = plotStk,
-                     c.string = survColors_2x100(4),
-                     legend.limits = c(-1,3),
+                     c.string = survColors_2x100(6),
                      canada.focus = T,
                      legend.key = "Predicted\nBody Fat\nRequired (g)",
                      save.name = "survival_2x100_Canada", 
-                     device.out = "pdf"))
+                     device.out = "pdf",
+                     width = 6,
+                     unit = "in")
 
 
 
@@ -814,48 +741,52 @@ survColors_2x100 <- colorRampPalette(c("#fdb863",
 survColors_4x98 <- colorRampPalette(c("#fdb863",
                                       "#E8E3F0", "#BAABD2", "#8C73B5","#5E3C99"))
 
-(a <- pairedPlotting(x = "surv_4_98",
+a <- pairedPlotting2(x = "surv_4_98",
                      parent.data = plotStk,
-                     c.string = survColors_4x98(4),
-                     legend.limits = c(-1,4),
+                     c.string = survColors_4x98(5),
                      legend.key = "Predicted\nBody Fat\nRequired (g)",
                      save.name = "survival_4x98", 
-                     device.out = "pdf"))
+                     device.out = "pdf",
+                     width = 6,
+                     unit = "in")
 
 
 survColors_4x98.can <- colorRampPalette(c("#fdb863",
                                           "#E8E3F0", "#A38FC4", "#5E3C99"))
-(q <- pairedPlotting(x = "surv_4_98",
+q <- pairedPlotting2(x = "surv_4_98",
                      parent.data = plotStk,
                      c.string = survColors_4x98.can(4),
-                     legend.limits = c(-1,3),
                      canada.focus = T,
                      legend.key = "Predicted\nBody Fat\nRequired (g)",
                      save.name = "survival_4x98_Canada", 
-                     device.out = "pdf"))
+                     device.out = "pdf",
+                     width = 6,
+                     unit = "in")
 
 ## Quad plot
 survColors_4x98 <- colorRampPalette(c("#fdb863",
                                       "#E8E3F0", "#BAABD2", "#8C73B5","#5E3C99"))
-doh <- quadPlot(x = "surv",
+doh <- quadPlot2(x = "surv",
                 c.string = survColors_4x98(5),
-                legend.limits = c(-1,4),
                 legend.key = "Predicted\nBody Fat\nRemaining (g)",
                 save.name = "survQuad", 
-                device.out = "pdf")
+                device.out = "pdf",
+                width = 10.5,
+                unit = "in")
+
+rm(a, q, survColors_4x98, survColors_4x98.can, survColors_2x100)
 ## Precent increase plot
 
-a <- increasedExpendaturePlot(x <- "fatReq_4_98",
+a <- increasedExpendaturePlot2(x <- "fatReq_4_98",
                               parent.data = plotStk,
                               res.agg = 20,
                               north.america = North.America,
                               canada.focus = F,
                               dist.map = mylu.dist,
-                              legend.limits <- c(150,500),
                               legend.key = "Precent\nIncreased\nFat\nRequired",
                               save.name = "precIncrease_4x98",
                               device.out = "pdf")
-b <- increasedExpendaturePlot(x <- "fatReq_2_100",
+b <- increasedExpendaturePlot2(x <- "fatReq_2_100",
                               parent.data = plotStk,
                               res.agg = 20,
                               north.america = North.America,
@@ -865,115 +796,9 @@ b <- increasedExpendaturePlot(x <- "fatReq_2_100",
                               legend.key = "Precent\nIncreased\nFat\nRequired",
                               save.name = "precIncrease_2x100",
                               device.out = "pdf")
-# 
-# (fatreq.plot <- masterPlotter.Surv(x = plotStk$fatReq_2_100_null,
-#                                    canada.focus = F,
-#                                    dist.map = mylu.dist,
-#                                    c.string = reqColors.Pos(5),
-#                                    surv.countours = F,
-#                                    legend.key = "Predicted\nBody Fat\nRequired (g)",
-#                                    save.name = "fatRequired2_100_Dist",
-#                                    device.out = "pdf"))
-# (fatreq.plot <- plotTanaka(x = plotStk$fatReq_2_100_null,
-#                                    canada.focus = F,
-#                                    dist.map = mylu.dist,
-#                                    c.string = reqColors.Pos(5),
-#                                    surv.countours = F,
-#                                    legend.key = "Predicted\nBody Fat\nRequired (g)",
-#                                    save.name = "fatRequired2_100_Dist_Tanaka",
-#                                    device.out = "pdf"))
-# 
-# (staticNull.plot <- masterPlotter.Surv(x = plotStk$surv_4_98_null,
-#                               canada.focus = F,
-#                               dist.map = mylu.dist,
-#                               surv.countours = F,
-#                               c.string = survColors.Pos(4),
-#                               legend.key = "Predicted\nBody Fat\nRemaining (g)",
-#                               save.name = "nullsurvive4_98_Dist",
-#                               device.out = "pdf"))
-# (staticNull.plot <- masterPlotter.Surv(x = plotStk$surv_4_98_null,
-#                                        canada.focus = T,
-#                                        dist.map = mylu.dist,
-#                                        surv.countours = F,
-#                                        c.string = survColors.Pos(4),
-#                                        legend.key = "Predicted\nBody Fat\nRemaining (g)",
-#                                        save.name = "nullsurvive4_98_Dist_Canada",
-#                                        device.out = "pdf"))
-# (staticNull.plot <- plotTanaka(x = plotStk$surv_4_98_null,
-#                                canada.focus = F,
-#                                dist.map = mylu.dist,
-#                                c.string = survColors.Pos(4),
-#                                legend.key = "Predicted\nBody Fat\nRemaining (g)",
-#                                save.name = "nullsurvive4_98_Dist_Tanaka",
-#                                device.out = "pdf"))
-# (staticNull.plot <- plotTanaka(x = plotStk$surv_4_98_null,
-#                                canada.focus = T,
-#                                dist.map = mylu.dist,
-#                                c.string = survColors.Pos(4),
-#                                legend.key = "Predicted\nBody Fat\nRemaining (g)",
-#                                save.name = "nullsurvive4_98_Dist_Canada_Tanaka",
-#                                device.out = "pdf"))
-# 
-# (staticInf.plot <- masterPlotter.Surv(x = plotStk$survInf,
-#                              canada.focus = F,
-#                              dist.map = mylu.dist,
-#                              legend.key = "Predicted\nBody Fat\nRemaining (g)",
-#                               surv.countours = F,
-#                              c.string = survColors(5),
-#                              save.name = "infSurvive4_98_Dist",
-#                              device.out = "pdf"))
-# #2x100
-# (staticNull.plot <- masterPlotter.Surv(x = plotStk$surv_2_100_null,
-#                                        canada.focus = F,
-#                                        dist.map = mylu.dist,
-#                                        surv.countours = F,
-#                                        c.string = survColors.Pos(4),
-#                                        legend.key = "Predicted\nBody Fat\nRemaining (g)",
-#                                        save.name = "nullsurvive2_100_Dist",
-#                                        device.out = "pdf"))
-# (staticNull.plot <- masterPlotter.Surv(x = plotStk$surv_2_100_null,
-#                                        canada.focus = T,
-#                                        dist.map = mylu.dist,
-#                                        surv.countours = F,
-#                                        c.string = survColors.Pos(4),
-#                                        legend.key = "Predicted\nBody Fat\nRemaining (g)",
-#                                        save.name = "nullsurvive2_100_Dist_Canada",
-#                                        device.out = "pdf"))
-# (staticNull.plot <- plotTanaka(x = plotStk$surv_2_100_null,
-#                                canada.focus = F,
-#                                dist.map = mylu.dist,
-#                                c.string = survColors.Pos(4),
-#                                legend.key = "Predicted\nBody Fat\nRemaining (g)",
-#                                save.name = "nullsurvive2_100_Dist_Tanaka",
-#                                device.out = "pdf"))
-# (staticNull.plot <- plotTanaka(x = plotStk$surv_2_100_null,
-#                                canada.focus = T,
-#                                dist.map = mylu.dist,
-#                                c.string = survColors.Pos(4),
-#                                legend.key = "Predicted\nBody Fat\nRemaining (g)",
-#                                save.name = "nullsurvive2_100_Dist_Canada_Tanaka",
-#                                device.out = "pdf"))
-# 
-# (staticInf.plot <- masterPlotter.Surv(x = plotStk$survInf,
-#                                       canada.focus = F,
-#                                       dist.map = mylu.dist,
-#                                       legend.key = "Predicted\nBody Fat\nRemaining (g)",
-#                                       surv.countours = F,
-#                                       c.string = survColors(5),
-#                                       save.name = "infSurvive2_100_Dist",
-#                                       device.out = "pdf"))
-# 
-# 
-# 
-# surFig <- grid.arrange(staticNull.plot, 
-#                        staticInf.plot, 
-#                        ncol = 1)
-# ggsave(file.path(win.res, "fig", "SurvFig.pdf"),
-#        surFig,
-#        device = cairo_pdf,
-#        width = 9,
-#        height = 6.5, 
-#        units = "in")
+
+
+
 
 
 fatSurvivalHistograms <- function(survNULL, survINF, dist.map, c.string,
