@@ -15,6 +15,88 @@ win.res <- file.path(base.path, "Results")
 '%!in%' <- function(x,y)!('%in%'(x,y))
 
 
+#### Creating North America Geo-political boundries for backround. ####
+
+##creating North America political boundries 
+# can.ext <- c( -140,-104,41, 60)
+# canada <- getData("GADM",country="CAN",level=1)
+# usa <- getData("GADM",country="USA", level=1)
+# mexico <- getData("GADM",country="MEX", level=1)
+# North.America <- rbind(canada,usa,mexico)
+# plot(North.America)
+# writeOGR(North.America,
+#          dsn = win.dat, 
+#          layer = "NorthAmerica",
+#          driver = "ESRI Shapefile")
+
+library(sf);library(rgdal)
+North.America <- st_read(win.dat, layer="NorthAmerica")
+NA.utm <- st_transform(North.America, 2955)
+
+##mylu distribution
+mylu.dist <- st_read("D:/Dropbox/batwintor_aux/paramFiles/ShapeFiles", 
+                     layer = "myotis_lucifugus")
+
+st_crs(mylu.dist) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+mylu.utm <- st_transform(mylu.dist, 2955)
+
+##remove old objects
+rm(North.America, mylu.dist)
+#### Create cropped estimates for mapping ####
+# raw.layers <- stack(list.files(win.res, pattern = "_p", full.names = T))
+# ## Create the fat layer
+# raw.layers$fat_p <- calc(raw.layers$massRaster_p, fun = function(x){-2.84 + 0.593*x})
+# ## Changing names for simplicity
+# names(raw.layers) <- c("win", "mass", "fat")
+# 
+# ## Survival layers
+# fatReq.layers <- stack(list.files(win.res, pattern = "MYLU_fat", full.names = T))
+# names(fatReq.layers) <- c("fatReq_2_100_inf", "fatReq_2_100_null",
+#                         "fatReq_4_98_inf", "fatReq_4_98_null")
+# ##Creating survival capacities for each of the simulations
+#   ## Issues with running out of ram on my 32 Gb machine
+# surv.layers <- list()
+# for(i in 1:nlayers(fatReq.layers)){
+# 
+#   out <- raw.layers$fat - fatReq.layers[[i]]
+#   names(out) <- paste(c("surv",sapply(strsplit(names(fatReq.layers[[i]]), "_"),tail,3)),collapse = "_")
+#   surv.layers[[i]] <- out
+# }
+# surv.stk <- do.call(stack, surv.layers)
+# 
+# full.stk <- stack(raw.layers, fatReq.layers, surv.stk)
+# rm(raw.layers, fatReq.layers,surv.layers, surv.stk)
+# 
+
+# crop.stk <- mask(crop(full.stk, mylu.dist), mylu.dist)
+# 
+# writeRaster(crop.stk,
+#             file.path(win.res, "myluCropped_.tif"),
+#             format = "GTiff",
+#             bylayer = T,
+#             suffix = "names",
+#             overwrite=T)
+# 
+# plotStk <- stack(list.files(win.res, pattern = "myluCropped_*", full.names = T))
+# names(plotStk) <- sub(".*?__", "", names(plotStk))
+
+## create new pre-processed UTM items for plotting purposes 
+plotUTM <- projectRaster(plotStk, crs = CRS("+init=epsg:2955"))
+writeRaster(plotUTM,
+            file.path(win.res, "myluCroppedUTM_.tif"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "names",
+            overwrite=T)
+plotStk <- stack(list.files(win.res, pattern = "myluCroppedUTM_*", full.names = T))
+names(plotStk) <- sub(".*?__", "", names(plotStk))
+#### Load data ####
+ library(raster);library(tidyverse); library(metR)
+
+# quick <- tidy(cellStats(plotStk, summary))
+# write.csv(x = quick,
+#           file = file.path(win.res, "quickSummary.csv"),
+#           row.names = F)
 #### Functions ####
 masterPlotter2 <- function(x, c.string, res.agg = 20, dist.map = mylu.dist,
                            north.america = North.America, canada.focus = F,
@@ -61,7 +143,7 @@ masterPlotter2 <- function(x, c.string, res.agg = 20, dist.map = mylu.dist,
   break.string <- seq(floor(min(x.df$winter, na.rm=T)),
                       ceiling(max(x.df$winter, na.rm=T)),
                       by = 30)
-
+  
   g.win <- ggplot() +
     ##Contouring
     geom_contour_fill(data = x.df,
@@ -85,11 +167,12 @@ masterPlotter2 <- function(x, c.string, res.agg = 20, dist.map = mylu.dist,
             aes(group = "Name_1"),
             color="grey20",
             fill=NA)+
-  
+    
     geom_sf(data = dist.crop,
             aes(group = "SP_ID"),
             colour = "dodgerblue4",
-            fill = NA)   +
+            fill = NA,
+            stoke = .1)   +
     
     #Lables
     geom_text_contour(data = x.df, 
@@ -232,17 +315,17 @@ pairedPlotting2 <- function(x, parent.data = plotStk,
 
 
 quadPlot2 <- function(x,
-                     parent.data = plotStk, 
-                     res.agg = 20,
-                     north.america = North.America,
-                     canada.focus = F,
-                     dist.map = mylu.dist,
-                     text.min = 35,
-                     c.string,
-                     legend.key = "Fill this in",
-                     save.name = NULL,
-                     device.out = NULL,
-                     ...){
+                      parent.data = plotStk, 
+                      res.agg = 20,
+                      north.america = North.America,
+                      canada.focus = F,
+                      dist.map = mylu.dist,
+                      text.min = 35,
+                      c.string,
+                      legend.key = "Fill this in",
+                      save.name = NULL,
+                      device.out = NULL,
+                      ...){
   
   ## Subset out the paired layers
   target.data <- parent.data[[grep(pattern = x, 
@@ -444,7 +527,7 @@ increasedExpendaturePlot2 <- function(x,
           legend.text=element_text(size=7),
           legend.title=element_text(size=9),
           axis.title = element_blank())
-
+  
   ## Save Flag  
   if(!is.null(save.name)){
     if(device.out == "pdf"){
@@ -465,69 +548,6 @@ increasedExpendaturePlot2 <- function(x,
 }
 
 
-#### Creating North America Geo-political boundries for backround. ####
-
-##creating North America political boundries 
-# can.ext <- c( -140,-104,41, 60)
-# canada <- getData("GADM",country="CAN",level=1)
-# usa <- getData("GADM",country="USA", level=1)
-# mexico <- getData("GADM",country="MEX", level=1)
-# North.America <- rbind(canada,usa,mexico)
-# plot(North.America)
-# writeOGR(North.America,
-#          dsn = win.dat, 
-#          layer = "NorthAmerica",
-#          driver = "ESRI Shapefile")
-
-library(sf);library(rgdal)
-North.America <- st_read(win.dat, layer="NorthAmerica")
-mylu.dist <- st_read("D:/Dropbox/batwintor_aux/paramFiles/ShapeFiles", 
-                     layer = "myotis_lucifugus")
-st_crs(mylu.dist) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
-
-#### Load data ####
- library(raster);library(tidyverse); library(metR)
-# raw.layers <- stack(list.files(win.res, pattern = "_p", full.names = T))
-# ## Create the fat layer
-# raw.layers$fat_p <- calc(raw.layers$massRaster_p, fun = function(x){-2.84 + 0.593*x})
-# ## Changing names for simplicity
-# names(raw.layers) <- c("win", "mass", "fat")
-# 
-# ## Survival layers
-# fatReq.layers <- stack(list.files(win.res, pattern = "MYLU_fat", full.names = T))
-# names(fatReq.layers) <- c("fatReq_2_100_inf", "fatReq_2_100_null",
-#                         "fatReq_4_98_inf", "fatReq_4_98_null")
-# ##Creating survival capacities for each of the simulations
-#   ## Issues with running out of ram on my 32 Gb machine
-# surv.layers <- list()
-# for(i in 1:nlayers(fatReq.layers)){
-# 
-#   out <- raw.layers$fat - fatReq.layers[[i]]
-#   names(out) <- paste(c("surv",sapply(strsplit(names(fatReq.layers[[i]]), "_"),tail,3)),collapse = "_")
-#   surv.layers[[i]] <- out
-# }
-# surv.stk <- do.call(stack, surv.layers)
-# 
-# full.stk <- stack(raw.layers, fatReq.layers, surv.stk)
-# rm(raw.layers, fatReq.layers,surv.layers, surv.stk)
-# 
-#### Create cropped estimates for mapping ####
-# crop.stk <- mask(crop(full.stk, mylu.dist), mylu.dist)
-# 
-# writeRaster(crop.stk,
-#             file.path(win.res, "myluCropped_.tif"),
-#             format = "GTiff",
-#             bylayer = T,
-#             suffix = "names",
-#             overwrite=T)
-
-plotStk <- stack(list.files(win.res, pattern = "myluCropped_*", full.names = T))
-names(plotStk) <- sub(".*?__", "", names(plotStk))
-
-# quick <- tidy(cellStats(plotStk, summary))
-# write.csv(x = quick,
-#           file = file.path(win.res, "quickSummary.csv"),
-#           row.names = F)
 #### Winter duration plots ####
 
 library(gridExtra)
