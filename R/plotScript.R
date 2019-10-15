@@ -16,7 +16,7 @@ win.res <- file.path(base.path, "Results")
 
 
 #### Functions ####
-masterPlotter2 <- function(x, c.string, res.agg = 20, dist.map = NULL,
+masterPlotter2 <- function(x, c.string, res.agg = 20, dist.map = mylu.dist,
                            north.america = North.America, canada.focus = F,
                            legend.key, text.min =25,
                            save.name = NULL,  device.out = NULL,  ...){
@@ -40,37 +40,37 @@ masterPlotter2 <- function(x, c.string, res.agg = 20, dist.map = NULL,
   }
   else{
     x.ag <- x}
-  ## Crop and mask to distribution
-  if(!is.null(dist.map)){
-    x.ag <- mask(crop(x.ag, dist.map), dist.map)
-    north.america <- st_crop(north.america, extent(x.ag))
-  }
   
+  ## Crop background to distribution
+  north.america <- st_crop(north.america, extent(x.ag))
+  dist.crop <- dist.map
   ## Canada focus flag
   if(canada.focus==T){
     can.ex <- c(-127.2429, 101.3304, 43.9173, 64.1641)
     x.ag <- crop(x.ag, extent(can.ex))
-    north.america <- st_crop(north.america, extent(x.ag))
+    north.america <- st_crop(north.america, extent(can.ex))
+    dist.crop <- st_crop(dist.map, extent(can.ex))
   }
   
   ## Convert to df
-  x.pts <- rasterToPoints(x.ag) #to points
+  x.pts <- cbind(xyFromCell(x.ag, 1:ncell(x.ag)), values(x.ag)) #to points
   x.df <- data.frame(x.pts)
   colnames(x.df) <- c("long", "lat", "winter")
   
   ## handing break for the visuals
-  break.string <- seq(floor(min(x.df$winter)), ceiling(max(x.df$winter)), by = .5)
-  
+  break.string <- seq(floor(min(x.df$winter, na.rm=T)),
+                      ceiling(max(x.df$winter, na.rm=T)),
+                      by = 30)
+
   g.win <- ggplot() +
     ##Contouring
     geom_contour_fill(data = x.df,
                       aes(x= long, y = lat, z = winter),
                       breaks = break.string,
-                      na.fill = -9999,
-                      guide = "colorstrip")+
+                      na.fill = -9999)+
     #handling the NA 
     stat_subset(data = x.df, 
-                aes(x= long, y = lat, subset = winter == -9999),
+                aes(x= long, y = lat, subset = is.na(winter)),
                 geom = "raster",
                 fill = "#ffffff")+
     
@@ -85,6 +85,11 @@ masterPlotter2 <- function(x, c.string, res.agg = 20, dist.map = NULL,
             aes(group = "Name_1"),
             color="grey20",
             fill=NA)+
+  
+    geom_sf(data = dist.crop,
+            aes(group = "SP_ID"),
+            colour = "dodgerblue4",
+            fill = NA)   +
     
     #Lables
     geom_text_contour(data = x.df, 
@@ -99,17 +104,6 @@ masterPlotter2 <- function(x, c.string, res.agg = 20, dist.map = NULL,
           legend.text=element_text(size=7),
           legend.title=element_text(size=9),
           axis.title = element_blank())
-  
-  ##Distribution map flag
-  if(!is.null(dist.map)){
-    dist.crop <- st_crop(dist.map, x.ag)
-    
-    g.win <- g.win +
-      geom_sf(data = dist.crop,
-              aes(group = "SP_ID"),
-              colour = "black",
-              fill = NA) 
-  }
   
   ## Save Flag  
   if(!is.null(save.name)){
@@ -137,7 +131,8 @@ pairedPlotting2 <- function(x, parent.data = plotStk,
                             canada.focus = F, dist.map = mylu.dist,
                             c.string, 
                             legend.key = "Fill this in",
-                            save.name = NULL, device.out = NULL){
+                            save.name = NULL, device.out = NULL,
+                            ...){
   ## Subset out the paired layers
   target.data <- parent.data[[grep(pattern = x, 
                                    names(parent.data))]]
@@ -148,17 +143,15 @@ pairedPlotting2 <- function(x, parent.data = plotStk,
   }
   else{
     x.ag <- target.data}
-  ## Crop and mask to distribution
-  if(!is.null(dist.map)){
-    x.ag <- mask(crop(x.ag, dist.map), dist.map)
-    north.america <- st_crop(north.america, extent(x.ag))
-  }
-  
+  ## Crop background to distribution
+  north.america <- st_crop(north.america, extent(x.ag))
+  dist.crop <- dist.map
   ## Canada focus flag
   if(canada.focus==T){
     can.ex <- c(-127.2429, 101.3304, 43.9173, 64.1641)
     x.ag <- crop(x.ag, extent(can.ex))
-    north.america <- st_crop(north.america, extent(x.ag))
+    north.america <- st_crop(north.america, extent(can.ex))
+    dist.crop <- st_crop(dist.map, extent(can.ex))
   }
   
   ## Convert to df
@@ -180,8 +173,7 @@ pairedPlotting2 <- function(x, parent.data = plotStk,
       geom_contour_fill(data = x.df,
                         aes(x= long, y = lat, z = Value),
                         breaks = break.string,
-                        na.fill = -9999,
-                        guide = "colorstrip")+
+                        na.fill = -9999)+
       #handling the NA 
       stat_subset(data = x.df, 
                   aes(x= long, y = lat, subset = Value == -9999),
@@ -199,7 +191,10 @@ pairedPlotting2 <- function(x, parent.data = plotStk,
               aes(group = "Name_1"),
               color="grey20",
               fill=NA)+
-      
+      geom_sf(data = dist.crop,
+              aes(group = "SP_ID"),
+              colour = "dodgerblue4",
+              fill = NA)   +
       #Lables
       geom_text_contour(data = x.df, 
                         aes(x= long, y = lat, z = Value),
@@ -215,18 +210,6 @@ pairedPlotting2 <- function(x, parent.data = plotStk,
             axis.title = element_blank())+
       facet_wrap( .~ Status,
                   ncol = 1))
-  
-  ##Distribution map flag
-  if(!is.null(dist.map)){
-    dist.crop <- st_crop(dist.map, x.ag)
-    
-    g.win <- g.win +
-      geom_sf(data = dist.crop,
-              aes(group = "SP_ID"),
-              colour = "black",
-              fill = NA) 
-  }
-  
   
   ## Save Flag  
   if(!is.null(save.name)){
@@ -258,7 +241,8 @@ quadPlot2 <- function(x,
                      c.string,
                      legend.key = "Fill this in",
                      save.name = NULL,
-                     device.out = NULL){
+                     device.out = NULL,
+                     ...){
   
   ## Subset out the paired layers
   target.data <- parent.data[[grep(pattern = x, 
@@ -270,18 +254,17 @@ quadPlot2 <- function(x,
   }
   else{
     x.ag <- target.data}
-  ## Crop and mask to distribution
-  if(!is.null(dist.map)){
-    x.ag <- mask(crop(x.ag, dist.map), dist.map)
-    north.america <- st_crop(north.america, extent(x.ag))
-  }
-  
+  ### Crop background to distribution
+  north.america <- st_crop(north.america, extent(x.ag))
+  dist.crop <- dist.map
   ## Canada focus flag
   if(canada.focus==T){
     can.ex <- c(-127.2429, 101.3304, 43.9173, 64.1641)
     x.ag <- crop(x.ag, extent(can.ex))
-    north.america <- st_crop(north.america, extent(x.ag))
+    north.america <- st_crop(north.america, extent(can.ex))
+    dist.crop <- st_crop(dist.map, extent(can.ex))
   }
+  
   
   ## Convert to df
   x.pts <- rasterToPoints(x.ag) #to points
@@ -311,8 +294,7 @@ quadPlot2 <- function(x,
       geom_contour_fill(data = x.df,
                         aes(x= long, y = lat, z = Value),
                         breaks = break.string,
-                        na.fill = -9999,
-                        guide = "colorstrip")+
+                        na.fill = -9999)+
       #handling the NA 
       stat_subset(data = x.df, 
                   aes(x= long, y = lat, subset = Value == -9999),
@@ -330,6 +312,10 @@ quadPlot2 <- function(x,
               aes(group = "Name_1"),
               color="grey20",
               fill=NA)+
+      geom_sf(data = dist.crop,
+              aes(group = "SP_ID"),
+              colour = "dodgerblue4",
+              fill = NA)   +
       
       #Lables
       geom_text_contour(data = x.df, 
@@ -347,17 +333,6 @@ quadPlot2 <- function(x,
       facet_grid( rows = vars(Hibernation_Condition),
                   cols = vars(Infection_status))
   )
-  
-  ##Distribution map flag
-  if(!is.null(dist.map)){
-    dist.crop <- st_crop(dist.map, x.ag)
-    
-    g.win <- g.win +
-      geom_sf(data = dist.crop,
-              aes(group = "SP_ID"),
-              colour = "black",
-              fill = NA) 
-  }
   
   ## Save Flag  
   if(!is.null(save.name)){
@@ -388,7 +363,8 @@ increasedExpendaturePlot2 <- function(x,
                                       text.min = 35,
                                       legend.key = "Fill this in",
                                       save.name = NULL,
-                                      device.out = NULL){
+                                      device.out = NULL,
+                                      ...){
   
   ## Subset out the paired layers
   target.data <- parent.data[[grep(pattern = x, 
@@ -400,17 +376,15 @@ increasedExpendaturePlot2 <- function(x,
   }
   else{
     x.ag <- target.data}
-  ## Crop and mask to distribution
-  if(!is.null(dist.map)){
-    x.ag <- mask(crop(x.ag, dist.map), dist.map)
-    north.america <- st_crop(north.america, extent(x.ag))
-  }
-  
+  ## Crop background to distribution
+  north.america <- st_crop(north.america, extent(x.ag))
+  dist.crop <- dist.map
   ## Canada focus flag
   if(canada.focus==T){
     can.ex <- c(-127.2429, 101.3304, 43.9173, 64.1641)
     x.ag <- crop(x.ag, extent(can.ex))
-    north.america <- st_crop(north.america, extent(x.ag))
+    north.america <- st_crop(north.america, extent(can.ex))
+    dist.crop <- st_crop(dist.map, extent(can.ex))
   }
   
   
@@ -452,6 +426,10 @@ increasedExpendaturePlot2 <- function(x,
             aes(group = "Name_1"),
             color="grey20",
             fill=NA)+
+    geom_sf(data = dist.crop,
+            aes(group = "SP_ID"),
+            colour = "dodgerblue4",
+            fill = NA)   +
     
     #Lables
     geom_text_contour(data = x.df, 
@@ -466,20 +444,7 @@ increasedExpendaturePlot2 <- function(x,
           legend.text=element_text(size=7),
           legend.title=element_text(size=9),
           axis.title = element_blank())
-  
-  
-  
-  ##Distribution map flag
-  if(!is.null(dist.map)){
-    dist.crop <- st_crop(dist.map, x.ag)
-    
-    g.win <- g.win +
-      geom_sf(data = dist.crop,
-              aes(group = "SP_ID"),
-              colour = "black",
-              fill = NA) 
-  }
-  
+
   ## Save Flag  
   if(!is.null(save.name)){
     if(device.out == "pdf"){
@@ -609,7 +574,7 @@ mass.full <- masterPlotter2(x = plotStk$mass,
 mass.can <- masterPlotter2(x = plotStk$mass,
                            c.string = massColors(5),
                            text.min = 25,
-                           canada.focus = F,
+                           canada.focus = T,
                            dist.map = mylu.dist,
                            legend.key = "Predicted\nBody\nMass (g)",
                            save.name = "massMean_MYLU_Canada",
@@ -633,7 +598,7 @@ fat.full <- masterPlotter2(x = plotStk$fat,
 fat.can <- masterPlotter2(x = plotStk$fat,
                           c.string = fatColors(5),
                           text.min = 25,
-                          canada.focus = F,
+                          canada.focus =T,
                           legend.key = "Predicted\nBody\nFat (g)",
                           dist.map = mylu.dist,
                           save.name = "fatMean_MYLU_Canada",
@@ -751,8 +716,7 @@ a <- pairedPlotting2(x = "surv_4_98",
                      unit = "in")
 
 
-survColors_4x98.can <- colorRampPalette(c("#fdb863",
-                                          "#E8E3F0", "#A38FC4", "#5E3C99"))
+survColors_4x98.can <- colorRampPalette(c("#E8E3F0", "#A38FC4", "#5E3C99"))
 q <- pairedPlotting2(x = "surv_4_98",
                      parent.data = plotStk,
                      c.string = survColors_4x98.can(4),
@@ -792,7 +756,6 @@ b <- increasedExpendaturePlot2(x <- "fatReq_2_100",
                               north.america = North.America,
                               canada.focus = F,
                               dist.map = mylu.dist,
-                              legend.limits = c(150,750),
                               legend.key = "Precent\nIncreased\nFat\nRequired",
                               save.name = "precIncrease_2x100",
                               device.out = "pdf")
@@ -863,6 +826,40 @@ fatSurvivalHistograms <- function(survNULL, survINF, dist.map, c.string,
                                      save.name = "fatSurvivalHist_2_100",
                                      device.out = "pdf"))
 
+
+#### location x Data type ####
+library(tidyverse);library(data.table)
+dur.raw <- fread("data/durationDataReferenced.csv")
+mass.raw <- fread("data/massDataReferenced.csv")
+
+dur.raw$type <- "Duration"
+mass.raw$type <- "Mass"
+
+full.dat <- full_join(dur.raw, mass.raw) %>%
+  dplyr::select(Lat, Long, type)
+
+nAmerica.crop <- st_crop(North.America, mylu.dist)
+
+(dat.map <- ggplot() +
+    ##North American political boundries
+    geom_sf(data = nAmerica.crop,
+            aes(group = "Name_1"),
+            color="grey20",
+            fill="grey90")+
+    geom_sf(data = mylu.dist,
+            aes(group = "SP_ID"),
+            color="dodgerblue4",
+            fill=NA)+
+    geom_jitter(data = full.dat,
+                aes(x= Long, y = Lat, shape = type),
+                alpha = .5,
+                size = 2)+
+    scale_color_manual(values=c("#E69F00","#56B4E9")) +
+    scale_x_continuous(expand = c(0,0)) +
+    scale_y_continuous(expand = c(0,0)) +
+    theme_bw()+
+    guides(title="Data Type")
+)
 
 
 
