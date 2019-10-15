@@ -560,3 +560,14 @@ twak <- increasedExpendaturePlot2(x = "fatReq_4_98",
                                   canada.focus = F,
                                   dist.map = mylu.dist,
                                   legend.key = "Precent\nIncreased\nFat\nRequired")
+
+
+st_transform(extent(c(-127.2429, 101.3304, 43.9173, 64.1641)), 29.55)
+
+
+
+ggplot()+
+  geom_sf(data = mylu.utm,
+          aes(group = "SP_ID"),
+          color="grey20",
+          fill=NA)
