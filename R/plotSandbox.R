@@ -152,55 +152,69 @@ masterPlotter2 <- function(x, break.size, c.string, res.agg = 20,
 quack <- masterPlotter2(x = plotStk$win,
                         break.size = 30,
                         c.string = winterColors(5),
-                        # canada.focus = can.utm,
+                        canada.focus = can.utm,
                         legend.key = "Predicted\nDuration\nWnter\n(Days)",
-                        text.min = 40)
+                        text.min = 25)
+## Passes all tests for from home machine
 
 
 #### Pair ####
+above0 <- colorRampPalette(c("#E8E3F0", "#5E3C99"))
+
+survColors_2x100 <- colorRampPalette(c("#fdb863",## The one below 0
+                                       above0(5)))
 x = "surv_2_100"
+res.agg = 20
+break.size = .5
 parent.data = plotStk
-c.string = survColors_2x100(4)
+canada.focus = NULL
+north.america = NA.utm
+dist.map = mylu.utm
+c.string = survColors_2x100(6)
 text.min <- 25
 legend.key = "Predicted\nBody Fat\nRequired (g)"
 
 
-pairedPlotting2 <- function(x, parent.data = plotStk, 
-                           res.agg = 20,
-                           text.min = 25,
-                           north.america = North.America,
-                           canada.focus = F, dist.map = mylu.dist,
-                           c.string, 
-                           legend.key = "Fill this in",
-                           save.name = NULL, device.out = NULL){
+pairedPlotting2 <- function(x,
+                            parent.data = plotStk,
+                            break.size,
+                            res.agg = 20,
+                            text.min = 25,
+                            north.america = NA.utm,
+                            canada.focus = NULL,
+                            dist.map = mylu.utm,
+                            c.string, 
+                            legend.key = "Fill this in",
+                            save.name = NULL, device.out = NULL,
+                            ...){
   ## Subset out the paired layers
   target.data <- parent.data[[grep(pattern = x, 
                                    names(parent.data))]]
   
-    ## Create DataFrame (aggragation is mainly for the dev period)
+  ## Create DataFrame (aggragation is mainly for the dev period)
   if(!is.null(res.agg)){ #aggratetion bits
     x.ag <- raster::aggregate(target.data, res.agg)
   }
   else{
     x.ag <- target.data}
-  ## Crop and mask to distribution
-  if(!is.null(dist.map)){
-    x.ag <- mask(crop(x.ag, dist.map), dist.map)
-    north.america <- st_crop(north.america, extent(x.ag))
-  }
-  
+  ## Crop background to distribution
   ## Canada focus flag
-  if(canada.focus==T){
-    can.ex <- c(-127.2429, 101.3304, 43.9173, 64.1641)
-    x.ag <- crop(x.ag, extent(can.ex))
+  if(!is.null(canada.focus)){
+    x.ag <- crop(x.ag, extent(canada.focus))
+    north.america <- st_crop(north.america, extent(canada.focus))
+    dist.crop <- st_crop(dist.map, extent(canada.focus))
+  }
+  else{
+    ## Crop background to distribution
     north.america <- st_crop(north.america, extent(x.ag))
+    dist.crop <- dist.map
   }
   
   ## Convert to df
-  x.pts <- rasterToPoints(x.ag) #to points
+  x.pts <- cbind(xyFromCell(x.ag, 1:ncell(x.ag)), values(x.ag)) #to points
   x.df <- data.frame(x.pts)
   #Note infected and null are generally in that order 
-  colnames(x.df) <- c("long", "lat", "Infected", "Uninfected")
+  colnames(x.df) <- c("Easting", "Northing", "Infected", "Uninfected")
   
   x.df <- x.df %>%
     gather(key = "Status", 
@@ -209,16 +223,18 @@ pairedPlotting2 <- function(x, parent.data = plotStk,
   ##reorder factor levels
   x.df$Status <- factor(x.df$Status, levels = c("Uninfected", "Infected"))
   ##break points for the legend
-  break.string <- seq(floor(min(x.df$Value)), ceiling(max(x.df$Value)), by = .5)
+  break.string <- seq(floor(min(x.df$Value, na.rm = T)),
+                      ceiling(max(x.df$Value, na.rm = T)),
+                      by = break.size)
   
-  (g.win <- ggplot()+
+  g.win <- ggplot()+
       geom_contour_fill(data = x.df,
-                        aes(x= long, y = lat, z = Value),
+                        aes(x= Easting, y = Northing, z = Value),
                         breaks = break.string,
                         na.fill = -9999)+
       #handling the NA 
       stat_subset(data = x.df, 
-                  aes(x= long, y = lat, subset = Value == -9999),
+                  aes(x= Easting, y = Northing, subset = is.na(Value)),
                   geom = "raster",
                   fill = "#ffffff")+
       
@@ -233,34 +249,25 @@ pairedPlotting2 <- function(x, parent.data = plotStk,
               aes(group = "Name_1"),
               color="grey20",
               fill=NA)+
-      
+      geom_sf(data = dist.crop,
+              aes(group = "SP_ID"),
+              colour = "dodgerblue4",
+              fill = NA)   +
       #Lables
       geom_text_contour(data = x.df, 
-                        aes(x= long, y = lat, z = Value),
+                        aes(x= Easting, y = Northing, z = Value),
                         stroke = 0.2, min.size = text.min,
                         rotate = F, check_overlap = T)+
-      
       theme_bw()+
       scale_x_continuous(expand = c(0,0))+
       scale_y_continuous(expand = c(0,0))+
       theme(legend.position = "bottom",
             legend.text=element_text(size=7),
             legend.title=element_text(size=9),
-            axis.title = element_blank())+
-    facet_wrap( .~ Status,
-                ncol = 1))
-  
-  ##Distribution map flag
-  if(!is.null(dist.map)){
-    dist.crop <- st_crop(dist.map, x.ag)
-    
-    g.win <- g.win +
-      geom_sf(data = dist.crop,
-              aes(group = "SP_ID"),
-              colour = "black",
-              fill = NA) 
-  }
-  
+            axis.title = element_blank(),
+            plot.margin=grid::unit(c(0,0,0,0), "mm"))+
+      facet_wrap( .~ Status,
+                  ncol = 1)
   
   ## Save Flag  
   if(!is.null(save.name)){
@@ -280,10 +287,10 @@ pairedPlotting2 <- function(x, parent.data = plotStk,
   
   return(g.win)
 }
-
 wack <- pairedPlotting2(x = "surv_2_100",
+                        break.size = .5,
                         parent.data = plotStk,
-                        c.string = survColors_2x100(4),
+                        c.string = survColors_2x100(6),
                         text.min = 25,
                         legend.key = "Predicted\nBody Fat\nRequired (g)")
 

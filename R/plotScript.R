@@ -124,7 +124,6 @@ rm(North.America, mylu.dist,can.ll, num.cols, can.sf)
 #             bylayer = T,
 #             suffix = "names",
 #             overwrite=T)
-
 #### Load data ####
 library(raster);library(tidyverse); library(metR)
 plotStk <- stack(list.files(win.res, pattern = "myluCroppedUTM_*", full.names = T))
@@ -248,11 +247,13 @@ masterPlotter2 <- function(x, break.size, c.string, res.agg = 20,
   
   return(g.win)
 }
+
 pairedPlotting2 <- function(x, parent.data = plotStk, 
                             res.agg = 20,
                             text.min = 25,
-                            north.america = North.America,
-                            canada.focus = F, dist.map = mylu.dist,
+                            north.america = mylu.utm,
+                            canada.focus = NULL,
+                            dist.map = mylu.utm,
                             c.string, 
                             legend.key = "Fill this in",
                             save.name = NULL, device.out = NULL,
