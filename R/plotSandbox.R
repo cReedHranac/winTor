@@ -22,28 +22,33 @@ library(raster);library(rgdal);library(metR)
 
 ## Tesing variables
 x <- plotStk$mass
+break.size = .5
+text.min=25
 massColors <- colorRampPalette(c("#f7fcb9", "#31a354"))
 c.string <- massColors(5)
 res.agg = 20
-north.america = North.America
-canada.focus = T
-dist.map = mylu.dist
-
+north.america = NA.utm
+canada.focus = NULL
+dist.map = mylu.utm
 legend.key = "Fill this in"
 
 
-masterPlotter2 <- function(x, c.string, break.string, res.agg = 20, dist.map = NULL,
-                           north.america = North.America, canada.focus = F,
+canada.focus = can.utm
+
+masterPlotter2 <- function(x, break.size, c.string, res.agg = 20,
+                           dist.map = mylu.utm,
+                           north.america = NA.utm,
+                           canada.focus = NULL,
                            legend.key, text.min =25,
                            save.name = NULL,  device.out = NULL,  ...){
   ##Function for plotting all  wintor spatial figures   
   # x <- item plotting, 
   # c.string <- for colors
-  # breaks.by <- for handling the number of breaks to appear in the data
+  # break.by <- for handling the number of break to appear in the data
   # res.agg <- unit of aggragation (generally for the dev period with large maps)
   # dist.map <- species distribution map of you want it to be included in the plotting
   # north.america <- geo-political boundries to plot on top of
-  # canada.focus <- Logical of wheather or not to focus on Western Canada
+  # canada.focus <- something you can get an extent from to crop from
   # legend.key <- string to place on the legend
   # text.min <- minimum size for text appearance
   # save.name <- string for saving the figures
@@ -56,44 +61,48 @@ masterPlotter2 <- function(x, c.string, break.string, res.agg = 20, dist.map = N
   }
   else{
     x.ag <- x}
-  ## Crop and mask to distribution
-  if(!is.null(dist.map)){
-    x.ag <- mask(crop(x.ag, dist.map), dist.map)
-    north.america <- st_crop(north.america, extent(x.ag))
-  }
   
   ## Canada focus flag
-  if(canada.focus==T){
-    can.ex <- c(-127.2429, 101.3304, 43.9173, 64.1641)
-    x.ag <- crop(x.ag, extent(can.ex))
+  if(!is.null(canada.focus)){
+    x.ag <- crop(x.ag, extent(canada.focus))
+    north.america <- st_crop(north.america, extent(canada.focus))
+    dist.crop <- st_crop(dist.map, extent(canada.focus))
+  }
+  else{
+    ## Crop background to distribution
     north.america <- st_crop(north.america, extent(x.ag))
+    dist.crop <- dist.map
   }
   
-  ## Convert to df
-  x.pts <- rasterToPoints(x.ag) #to points
-  x.df <- data.frame(x.pts)
-  colnames(x.df) <- c("long", "lat", "winter")
   
-  ## handing breaks for the visuals
-  breaks <- break.string
+  
+  ## Convert to df
+  x.pts <- cbind(xyFromCell(x.ag, 1:ncell(x.ag)), values(x.ag)) #to points
+  x.df <- data.frame(x.pts)
+  colnames(x.df) <- c("Easting", "Northing", "winter")
+  
+  ## handing break for the visuals
+  break.string <- seq(floor(min(x.df$winter, na.rm=T)),
+                      ceiling(max(x.df$winter, na.rm=T)),
+                      by = break.size)
   
   g.win <- ggplot() +
     ##Contouring
     geom_contour_fill(data = x.df,
-                      aes(x= long, y = lat, z = winter),
-                      breaks = breaks,
+                      aes(x= Easting, y = Northing, z = winter),
+                      breaks = break.string,
                       na.fill = -9999)+
     #handling the NA 
     stat_subset(data = x.df, 
-                aes(x= long, y = lat, subset = winter == -9999),
+                aes(x= Easting, y = Northing, subset = is.na(winter)),
                 geom = "raster",
-                fill = "#ffffff")+
+                fill = "#ffffff") +
     
     #oooohhhhh pretty colors
     scale_fill_gradientn(legend.key,
                          colors = c.string,
-                         limits=  c(floor(minValue(x.ag)),
-                                    ceiling(maxValue(x.ag)))) +
+                         limits=  c(min(break.string),
+                                    max(break.string))) +
     
     ##North American political boundries
     geom_sf(data = north.america,
@@ -101,9 +110,14 @@ masterPlotter2 <- function(x, c.string, break.string, res.agg = 20, dist.map = N
             color="grey20",
             fill=NA)+
     
+    geom_sf(data = dist.crop,
+            aes(group = "SP_ID"),
+            colour = "dodgerblue4",
+            fill = NA)   +
+    
     #Lables
     geom_text_contour(data = x.df, 
-                      aes(x= long, y = lat, z = winter),
+                      aes(x= Easting, y = Northing, z = winter),
                       stroke = 0.2, min.size = text.min,
                       rotate = F, check_overlap = T)+
     
@@ -113,18 +127,8 @@ masterPlotter2 <- function(x, c.string, break.string, res.agg = 20, dist.map = N
     theme(legend.position = "bottom",
           legend.text=element_text(size=7),
           legend.title=element_text(size=9),
-          axis.title = element_blank())
-  
-  ##Distribution map flag
-  if(!is.null(dist.map)){
-    dist.crop <- st_crop(dist.map, x.ag)
-    
-    g.win <- g.win +
-      geom_sf(data = dist.crop,
-              aes(group = "SP_ID"),
-              colour = "black",
-              fill = NA) 
-  }
+          axis.title = element_blank(),
+          plot.margin=grid::unit(c(0,0,0,0), "mm"))
   
   ## Save Flag  
   if(!is.null(save.name)){
@@ -145,14 +149,12 @@ masterPlotter2 <- function(x, c.string, break.string, res.agg = 20, dist.map = N
   return(g.win)
 }
 
-
 quack <- masterPlotter2(x = plotStk$win,
-                          c.string = winterColors(5),
-                          break.string = seq(0,360, by= 30),
-                        dist.map = mylu.dist,
-                          canada.focus = F,
-                          legend.key = "Predicted\nDuration\nWnter\n(Days)",
-                          text.min = 40)
+                        break.size = 30,
+                        c.string = winterColors(5),
+                        # canada.focus = can.utm,
+                        legend.key = "Predicted\nDuration\nWnter\n(Days)",
+                        text.min = 40)
 
 
 #### Pair ####
@@ -567,7 +569,8 @@ st_transform(extent(c(-127.2429, 101.3304, 43.9173, 64.1641)), 29.55)
 
 
 ggplot()+
-  geom_sf(data = mylu.utm,
+  geom_sf(data = North.America,
           aes(group = "SP_ID"),
           color="grey20",
-          fill=NA)
+          fill=NA) + 
+  geom_sf(data = can.sf)

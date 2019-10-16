@@ -40,20 +40,44 @@ mylu.dist <- st_read("D:/Dropbox/batwintor_aux/paramFiles/ShapeFiles",
 st_crs(mylu.dist) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
 mylu.utm <- st_transform(mylu.dist, 2955)
 
-##create canadian polygon
-can.df <- data.frame(
+# ##create canadian polygon
+# can.df <- data.frame(
+#   rbind(
+#     c("NW",  "9V", 586518, 7077103),
+#     c("NE", "13W", 645544, 7118728),
+#     c("SW", "11T", 680262, 4865141),
+#     c("SE", "14T", 314095, 497555)),
+#   stringsAsFactors = F
+# )
+# colnames(can.df) <- c("Corner", "Zone", "Northing", "Easting")
+# ## make xy numeric
+# num.cols <- c("Northing", "Easting")
+# can.df[num.cols] <- sapply(can.df[num.cols], as.numeric)
+# can.df["Zone"] <- as.character(can.df["Zone"])
+# test <- st_as_sf(can.df,
+#                    coords = c("Easting", "Northing", "Zone"),
+#                    epsg = 2955)
+
+
+##Try the same thing with lat long
+can.ll <- data.frame(
   rbind(
-    c("NW",  "9V", 586518, 7077103),
-    c("NE", "13W", 645544, 7118728),
-    c("SW", "11T", 680262, 4865141),
-    c("SE", "14T", 314095, 497555))
+    c("NW", 63.8106, -127.2429),
+    c("NE", 64.1641, -102.0060),
+    c("SW", 43.9173 , -114.7548),
+    c("SE", 44.2975 , -101.3304)),
+  stringsAsFactors = F
 )
-colnames(can.df) <- c("Corner", "z", "y", "x")
-test <- st_as_sf(can.df,
-                 coords = c("x", "y", "z"),
-                 crs = 2955)
+colnames(can.ll) <- c("Corner", "Lat", "Long")
+## make xy numeric
+num.cols <- c("Lat", "Long")
+can.ll[num.cols] <- sapply(can.ll[num.cols], as.numeric)
+can.sf <- st_as_sf(can.ll,
+                 coords = c("Long","Lat"))
+st_crs(can.sf) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+can.utm <- st_transform(can.sf, 2955)
 ##remove old objects
-rm(North.America, mylu.dist)
+rm(North.America, mylu.dist,can.ll, num.cols, can.sf)
 #### Create cropped estimates for mapping ####
 # raw.layers <- stack(list.files(win.res, pattern = "_p", full.names = T))
 # ## Create the fat layer
@@ -111,8 +135,10 @@ names(plotStk) <- sub(".*?__", "", names(plotStk))
 #           file = file.path(win.res, "quickSummary.csv"),
 #           row.names = F)
 #### Functions ####
-masterPlotter2 <- function(x, c.string, res.agg = 20, dist.map = mylu.dist,
-                           north.america = North.America, canada.focus = F,
+masterPlotter2 <- function(x, break.size, c.string, res.agg = 20,
+                           dist.map = mylu.utm,
+                           north.america = NA.utm,
+                           canada.focus = NULL,
                            legend.key, text.min =25,
                            save.name = NULL,  device.out = NULL,  ...){
   ##Function for plotting all  wintor spatial figures   
@@ -122,7 +148,7 @@ masterPlotter2 <- function(x, c.string, res.agg = 20, dist.map = mylu.dist,
   # res.agg <- unit of aggragation (generally for the dev period with large maps)
   # dist.map <- species distribution map of you want it to be included in the plotting
   # north.america <- geo-political boundries to plot on top of
-  # canada.focus <- Logical of wheather or not to focus on Western Canada
+  # canada.focus <- something you can get an extent from to crop from
   # legend.key <- string to place on the legend
   # text.min <- minimum size for text appearance
   # save.name <- string for saving the figures
@@ -136,38 +162,41 @@ masterPlotter2 <- function(x, c.string, res.agg = 20, dist.map = mylu.dist,
   else{
     x.ag <- x}
   
-  ## Crop background to distribution
-  north.america <- st_crop(north.america, extent(x.ag))
-  dist.crop <- dist.map
   ## Canada focus flag
-  if(canada.focus==T){
-    can.ex <- c(-127.2429, 101.3304, 43.9173, 64.1641)
-    x.ag <- crop(x.ag, extent(can.ex))
-    north.america <- st_crop(north.america, extent(can.ex))
-    dist.crop <- st_crop(dist.map, extent(can.ex))
+  if(!is.null(canada.focus)){
+    x.ag <- crop(x.ag, extent(canada.focus))
+    north.america <- st_crop(north.america, extent(canada.focus))
+    dist.crop <- st_crop(dist.map, extent(canada.focus))
   }
+  else{
+    ## Crop background to distribution
+    north.america <- st_crop(north.america, extent(x.ag))
+    dist.crop <- dist.map
+  }
+  
+  
   
   ## Convert to df
   x.pts <- cbind(xyFromCell(x.ag, 1:ncell(x.ag)), values(x.ag)) #to points
   x.df <- data.frame(x.pts)
-  colnames(x.df) <- c("long", "lat", "winter")
+  colnames(x.df) <- c("Easting", "Northing", "winter")
   
   ## handing break for the visuals
   break.string <- seq(floor(min(x.df$winter, na.rm=T)),
                       ceiling(max(x.df$winter, na.rm=T)),
-                      by = 30)
+                      by = break.size)
   
   g.win <- ggplot() +
     ##Contouring
     geom_contour_fill(data = x.df,
-                      aes(x= long, y = lat, z = winter),
+                      aes(x= Easting, y = Northing, z = winter),
                       breaks = break.string,
                       na.fill = -9999)+
     #handling the NA 
     stat_subset(data = x.df, 
-                aes(x= long, y = lat, subset = is.na(winter)),
+                aes(x= Easting, y = Northing, subset = is.na(winter)),
                 geom = "raster",
-                fill = "#ffffff")+
+                fill = "#ffffff") +
     
     #oooohhhhh pretty colors
     scale_fill_gradientn(legend.key,
@@ -184,12 +213,11 @@ masterPlotter2 <- function(x, c.string, res.agg = 20, dist.map = mylu.dist,
     geom_sf(data = dist.crop,
             aes(group = "SP_ID"),
             colour = "dodgerblue4",
-            fill = NA,
-            stoke = .1)   +
+            fill = NA)   +
     
     #Lables
     geom_text_contour(data = x.df, 
-                      aes(x= long, y = lat, z = winter),
+                      aes(x= Easting, y = Northing, z = winter),
                       stroke = 0.2, min.size = text.min,
                       rotate = F, check_overlap = T)+
     
@@ -199,7 +227,8 @@ masterPlotter2 <- function(x, c.string, res.agg = 20, dist.map = mylu.dist,
     theme(legend.position = "bottom",
           legend.text=element_text(size=7),
           legend.title=element_text(size=9),
-          axis.title = element_blank())
+          axis.title = element_blank(),
+          plot.margin=grid::unit(c(0,0,0,0), "mm"))
   
   ## Save Flag  
   if(!is.null(save.name)){
@@ -219,7 +248,6 @@ masterPlotter2 <- function(x, c.string, res.agg = 20, dist.map = mylu.dist,
   
   return(g.win)
 }
-
 pairedPlotting2 <- function(x, parent.data = plotStk, 
                             res.agg = 20,
                             text.min = 25,
