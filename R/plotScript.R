@@ -117,7 +117,6 @@ rm(North.America, mylu.dist,can.ll, num.cols, can.sf)
 # names(plotStk) <- sub(".*?__", "", names(plotStk))
 
 ## create new pre-processed UTM items for plotting purposes 
-<<<<<<< HEAD
 # plotUTM <- projectRaster(plotStk, crs = CRS("+init=epsg:2955"))
 # writeRaster(plotUTM,
 #             file.path(win.res, "myluCroppedUTM_.tif"),
@@ -129,20 +128,6 @@ rm(North.America, mylu.dist,can.ll, num.cols, can.sf)
 library(raster);library(tidyverse); library(metR)
 plotStk <- stack(list.files(win.res, pattern = "myluCroppedUTM_*", full.names = T))
 names(plotStk) <- sub(".*?__", "", names(plotStk))
-=======
-plotUTM <- projectRaster(plotStk, crs = CRS("+init=epsg:2955"))
-writeRaster(plotUTM,
-            file.path(win.res, "myluCroppedUTM_.tif"),
-            format = "GTiff",
-            bylayer = T,
-            suffix = "names",
-            overwrite=T)
-plotStk <- stack(list.files(win.res, pattern = "myluCroppedUTM_*", full.names = T))
-names(plotStk) <- sub(".*?__", "", names(plotStk))
-#### Load data ####
- library(raster);library(tidyverse); library(metR)
->>>>>>> master
-
 # quick <- tidy(cellStats(plotStk, summary))
 # write.csv(x = quick,
 #           file = file.path(win.res, "quickSummary.csv"),
