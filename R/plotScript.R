@@ -933,30 +933,46 @@ mass.raw$type <- "Mass"
 
 full.dat <- full_join(dur.raw, mass.raw) %>%
   dplyr::select(Lat, Long, type)
+colnames(full.dat)[[3]] <- "Data Type"
 
-nAmerica.crop <- st_crop(North.America, mylu.dist)
+full.sf <- st_as_sf(full.dat,
+                   coords = c("Long","Lat"))
+st_crs(full.sf) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+full.utm <- st_transform(full.sf, 2955)
+
+NA.mylu <- st_crop(NA.utm, mylu.utm)
+
+
 
 (dat.map <- ggplot() +
     ##North American political boundries
-    geom_sf(data = nAmerica.crop,
+    geom_sf(data = NA.mylu,
             aes(group = "Name_1"),
             color="grey20",
             fill="grey90")+
-    geom_sf(data = mylu.dist,
+    geom_sf(data = mylu.utm,
             aes(group = "SP_ID"),
             color="dodgerblue4",
-            fill=NA)+
-    geom_jitter(data = full.dat,
-                aes(x= Long, y = Lat, shape = type),
-                alpha = .5,
-                size = 2)+
+            fill=NA, 
+            size = .7)+
+    geom_sf(data = full.utm,
+            aes(shape = `Data Type`, color = `Data Type`),
+            alpha = .6, position = "dodge",
+            size = 2,
+            show.legend = "point")+
+    scale_x_continuous(expand = c(0,0))+
+    scale_y_continuous(expand = c(0,0))+
     scale_color_manual(values=c("#E69F00","#56B4E9")) +
-    scale_x_continuous(expand = c(0,0)) +
-    scale_y_continuous(expand = c(0,0)) +
-    theme_bw()+
-    guides(title="Data Type")
-)
+    theme_bw()
+    )
 
+
+ggsave(filename = file.path(win.res, "fig", "dataLocations.pdf"),
+       dat.map, device = "pdf",
+       height = 4.875,
+       width = 7.85,
+       units = "in",
+       dpi = 400)
 
 
 ######### Sand Box ##########
