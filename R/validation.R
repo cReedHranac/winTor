@@ -50,7 +50,17 @@ mylu.sub <- mylu.mod %>%
          Temp = as.factor(Ta),
          RH = as.factor(pct.rh))
 
+## Model reuslts with flight this time
+mylu.fly <- fread(file.path(win.dat, "myluDynamicModel_fly.csv"))
 
+mylu.Fsub <- mylu.fly %>%
+  filter(Ta %in% c(2, 4, 6, 8),
+         pct.rh %in% seq(90, 100, by =2), 
+         time %in% day.to.hour(unique(all.sub$DiffDate))) %>%
+  mutate(DiffDate = hour.to.day(time),
+         DiffMass = n.g.fat.consumed,
+         Temp = as.factor(Ta),
+         RH = as.factor(pct.rh))
 
 #### Make some plots ####
 
@@ -70,4 +80,20 @@ mylu.sub <- mylu.mod %>%
  
 )
 
+## With Flight
+(litF.plot <- ggplot() +
+    ##literature poitns
+    geom_point(data = all.sub,
+               aes(x= DiffDate,
+                   y= DiffMass,
+                   shape = source)) + 
+    ##model lines
+    geom_line(data = mylu.Fsub,
+              aes(x= DiffDate,
+                  y = DiffMass,
+                  linetype = Temp,
+                  color = RH))+
+    theme_bw()
+  
+)
 
