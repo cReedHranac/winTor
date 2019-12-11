@@ -361,6 +361,30 @@ data.table::fwrite(x = mylu.mod,
 
 mylu.mod <- fread(file.path(win.dat, "myluDynamicModel.csv"))
 
+###Creating an alternative model with the pfly at 30%
+## creating hibernation model 
+mylu.params <- batLoad(bat.params, "MYLU")
+##Changing the mass to the predicted average mass 
+system.time({
+  mylu.params$Mass <- 8.6
+  mylu.params$pFly <- .3
+  fung.ch <- fungalSelect("Chaturvedi")
+  env <- buildEnv(temp = c(-4,10), #temperatures in degrees C
+                  pct.rh = c(46, 100), #precent humidity
+                  range.res.temp = 1, #resolution of the temperature
+                  range.res.rh = 1, #resolution of the humidithy
+                  twinter = 12, #maximal length of winter (in this case I have months)
+                  winter.res = 1) #resolution of the time vector in vectors
+  
+  mylu.mod <- hibernationModel(env = env,
+                               bat.params = mylu.params,
+                               fung.params = fung.ch)
+  
+  data.table::fwrite(x = mylu.mod,
+                     file = "D://Dropbox/winTor_aux/data/myluDynamicModel_fly.csv" )
+}
+)
+
 ## step two, add spatial aspect
 survivalFat <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
   ### Function for converting the amount dynamic hibernation model results into 
