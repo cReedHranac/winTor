@@ -31,19 +31,29 @@ all.dat <- jon.dat %>%
   select( -c(ID, Location))
 
 all.sub <- all.dat %>%
-  select(DiffDate, DiffMass, source)
+  select(DiffDate, DiffMass, Temp, source)
 all.sub <- rbind(all.sub,
-                 c(as.numeric(128), as.numeric(.4129), "cori"))
-all.sub[,1:2] <- sapply(all.sub[,1:2], as.numeric)
+                 c(as.numeric(128), as.numeric(.4129), 3, "cori"))
+all.sub[,1:3] <- sapply(all.sub[,1:3], as.numeric)
 all.sub$source <- as.factor(all.sub$source)
 
 ## extract data from the mylu model
 ## Current model reuslts
 mylu.mod <- fread(file.path(win.dat, "myluDynamicModel.csv"))
 
-mylu.sub <- mylu.mod %>%
+mylu.sub90 <- mylu.mod %>%
   filter(Ta %in% c(2, 4, 6, 8),
          pct.rh %in% seq(90, 100, by =2), 
+         time %in% day.to.hour(unique(all.sub$DiffDate))) %>%
+  mutate(DiffDate = hour.to.day(time),
+         DiffMass = n.g.fat.consumed,
+         Temp = as.factor(Ta),
+         RH = as.factor(pct.rh))
+
+##Sub across borad RH
+mylu.sub50 <- mylu.mod %>%
+  filter(Ta %in% c(2, 4, 6, 8),
+         pct.rh %in% seq(50, 100, by =10), 
          time %in% day.to.hour(unique(all.sub$DiffDate))) %>%
   mutate(DiffDate = hour.to.day(time),
          DiffMass = n.g.fat.consumed,
@@ -55,14 +65,33 @@ mylu.fly <- fread(file.path(win.dat, "myluDynamicModel_fly.csv"))
 
 mylu.Fsub <- mylu.fly %>%
   filter(Ta %in% c(2, 4, 6, 8),
-         pct.rh %in% seq(90, 100, by =2), 
+         pct.rh %in% seq(50, 100, by =10), 
          time %in% day.to.hour(unique(all.sub$DiffDate))) %>%
   mutate(DiffDate = hour.to.day(time),
          DiffMass = n.g.fat.consumed,
          Temp = as.factor(Ta),
          RH = as.factor(pct.rh))
 
+
+
+
 #### Make some plots ####
+(wideRH.plot <- ggplot() +
+   ##literature poitns
+   geom_point(data = all.sub,
+              aes(x= DiffDate,
+                  y= DiffMass,
+                  shape = source)) + 
+   ##model lines
+   geom_line(data = mylu.sub50,
+             aes(x= DiffDate,
+                 y = DiffMass,
+                 linetype = Temp,
+                 color = RH))+
+   theme_bw()
+ 
+)
+
 
 (lit.plot <- ggplot() +
    ##literature poitns
