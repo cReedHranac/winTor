@@ -29,7 +29,7 @@ win.res <- file.path(base.path, "Results")
 #          layer = "NorthAmerica",
 #          driver = "ESRI Shapefile")
 
-library(sf);library(rgdal)
+library(sf);library(rgdal);library(raster)
 North.America <- st_read(win.dat, layer="NorthAmerica")
 NA.utm <- st_transform(North.America, 2955)
 
@@ -40,7 +40,7 @@ mylu.dist <- st_read("D:/Dropbox/batwintor_aux/paramFiles/ShapeFiles",
 st_crs(mylu.dist) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
 mylu.utm <- st_transform(mylu.dist, 2955)
 
-# ##create canadian polygon
+#### create canadian polygon ####
 # can.df <- data.frame(
 #   rbind(
 #     c("NW",  "9V", 586518, 7077103),
@@ -81,16 +81,51 @@ rm(North.America, mylu.dist,can.ll, num.cols, can.sf)
 #### Create cropped estimates for mapping ####
 # raw.layers <- stack(list.files(win.res, pattern = "_p", full.names = T))
 # ## Create the fat layer
-# raw.layers$fat_p <- calc(raw.layers$massRaster_p, fun = function(x){-2.84 + 0.593*x})
+# raw.layers$fat_p <- calc(raw.layers$massRaster_p, fun = function(x){-2.84 + 0.6*x})
 # ## Changing names for simplicity
 # names(raw.layers) <- c("win", "mass", "fat")
+# rawUTM <- st_transform(raw.layers, 2955)
 # 
-# ## Survival layers
-# fatReq.layers <- stack(list.files(win.res, pattern = "MYLU_fat", full.names = T))
-# names(fatReq.layers) <- c("fatReq_2_100_inf", "fatReq_2_100_null",
-#                         "fatReq_4_98_inf", "fatReq_4_98_null")
-# ##Creating survival capacities for each of the simulations
-#   ## Issues with running out of ram on my 32 Gb machine
+# ## crop, mask, and write
+# rawOut <- mask(crop(rawUTM, mylu.utm), mylu.utm)
+# writeRaster(rawOut,
+#             file.path(win.res, "myluCropped_.tif"),
+#             format = "GTiff",
+#             bylayer = T,
+#             suffix = "names",
+#             overwrite=T)
+
+
+#### Survival layers####
+##fat required
+fatNames <- list.files(win.res, pattern = "myluFatReq", full.names = T)
+##fat avaliable
+fat.av <- raster(file.path(win.res, "myluCropped__fat.tif"))
+
+createSurv <- function(x){
+  ##function to read in, then create survival layers
+  ## x <- name from fatNames
+  
+  ##read in
+  x.rast <- projectRaster(raster(x),crs = CRS("+init=epsg:2955"))
+  x.utm.surv <- fat.av - x.rast
+  
+  writeRaster(x.utm.surv,
+              file.path(win.res, 
+                        paste(c("myluCropped_surv",
+                                sapply(strsplit(x, "_"),tail,3)),
+                              collapse = "_")),
+              format = "GTiff",
+              overwrite=T)
+  
+  gc()
+}
+
+lapply(fatNames, createSurv)
+
+
+##Creating survival capacities for each of the simulations
+  ## Issues with running out of ram on my 32 Gb machine
 # surv.layers <- list()
 # for(i in 1:nlayers(fatReq.layers)){
 # 
@@ -102,17 +137,17 @@ rm(North.America, mylu.dist,can.ll, num.cols, can.sf)
 # 
 # full.stk <- stack(raw.layers, fatReq.layers, surv.stk)
 # rm(raw.layers, fatReq.layers,surv.layers, surv.stk)
-# 
+
 
 # crop.stk <- mask(crop(full.stk, mylu.dist), mylu.dist)
-# 
+#
 # writeRaster(crop.stk,
 #             file.path(win.res, "myluCropped_.tif"),
 #             format = "GTiff",
 #             bylayer = T,
 #             suffix = "names",
 #             overwrite=T)
-# 
+#
 # plotStk <- stack(list.files(win.res, pattern = "myluCropped_*", full.names = T))
 # names(plotStk) <- sub(".*?__", "", names(plotStk))
 
