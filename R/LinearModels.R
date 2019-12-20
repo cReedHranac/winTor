@@ -475,8 +475,7 @@ survivalFat <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
 ## spatial layer
 win <- raster(file.path(win.res, "durationRaster_p.tif"))
 ## hibernation model
-data.table::fread(x = mylu.mod,
-                   file = "D://Dropbox/winTor_aux/data/myluDynamicModel.csv" )
+mylu.mod <- data.table::fread(file = "D://Dropbox/winTor_aux/data/myluDynamicModel.csv" )
 ## humidity conditions
 rh.cond <- c(80, 85, 90, 95, 98, 100)
 ## temperature conditions
@@ -485,6 +484,7 @@ temp.cond <- c(2, 4)
 micro.cond <- expand.grid(rh.cond, temp.cond)
 names(micro.cond)<- c("rh", "temp")
 
+system.time(
 for(i in 1:nrow(micro.cond)){
   ## create the fixed condition rasters
   rh.fix   <- calc(win, function(x) ifelse(!is.na(x), micro.cond$rh[[i]], NA))
@@ -506,7 +506,7 @@ for(i in 1:nrow(micro.cond)){
   rm(rh.fix, temp.fix, fat.req)
   gc()
   
-}
+})
 
 # 
 # ## define the static hibernation conditions
