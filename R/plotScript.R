@@ -99,29 +99,52 @@ rm(North.America, mylu.dist,can.ll, num.cols, can.sf)
 #### Survival layers####
 ##fat required
 fatNames <- list.files(win.res, pattern = "myluFatReq", full.names = T)
-##fat avaliable
-fat.av <- raster(file.path(win.res, "myluCropped__fat.tif"))
 
-createSurv <- function(x){
-  ##function to read in, then create survival layers
-  ## x <- name from fatNames
-  
+
+# createSurv <- function(x){
+#   ##function to read in, then create survival layers
+#   ## x <- name from fatNames
+#   
+#   ##read in
+#   x.rast <- projectRaster(raster(x),crs = CRS("+init=epsg:2955"))
+#   x.utm.surv <- fat.av - x.rast
+#   rm(x.rast)
+#   
+#   writeRaster(x.utm.surv,
+#               file.path(win.res, 
+#                         paste(c("myluCropped_surv",
+#                                 sapply(strsplit(x, "_"),tail,3)),
+#                               collapse = "_")),
+#               format = "GTiff",
+#               overwrite=T)
+#   
+#   gc()
+# }
+# 
+# lapply(fatNames, createSurv)
+
+## Function will not run with 32gb of ram
+
+for( i in 1:length(fatNames)){
   ##read in
-  x.rast <- projectRaster(raster(x),crs = CRS("+init=epsg:2955"))
+  xx <- raster(fatNames[[i]])
+  x.rast <- projectRaster(xx,crs = CRS("+init=epsg:2955"))
+  rm(xx);gc()
+  ##fat avaliable
+  fat.av <- raster(file.path(win.res, "myluCropped__fat.tif"))
   x.utm.surv <- fat.av - x.rast
+  rm(x.rast);gc()
   
   writeRaster(x.utm.surv,
               file.path(win.res, 
                         paste(c("myluCropped_surv",
-                                sapply(strsplit(x, "_"),tail,3)),
+                                sapply(strsplit(fatNames[[i]], "_"),tail,3)),
                               collapse = "_")),
               format = "GTiff",
               overwrite=T)
-  
+  rm(x.utm.surv)
   gc()
 }
-
-lapply(fatNames, createSurv)
 
 
 ##Creating survival capacities for each of the simulations
