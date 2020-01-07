@@ -98,7 +98,31 @@ rm(North.America, mylu.dist,can.ll, num.cols, can.sf)
 
 #### Survival layers####
 ##fat required
-fatNames <- list.files(win.res, pattern = "myluFatReq", full.names = T)
+# fatNames <- list.files(win.res, pattern = "myluFatReq", full.names = T)
+# fatStk <- stack(fatNames)
+# a <- sub(".*?_", "", names(fatStk))
+# b <- sub("fat", "", a)
+# c <- sub("\\.", "", b)
+# names(fatStk) <- paste0("fat_", c)
+# ## Appears to be too many layers to work
+# projectRaster(fatStk, crs = CRS("+init=epsg:2955"),
+#               filename = file.path(win.res,"myluCropped_.tif"),
+#               format = "GTiff",
+#               bylayer = T,
+#               suffix = "names",
+#               overwrite = T)
+# 
+# for( i in 1:nlayers(fatStk)){
+#   projectRaster(fatStk[[i]], crs = CRS("+init=epsg:2955"),
+#                 filename = file.path(win.res,
+#                                      paste0("myluCropped_",
+#                                             names(fatStk[[i]]),
+#                                             ".tif")),
+#                 format = "GTiff",
+#                 overwrite = T)
+#   cat( i, "Completed at", format(Sys.time(), "%a %b %d %X %Y"))
+#   gc()
+# }
 
 
 # createSurv <- function(x){
@@ -125,26 +149,26 @@ fatNames <- list.files(win.res, pattern = "myluFatReq", full.names = T)
 
 ## Function will not run with 32gb of ram
 
-for( i in 1:length(fatNames)){
-  ##read in
-  xx <- raster(fatNames[[i]])
-  x.rast <- projectRaster(xx,crs = CRS("+init=epsg:2955"))
-  rm(xx);gc()
-  ##fat avaliable
-  fat.av <- raster(file.path(win.res, "myluCropped__fat.tif"))
-  x.utm.surv <- fat.av - x.rast
-  rm(x.rast);gc()
-  
-  writeRaster(x.utm.surv,
-              file.path(win.res, 
-                        paste(c("myluCropped_surv",
-                                sapply(strsplit(fatNames[[i]], "_"),tail,3)),
-                              collapse = "_")),
-              format = "GTiff",
-              overwrite=T)
-  rm(x.utm.surv)
-  gc()
-}
+# for( i in 1:length(fatNames)){
+#   ##read in
+#   xx <- raster(fatNames[[i]])
+#   x.rast <- projectRaster(xx,crs = CRS("+init=epsg:2955"))
+#   rm(xx);gc()
+#   ##fat avaliable
+#   fat.av <- raster(file.path(win.res, "myluCropped__fat.tif"))
+#   x.utm.surv <- fat.av - x.rast
+#   rm(x.rast);gc()
+#   
+#   writeRaster(x.utm.surv,
+#               file.path(win.res, 
+#                         paste(c("myluCropped_surv",
+#                                 sapply(strsplit(fatNames[[i]], "_"),tail,3)),
+#                               collapse = "_")),
+#               format = "GTiff",
+#               overwrite=T)
+#   rm(x.utm.surv)
+#   gc()
+# }
 
 
 ##Creating survival capacities for each of the simulations
@@ -184,8 +208,22 @@ for( i in 1:length(fatNames)){
 #             overwrite=T)
 #### Load data ####
 library(raster);library(tidyverse); library(metR)
-plotStk <- stack(list.files(win.res, pattern = "myluCroppedUTM_*", full.names = T))
+## Mass, Fat and Winter duration
+plotStk <- stack(list.files(win.res, pattern = "myluCropped__*", full.names = T)[1:3])
 names(plotStk) <- sub(".*?__", "", names(plotStk))
+## Survival stack
+survStk <- stack(list.files(win.res, pattern = "myluCropped_surv_*", full.names = T))
+a <- sub(".*?_", "", names(survStk))
+b <- sub("fat", "", a)
+c <- sub("\\.", "", b)
+names(survStk) <- c
+## fat required
+fatStk <- stack(list.files(win.res, pattern = "myluCropped_fat_*", full.names = T))
+a <- sub(".*?_", "", names(fatStk))
+names(fatStk) <- a
+
+plotStk <- stack(plotStk, survStk)
+
 # quick <- tidy(cellStats(plotStk, summary))
 # write.csv(x = quick,
 #           file = file.path(win.res, "quickSummary.csv"),
@@ -553,7 +591,141 @@ quadPlot2 <- function(x,
   gc()
   return(g.win)
 }
-
+octoPlot <- function(parent.data = plotStk, 
+                     res.agg = 20,
+                     text.min = 30,
+                     north.america = NA.utm,
+                     canada.focus = NULL,
+                     dist.map = mylu.utm,
+                     c.string,
+                     legend.key = "Fill this in",
+                     save.name = NULL,
+                     device.out = NULL,
+                     ...){
+  
+  ### Subset out the paired layers
+  rh.conditions <- c("80", "90", "95", "100")
+  names(parent.data)[unlist(lapply(rh.conditions, grep, x = names(parent.data)))]
+  
+  grep(pattern = , names(parent.data))
+  
+  target.data <- parent.data[[grep(pattern = x, 
+                                   names(parent.data))]]
+  
+  ## Create DataFrame (aggragation is mainly for the dev period)
+  if(!is.null(res.agg)){ #aggratetion bits
+    x.ag <- raster::aggregate(target.data, res.agg)
+  }
+  else{
+    x.ag <- target.data}
+  ## Canada focus flag
+  if(!is.null(canada.focus)){
+    x.ag <- crop(x.ag, extent(canada.focus))
+    dist.crop <- st_crop(dist.map, extent(canada.focus))
+    north.america <- st_crop(north.america, dist.crop)
+    
+  }
+  else{
+    ## Crop background to distribution
+    dist.crop <- dist.map
+    north.america <- st_crop(north.america, dist.crop)
+  }
+  
+  ## Convert to df
+  x.pts <- cbind(xyFromCell(x.ag, 1:ncell(x.ag)), values(x.ag)) #to points
+  x.df <- data.frame(x.pts)
+  #Note infected and null are generally in that order 
+  colnames(x.df)[1:2] <- c("Easting", "Northing")
+  
+  x.df <- x.df %>%
+    gather(key ="Layer",
+           value = "Value",
+           starts_with(strsplit(names(x.ag),"_")[[1]][[1]])) %>% 
+    mutate(Infection_status = case_when(str_detect(Layer, "inf") ~ "Infected",
+                                        str_detect(Layer, "null") ~ "Uninfected"),
+           Hibernation_Condition = case_when(str_detect(Layer, "2_100") ~ "2x100",
+                                             str_detect(Layer, "4_98") ~ "4x98"))
+  
+  ##reorder factor levels
+  x.df$Infection_status <- factor(x.df$Infection_status,
+                                  levels = c("Uninfected", "Infected"))
+  x.df$Hibernation_Condition <- factor(x.df$Hibernation_Condition,
+                                       levels = c("4x98", "2x100"))
+  
+  ##break points for the legend
+  break.string <- seq(floor(min(x.df$Value, na.rm = T)),
+                      ceiling(max(x.df$Value, na.rm = T)),
+                      by = .5)
+  
+  (g.win <- ggplot()+
+      geom_contour_fill(data = x.df,
+                        aes(x= Easting, y = Northing, z = Value),
+                        breaks = break.string,
+                        na.fill = -9999)+
+      #handling the NA 
+      stat_subset(data = x.df, 
+                  aes(x= Easting, y = Northing, subset = is.na(Value)),
+                  geom = "raster",
+                  fill = "#ffffff")+
+      
+      #oooohhhhh pretty colors
+      scale_fill_gradientn(legend.key,
+                           colors = c.string,
+                           limits=  c(min(break.string),
+                                      max(break.string))) +
+      
+      ##North American political boundries
+      geom_sf(data = north.america,
+              aes(group = "Name_1"),
+              color="grey20",
+              fill=NA)+
+      
+      #Lables
+      geom_text_contour(data = x.df, 
+                        aes(x= Easting, y = Northing, z = Value),
+                        stroke = 0.2, min.size = text.min,
+                        rotate = F, check_overlap = T)+
+      
+      theme_bw()+
+      scale_x_continuous(limits =  c(extent(dist.crop)[1],extent(dist.crop)[2]))+
+      scale_y_continuous(limits = c(extent(dist.crop)[3],extent(dist.crop)[4]))+
+      theme(legend.position = "bottom",
+            legend.text=element_text(size=7),
+            legend.title=element_text(size=9),
+            axis.title = element_blank())+
+      facet_grid( rows = vars(Hibernation_Condition),
+                  cols = vars(Infection_status))
+  )
+  
+  ##Distribution map flag
+  if(!is.null(dist.map)){
+    dist.crop <- st_crop(dist.map, x.ag)
+    
+    g.win <- g.win +
+      geom_sf(data = dist.crop,
+              aes(group = "SP_ID"),
+              colour = "black",
+              fill = NA) 
+  }
+  
+  ## Save Flag  
+  if(!is.null(save.name)){
+    if(device.out == "pdf"){
+      dev.ext <- cairo_pdf
+    } else if (device.out =="eps"){
+      dev.ext <- cairo_ps
+    } else {
+      dev.ext <- device.out
+    }
+    
+    ggsave(filename = file.path(win.res,"fig", paste0(save.name,".", device.out)),
+           g.win, 
+           dpi = 400,
+           device = dev.ext,
+           ...)}
+  gc()
+  return(g.win)
+}
 
 increasedExpendaturePlot2 <- function(x,
                                       parent.data = plotStk, 
@@ -778,7 +950,7 @@ gc()
 #### Required Fat plots ####
 reqColors <- colorRampPalette(c("#ffffff", "#5E3C99"))
 
-fatReq4x98 <- pairedPlotting2(x = "fatReq_4_98",
+fatReq4x98 <- pairedPlotting2(x = "fat_4_98",
                              parent.data = plotStk,
                              c.string = reqColors(3),
                              canada.focus = NULL,
@@ -800,7 +972,7 @@ fatReq4x98 <- pairedPlotting2(x = "fatReq_4_98",
                               height = 4,
                               unit = "in")
 
-fatReq2x100 <- pairedPlotting2(x = "fatReq_2_100",
+fatReq2x100 <- pairedPlotting2(x = "fat_2_100",
                               parent.data = plotStk,
                               c.string = reqColors(3),
                               legend.key = "Predicted\nBody Fat\nRequired (g)",
@@ -830,7 +1002,8 @@ above0 <- colorRampPalette(c("#E8E3F0", "#5E3C99"))
 
 survColors_2x100 <- colorRampPalette(c("#fdb863",## The one below 0
                                        above0(5)))
-a <- pairedPlotting2(x = "surv_2_100",
+a <- pairedPlotting2(x = "surv_100_2",
+                     res.agg = 25,
                      parent.data = plotStk,
                      c.string = survColors_2x100(6),
                      break.size = .5,
@@ -841,46 +1014,46 @@ a <- pairedPlotting2(x = "surv_2_100",
                      height = 4,
                      unit = "in")
 
-q <- pairedPlotting2(x = "surv_2_100",
-                     parent.data = plotStk,
-                     c.string = survColors_2x100(6),
-                     canada.focus = can.utm,
-                     legend.key = "Predicted\nBody Fat\nRemaining (g)",
-                     save.name = "survival_2x100_Canada", 
-                     device.out = "pdf",
-                     width = 8,
-                     height = 4,
-                     unit = "in")
+# q <- pairedPlotting2(x = "surv_2_100",
+#                      parent.data = plotStk,
+#                      c.string = survColors_2x100(6),
+#                      canada.focus = can.utm,
+#                      legend.key = "Predicted\nBody Fat\nRemaining (g)",
+#                      save.name = "survival_2x100_Canada", 
+#                      device.out = "pdf",
+#                      width = 8,
+#                      height = 4,
+#                      unit = "in")
 
 
 
 
 ## 4 x 98 Range is between -.22 - 6.62
-survColors_4x98 <- colorRampPalette(c("#fdb863",
-                                      "#E8E3F0", "#BAABD2", "#8C73B5","#5E3C99"))
+  survColors_4x98 <- colorRampPalette(c("#fdb863",
+                                        "#E8E3F0", "#BAABD2", "#8C73B5","#5E3C99"))
+  
+  a <- pairedPlotting2(x = "surv_98_4",
+                       parent.data = plotStk,
+                       c.string = survColors_4x98(5),
+                       legend.key = "Predicted\nBody Fat\nRemaining (g)",
+                       save.name = "survival_4x98", 
+                       device.out = "pdf",
+                       width = 8,
+                       height = 4,
+                       unit = "in")
 
-a <- pairedPlotting2(x = "surv_4_98",
-                     parent.data = plotStk,
-                     c.string = survColors_4x98(5),
-                     legend.key = "Predicted\nBody Fat\nRemaining (g)",
-                     save.name = "survival_4x98", 
-                     device.out = "pdf",
-                     width = 8,
-                     height = 4,
-                     unit = "in")
 
-
-survColors_4x98.can <- colorRampPalette(c("#E8E3F0", "#A38FC4", "#5E3C99"))
-q <- pairedPlotting2(x = "surv_4_98",
-                     parent.data = plotStk,
-                     c.string = survColors_4x98.can(4),
-                     canada.focus = can.utm,
-                     legend.key = "Predicted\nBody Fat\nRemaining (g)",
-                     save.name = "survival_4x98_Canada", 
-                     device.out = "pdf",
-                     width = 8,
-                     height = 4,
-                     unit = "in")
+# survColors_4x98.can <- colorRampPalette(c("#E8E3F0", "#A38FC4", "#5E3C99"))
+# q <- pairedPlotting2(x = "surv_4_98",
+#                      parent.data = plotStk,
+#                      c.string = survColors_4x98.can(4),
+#                      canada.focus = can.utm,
+#                      legend.key = "Predicted\nBody Fat\nRemaining (g)",
+#                      save.name = "survival_4x98_Canada", 
+#                      device.out = "pdf",
+#                      width = 8,
+#                      height = 4,
+#                      unit = "in")
 
 ## Quad plot
 survColors_4x98 <- colorRampPalette(c("#fdb863",
