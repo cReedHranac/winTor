@@ -20,8 +20,8 @@ serdp.newDat <- file.path("D:", "Dropbox",
 ## The %!in% opperator 
 '%!in%' <- function(x,y)!('%in%'(x,y))
 
-
-# ##Serdp data 
+#### Create the cleaned dataset to work from ####
+# ##Serdp data
 # library(readxl)
 # excel_sheets(file.path(serdp.newDat, "Bat Morphometrics.xlsx"))
 # qmr.dat <- read_excel(file.path(serdp.newDat, "Bat Morphometrics.xlsx"),
@@ -59,7 +59,7 @@ serdp.newDat <- file.path("D:", "Dropbox",
 #          !is.na(Fat)) %>%
 #   separate(Date1, c("y", "m", "d")) %>%
 #   filter(m %in% c("09","10","11")) %>%
-#   select(ID, `Site Name`, Age, Sex, Forearm,
+#   dplyr::select(ID, `Site Name`, Age, Sex, Forearm,
 #          Mass, Fat, Lean, m, State)
 # 
 # #standrize col names
@@ -87,69 +87,13 @@ serdp.newDat <- file.path("D:", "Dropbox",
 # write.csv(dat.clean,
 #           file = "data/qmrCleaned.csv", row.names = F)
 
+
 dat.clean <- fread("data/qmrCleaned.csv")
 ## set factors
 dat.clean$sex <- as.factor(dat.clean$sex)
 dat.clean$state <- as.factor(dat.clean$state)
 
 #### Start modleing ####
-
-## Effect of sex
-
-lean.sex <- lm(lean~sex, dat.clean)
-summary(lean.sex)
-
-lean.state.sex <- lm(lean~state*sex, dat.clean)
-summary(lean.state.sex)
-lean.state.sex1 <- update(lean.state.sex, .~. - state:sex)
-summary(lean.state.sex1)
-
-##hsd for differences 
-library(multcomp)
-ph <- glht(lean.state.sex1, linfct=mcp(state="Tukey"))
-summary(ph)
-## There is a significant differnce between Eastern and Western states in this instance
-
-state.lean.plot <- ggplot(data = dat.clean) +
-  geom_boxplot(aes(x = state, y = lean, color = state))+
-  theme_bw()
-
-# ggsave("fig/StateLean.pdf",
-#        state.lean.plot)
-
-
-## Predicting fat from body mass
-fat.body <- lm(fat ~ mass, dat.clean)
-summary(fat.body)
-
-## Create plot
-
-fat.mass.plot <- ggplot(dat.clean) + 
-  geom_point(aes(x = mass, y = fat, color = state), show.legend = F) + 
-  geom_abline(aes(intercept = fat.body$coefficients[[1]],
-                  slope = fat.body$coefficients[[2]])) +
-  annotate("text",
-           x=7.3, y = 3.5,
-           label = paste0("Fat Mass = ",round(fat.body$coefficients[[1]],2)," + ",
-                          round(fat.body$coefficients[[2]],2)," * Mass")) +
-  xlab("Mass (g)") +
-  ylab("Fat mass (g)") + 
-  theme_bw()
-
-
-# ggsave("fig/FatMassLM.pdf",
-#        fat.mass.plot)
-
-
-fat.plots <- gridExtra::grid.arrange(state.lean.plot, fat.mass.plot,
-                                     nrow = 1)
-# ggsave(file.path(win.res, "fig", "stateXfat.pdf"),
-#        fat.plots,
-#        device = cairo_pdf,
-#        width = 9,
-#        height = 4,
-#        units = "in")
-
 #### Outlier removal ####
 ### After taking a look at the inital plots, it appears that some of the Montana
 ### bats may be outliers (one in particular has a very low amount of fat)
@@ -245,7 +189,7 @@ fat.mass.plot <- ggplot(dat.sub) +
   geom_abline(aes(intercept = fat.body$coefficients[[1]],
                   slope = fat.body$coefficients[[2]])) +
   annotate("text",
-           x=7.3, y = 3.5,
+           x=7.9, y = 3.5,
            label = paste0("Fat Mass = ",round(fat.body$coefficients[[1]],2)," + ",
                           round(fat.body$coefficients[[2]],2)," * Mass")) +
   xlab("Mass (g)") +
