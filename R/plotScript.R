@@ -224,10 +224,15 @@ names(fatStk) <- a
 
 plotStk <- stack(plotStk, survStk)
 
-# quick <- tidy(cellStats(plotStk, summary))
-# write.csv(x = quick,
-#           file = file.path(win.res, "quickSummary.csv"),
-#           row.names = F)
+#### Create summary items
+survSub <- stack(plotStk$surv_98_4_null, plotStk$surv_98_4_inf,
+              plotStk$surv_100_2_null, plotStk$surv_100_2_inf)
+library(broom)
+quickSurv <- tidy(cellStats(brick(survSub), summary))
+write.csv(x = quick,
+          file = file.path(win.res, "quickSummary.csv"),
+          row.names = F)
+
 #### Functions ####
 masterPlotter2 <- function(x,
                            break.size,
