@@ -60,6 +60,27 @@ mylu.sub50 <- mylu.mod %>%
          Temp = as.factor(Ta),
          RH = as.factor(pct.rh))
 
+## plots with infection
+mylu.sub90_I <- mylu.mod %>%
+  filter(Ta %in% c(2, 4, 6, 8),
+         pct.rh %in% seq(90, 100, by =2), 
+         time %in% day.to.hour(unique(all.sub$DiffDate))) %>%
+  mutate(DiffDate = hour.to.day(time),
+         DiffMass = g.fat.consumed,
+         Temp = as.factor(Ta),
+         RH = as.factor(pct.rh))
+
+##Sub across borad RH
+mylu.sub50_I <- mylu.mod %>%
+  filter(Ta %in% c(2, 4, 6, 8),
+         pct.rh %in% seq(50, 100, by =10), 
+         time %in% day.to.hour(unique(all.sub$DiffDate))) %>%
+  mutate(DiffDate = hour.to.day(time),
+         DiffMass = g.fat.consumed,
+         Temp = as.factor(Ta),
+         RH = as.factor(pct.rh))
+
+
 ## Model reuslts with flight this time
 mylu.fly <- fread(file.path(win.dat, "myluDynamicModel_fly.csv"))
 
@@ -124,5 +145,48 @@ mylu.Fsub <- mylu.fly %>%
                   color = RH))+
     theme_bw()
   
+)
+
+#### with infection ####
+(wideRH.plot <- ggplot() +
+   ##literature poitns
+   geom_point(data = all.sub,
+              aes(x= DiffDate,
+                  y= DiffMass,
+                  shape = source)) + 
+   ##model lines
+   geom_line(data = mylu.sub50_I,
+             aes(x= DiffDate,
+                 y = DiffMass,
+                 linetype = Temp,
+                 color = RH))+
+   theme_bw()
+ 
+)
+ggsave(filename = file.path(win.res,
+                            "fig",
+                            "wideRH_I.png"),
+      wideRH.plot
+       )
+
+(lit.plot <- ggplot() +
+    ##literature poitns
+    geom_point(data = all.sub,
+               aes(x= DiffDate,
+                   y= DiffMass,
+                   shape = source)) + 
+    ##model lines
+    geom_line(data = mylu.sub90_I,
+              aes(x= DiffDate,
+                  y = DiffMass,
+                  linetype = Temp,
+                  color = RH))+
+    theme_bw()
+  
+)
+ggsave(filename = file.path(win.res,
+                            "fig",
+                            "nintyPlusRH_I.png"),
+       lit.plot
 )
 
