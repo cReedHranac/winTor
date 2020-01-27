@@ -14,11 +14,9 @@ win.res <- file.path(base.path, "Results")
 '%!in%' <- function(x,y)!('%in%'(x,y))
 
 library(tidyverse)
-
+library(sf);library(rgdal);library(raster)
 
 #### Figure 1 ####
-## 2 maps, one with the duration data locations, one with fat location data
-
 ## Duration Data (needs better names for these files)
 dur.dat <- read.csv("data/durationUpdate.csv")
 mass.dat <- read.csv("data/massLocations.csv")
@@ -35,63 +33,62 @@ colnames(mass.sub) <- c("lat", "long", "type")
 
 loc.full <- rbind(dur.sub, mass.sub)
 
+coordinates(loc.full) <- ~ long + lat
+wgs.84 <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+proj4string(loc.full) <- CRS(wgs.84)
+loc.utm <- spTransform(loc.full, 
+                       CRS("+proj=utm +zone=11 +ellps=GRS80
+                       +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"))
+loc.sf <- st_as_sf(loc.utm)
+## Background layers
 
-library(raster); library(rgdal)
-## dem raster for extent and proj4
-na.rast <- raster(file.path(win.dat, "NA_dem.tif"))
-na.ext <-  c(-168, -50, 23.5, 66.5) #extent(na.rast)
+North.America <- st_read(win.dat, layer="NorthAmerica")
+NA.utm <- st_transform(North.America, 2955)
 
-mylu.dist <- readOGR(dsn = "D:/Dropbox/batwintor_aux/paramFiles/ShapeFiles", 
+##mylu distribution
+mylu.dist <- st_read("D:/Dropbox/batwintor_aux/paramFiles/ShapeFiles", 
                      layer = "myotis_lucifugus")
 
+st_crs(mylu.dist) <- wgs.84
+mylu.utm <- st_transform(mylu.dist, 2955)
 
-(loc.plot <- ggplot(data = loc.full, aes(x= long, y = lat))+
-  borders("world",
-          xlim = na.ext[1:2], ylim = na.ext[3:4],
-          color = "grey80",
-          fill = "grey90") +
-    geom_polygon(data = fortify(mylu.dist),
-                 aes(long,lat, group = group),
-                 colour = "dodgerblue4",
-                 fill = NA,
-                 inherit.aes = F) +
-    geom_jitter(aes(shape = type),
-               alpha = .5,
-               size = 2,
-               # position = "jitter",
-               show.legend=FALSE)+
-    # geom_point(data = as.data.frame(cbind(long= -111.007, lat  = 47.12429)),
-    #            aes(x= long, y = lat),size = 2)+
-    scale_color_manual(values=c("#E69F00","#56B4E9")) +
-    coord_cartesian(xlim = na.ext[1:2], ylim = na.ext[3:4])+
-    scale_x_continuous(expand = c(0,0)) +
-    scale_y_continuous(expand = c(0,0))
-    theme_bw()+
-    guides(color=guide_legend(title="Data Type"))
+rm(North.America, mylu.dist)
 
-)
-
-width_height <- diff(as.vector(na.ext))[c(1,3)]
-aspect_map <- width_height[1] / width_height[2]
-
-## Issue:
-  ## points where mass and duration data exist will not jitter or alpha
-  ## can not tell that there is both there. 
-
-# 
-# ggsave("fig/locationDataType.pdf",
-#        loc.plot,
-#        height = 7,
-#        width = 7*aspect_map,
-#        device = cairo_pdf,
-#        dpi = 900)
+#### plot ####
+loc.plot <- ggplot()+
+  ##North American political boundries
+  geom_sf(data = NA.utm,
+          aes(group = "Name_1"),
+          color="grey20",
+          fill=NA) +
+  ##Mylu distribution
+  geom_sf(data = mylu.utm,
+          aes(group = "SP_ID"),
+          colour = "dodgerblue4",
+          size = .7,
+          fill = "dodgerblue1",
+          alpha = .1) +
+  ##fix the extent problems
+  scale_x_continuous(limits =  c(extent(mylu.utm)[1],
+                                 extent(mylu.utm)[2]))+
+  scale_y_continuous(limits = c(extent(mylu.utm)[3],
+                                extent(mylu.utm)[4])) +
+  ##add the points
+  geom_sf(data = loc.sf,
+          aes(shape = type,
+              color = type),
+          alpha = .5,
+          size = 2,
+          show.legend = F)+
+  scale_color_manual(values=c("#E69F00","#56B4E9")) +
+  theme_bw()
 
 
-
-
-ggsave("C:/Users/crhranac/Git/PhD-Thesis/Chapter4/Figs/locationDataType.pdf",
+ggsave(file.path(win.res,"fig/locationDataType.png"),
        loc.plot,
-       height = 7,
-       width = 7*aspect_map,
-       device = cairo_pdf,
-       dpi = 900)
+       height = 6,
+       width = 8,
+       units = "in",
+       device = "png",
+       dpi = 300)
+
