@@ -525,8 +525,8 @@ quadPlot2 <- function(x,
            starts_with(strsplit(names(x.ag),"_")[[1]][[1]])) %>% 
     mutate(Infection_status = case_when(str_detect(Layer, "inf") ~ "Infected",
                                         str_detect(Layer, "null") ~ "Uninfected"),
-           Hibernation_Condition = case_when(str_detect(Layer, "2_100") ~ "2x100",
-                                             str_detect(Layer, "4_98") ~ "4x98"))
+           Hibernation_Condition = case_when(str_detect(Layer, "100_2") ~ "2x100",
+                                             str_detect(Layer, "98_4") ~ "4x98"))
   
   ##reorder factor levels
   x.df$Infection_status <- factor(x.df$Infection_status,
