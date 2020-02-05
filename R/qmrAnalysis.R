@@ -203,9 +203,9 @@ fat.mass.plot <- ggplot(dat.sub) +
 
 fat.plots <- gridExtra::grid.arrange(state.lean.plot, fat.mass.plot,
                                      nrow = 1)
-ggsave(file.path(win.res, "fig", "stateXfat.pdf"),
+ggsave(file.path(win.res, "fig", "stateXfat.png"),
        fat.plots,
-       device = cairo_pdf,
+       device = "png",
        width = 9,
        height = 4,
        units = "in")

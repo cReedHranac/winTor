@@ -234,16 +234,19 @@ survSub <- stack(plotStk$win, plotStk$mass, plotStk$fat,
 survSub$Inc98 <- (survSub$fat_98_4_inf/ survSub$fat_98_4_null )*100
 survSub$Inc100 <- (survSub$fat_100_2_inf/ survSub$fat_100_2_null )*100
 
-surv.df <- as.data.frame(cbind(Layer = names(survSub),
-                        Min.Value = minValue(survSub),
-                        Max.Value = maxValue(survSub),
-                        Mean = cellStats(survSub, mean),
-                        SD = cellStats(survSub, sd)))
+# surv.df <- as.data.frame(cbind(Layer = names(survSub),
+#                         Min.Value = minValue(survSub),
+#                         Max.Value = maxValue(survSub),
+#                         Mean = cellStats(survSub, mean),
+#                         SD = cellStats(survSub, sd)))
+# 
+# 
+# write.csv(x = surv.df,
+#           file = file.path(win.res, "quickSummary.csv"),
+#           row.names = F)
 
-
-write.csv(x = surv.df,
-          file = file.path(win.res, "quickSummary.csv"),
-          row.names = F)
+survMini <- stack(plotStk$surv_98_4_null, plotStk$surv_98_4_inf,
+                  plotStk$surv_100_2_null, plotStk$surv_100_2_inf)
 
 #### Functions ####
 masterPlotter2 <- function(x,
@@ -1076,13 +1079,14 @@ a <- pairedPlotting2(x = "surv_100_2",
 survColors_4x98 <- colorRampPalette(c("#fdb863",
                                       "#E8E3F0", "#BAABD2", "#8C73B5","#5E3C99"))
 doh <- quadPlot2(x = "surv",
-                c.string = survColors_4x98(6),
-                legend.key = "Predicted\nBody Fat\nRemaining (g)",
-                save.name = "survQuad", 
-                device.out = "png",
-                width = 10.5,
-                height = 8,
-                unit = "in")
+                 parent.data = survMini,
+                 c.string = survColors_4x98(6),
+                 legend.key = "Predicted\nBody Fat\nRemaining (g)",
+                 save.name = "survQuad", 
+                 device.out = "png",
+                 width = 10.5,
+                 height = 8,
+                 unit = "in")
 
 rm(a, q, survColors_4x98, survColors_4x98.can, survColors_2x100)
 ## Precent increase plot
