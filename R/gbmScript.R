@@ -169,3 +169,50 @@ dur.dis <- gbm.step(data = dur.df,
                     bag.fraction = .75,
                     n.trees = 10000)
 ### this doesn't appear to work at all...
+
+
+
+#### from the Crase et al 2012 paper ####
+require(gbm); require(raster); require(dismo)
+## no mention of hte brt functions or the model_funtions in the paper
+## must be from what was eventually to become the dismo package?
+head(dur.df)
+set.seed(9)
+env.brt <- gbm.step(data = dur.df,
+                    gbm.x = 6:8,
+                    gbm.y = 4,
+                    family = "gaussian", ## gaussian enough at least by the Shapiro-Wilks,
+                    tree.complexity = 3,
+                    learning.rate = .002,
+                    n.trees = 5000,
+                    bag.fraction = .5)
+summary(env.brt)
+##RAC model 
+## what should the background be
+rast.brt <- calc(env.stk[[1]], function(x) ifelse(!is.na(x), NA, NA))
+xy.res.brt <- cbind(dur.df[,12:13], resid(env.brt))
+rast.brt[cellFromXY(rast.brt,xy.res.brt)] <- xy.res.brt[,3]
+focal.rast.brt <- raster::focal(rast.brt,
+                                w=matrix(1,25,25),
+                                ngb = 25,
+                                fun = mean,
+                                na.rm = T)
+plot(focal.rast.brt)
+## Not positive this is doing it right but the funciton from the script doesn't exist
+dur.df$resid <- focal.rast.brt[cellFromXY(rast.brt,xy.res.brt)]
+
+rac.brt <- gbm.step(data = dur.df,
+                    gbm.x = c(6:8,14),
+                    gbm.y = 4,
+                    family = "gaussian", 
+                    tree.complexity = 3,
+                    learning.rate = .002,
+                    n.trees = 5000,
+                    bag.fraction = .5,
+                    n.folds = 10)
+summary(rac.brt)
+rac.brt$
+
+
+
+
