@@ -211,8 +211,85 @@ rac.brt <- gbm.step(data = dur.df,
                     bag.fraction = .5,
                     n.folds = 10)
 summary(rac.brt)
+
+
+#### Mass ####
+  
+head(mass.df)
+##check distribution
+mass.shapW <- shapiro.test(mass.df$avgMass) ##normal enough
+
+
+##unable to get a any trees to fit to our "best model" identified through the AUC model
+## tree complexity is high to allow lots of interactions between the potential drivers
+mass.brt <- gbm.step(data = mass.df,
+                    gbm.x = c(4:9),
+                    gbm.y = 1,
+                    family = "gaussian", ## gaussian enough at least by the Shapiro-Wilks,
+                    tree.complexity = 5,
+                    learning.rate = .01,
+                    n.trees = 100000,
+                    bag.fraction = .75)
+summary(mass.brt)
+##From here I'm going to a sucessive model fit technique excluding the worst predictor variables
+## first removing growing and OG as they were the lowest with 10%  
+## decreased tree complexity to account for the reduction in number of variabals
+mass2.brt <- gbm.step(data = mass.df,
+                     gbm.x = c(4:6,8),
+                     gbm.y = 1,
+                     family = "gaussian", ## gaussian enough at least by the Shapiro-Wilks,
+                     tree.complexity = 4,
+                     learning.rate = .01,
+                     n.trees = 100000,
+                     bag.fraction = .75)
+summary(mass2.brt)
+
+## Northing was the next removed although it was close with frost
+mass3.brt <- gbm.step(data = mass.df,
+                      gbm.x = c(4,6,8),
+                      gbm.y = 1,
+                      family = "gaussian", ## gaussian enough at least by the Shapiro-Wilks,
+                      tree.complexity = 4,
+                      learning.rate = .01,
+                      n.trees = 100000,
+                      bag.fraction = .75)
+summary(mass3.brt)
+## again?
+mass4.brt <- gbm.step(data = mass.df,
+                      gbm.x = c(4,8),
+                      gbm.y = 1,
+                      family = "gaussian", ## gaussian enough at least by the Shapiro-Wilks,
+                      tree.complexity = 3,
+                      learning.rate = .01,
+                      n.trees = 10000000,
+                      bag.fraction = .75)
+summary(mass4.brt)
+
+##RAC model 
+## what should the background be
+Mrast.brt <- calc(env.stk[[1]], function(x) ifelse(!is.na(x), NA, NA))
+xy.res.brt <- cbind(mass.df[,10:11], resid(mass.brt))
+Mrast.brt[cellFromXY(Mrast.brt,xy.res.brt)] <- xy.res.brt[,3]
+Mfocal.rast.brt <- raster::focal(Mrast.brt,
+                                w=matrix(1,255,255),
+                                ngb = 25,
+                                fun = mean,
+                                na.rm = T)
+plot(Mfocal.rast.brt)
+## Not positive this is doing it right but the funciton from the script doesn't exist
+mass.df$resid <- Mfocal.rast.brt[cellFromXY(Mrast.brt,xy.res.brt)]
+
+M.rac.brt <- gbm.step(data = mass.df,
+                    gbm.x = c(5:8),
+                    gbm.y = 1,
+                    family = "gaussian", 
+                    tree.complexity = 1,
+                    learning.rate = .05,
+                    n.trees = 1000000,
+                    bag.fraction = .8,
+                    n.folds = 10)
+summary(rac.brt)
 rac.brt$
-
-
+  
 
 
