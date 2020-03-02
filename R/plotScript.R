@@ -209,7 +209,7 @@ rm(North.America, mylu.dist,can.ll, num.cols, can.sf)
 #### Load data ####
 library(raster);library(tidyverse); library(metR)
 ## Mass, Fat and Winter duration
-plotStk <- stack(list.files(win.res, pattern = "myluCropped__*", full.names = T)[1:3])
+plotStk <- stack(list.files(win.res, pattern = "myluCropped__*", full.names = T)[1:27])
 names(plotStk) <- sub(".*?__", "", names(plotStk))
 ## Survival stack
 survStk <- stack(list.files(win.res, pattern = "myluCropped_surv_*", full.names = T))
@@ -217,21 +217,36 @@ a <- sub(".*?_", "", names(survStk))
 b <- sub("fat", "", a)
 c <- sub("\\.", "", b)
 names(survStk) <- c
-## fat required
-fatStk <- stack(list.files(win.res, pattern = "myluCropped_fat_*", full.names = T))
-a <- sub(".*?_", "", names(fatStk))
-names(fatStk) <- a
-
+# ## fat required
+# fatStk <- stack(list.files(win.res, pattern = "myluCropped__fat_\\d", full.names = T))
+# a <- sub(".*?__", "", names(fatStk))
+# names(fatStk) <- a
+# 
 plotStk <- stack(plotStk, survStk)
 
 #### Create summary items
-survSub <- stack(plotStk$surv_98_4_null, plotStk$surv_98_4_inf,
-              plotStk$surv_100_2_null, plotStk$surv_100_2_inf)
-library(broom)
-quickSurv <- tidy(cellStats(brick(survSub), summary))
-write.csv(x = quick,
-          file = file.path(win.res, "quickSummary.csv"),
-          row.names = F)
+survSub <- stack(plotStk$win, plotStk$mass, plotStk$fat,
+                 plotStk$surv_98_4_null, plotStk$surv_98_4_inf,
+                 plotStk$surv_100_2_null, plotStk$surv_100_2_inf,
+                 plotStk$fat_98_4_null, plotStk$fat_98_4_inf,
+                 plotStk$fat_100_2_null, plotStk$fat_100_2_inf)
+
+survSub$Inc98 <- (survSub$fat_98_4_inf/ survSub$fat_98_4_null )*100
+survSub$Inc100 <- (survSub$fat_100_2_inf/ survSub$fat_100_2_null )*100
+
+# surv.df <- as.data.frame(cbind(Layer = names(survSub),
+#                         Min.Value = minValue(survSub),
+#                         Max.Value = maxValue(survSub),
+#                         Mean = cellStats(survSub, mean),
+#                         SD = cellStats(survSub, sd)))
+# 
+# 
+# write.csv(x = surv.df,
+#           file = file.path(win.res, "quickSummary.csv"),
+#           row.names = F)
+
+survMini <- stack(plotStk$surv_98_4_null, plotStk$surv_98_4_inf,
+                  plotStk$surv_100_2_null, plotStk$surv_100_2_inf)
 
 #### Functions ####
 masterPlotter2 <- function(x,
@@ -513,8 +528,8 @@ quadPlot2 <- function(x,
            starts_with(strsplit(names(x.ag),"_")[[1]][[1]])) %>% 
     mutate(Infection_status = case_when(str_detect(Layer, "inf") ~ "Infected",
                                         str_detect(Layer, "null") ~ "Uninfected"),
-           Hibernation_Condition = case_when(str_detect(Layer, "2_100") ~ "2x100",
-                                             str_detect(Layer, "4_98") ~ "4x98"))
+           Hibernation_Condition = case_when(str_detect(Layer, "100_2") ~ "2x100",
+                                             str_detect(Layer, "98_4") ~ "4x98"))
   
   ##reorder factor levels
   x.df$Infection_status <- factor(x.df$Infection_status,
@@ -861,19 +876,19 @@ winter.full <- masterPlotter2(x = plotStk$win,
                               legend.key = "Predicted\nDuration\nWnter\n(Days)",
                               text.min = 50,
                               save.name = "winDuration_Mean_MYLU",
-                              device.out = "pdf",
+                              device.out = "png",
                               width = 6,
                               unit = "in")
- winter.can <- masterPlotter2(x = plotStk$win,
-                             c.string = winterColors(5),
-                             break.size = 30,
-                             canada.focus = can.utm,
-                             legend.key = "Predicted\nDuration\nWnter\n(Days)",
-                             text.min = 25,
-                             save.name = "winDuration_Mean_MYLU_Canada",
-                             device.out = "pdf",
-                             width = 6,
-                             unit = "in")
+ # winter.can <- masterPlotter2(x = plotStk$win,
+ #                             c.string = winterColors(5),
+ #                             break.size = 30,
+ #                             canada.focus = can.utm,
+ #                             legend.key = "Predicted\nDuration\nWnter\n(Days)",
+ #                             text.min = 25,
+ #                             save.name = "winDuration_Mean_MYLU_Canada",
+ #                             device.out = "pdf",
+ #                             width = 6,
+ #                             unit = "in")
 
 
 rm(winter.full, winter.can, winterColors)
@@ -888,20 +903,20 @@ mass.full <- masterPlotter2(x = plotStk$mass,
                             canada.focus = NULL,
                             legend.key = "Predicted\nBody\nMass (g)",
                             save.name = "massMean_MYLU",
-                            device.out = "pdf",
+                            device.out = "png",
                             width = 6,
                             unit = "in")
 
-mass.can <- masterPlotter2(x = plotStk$mass,
-                           c.string = massColors(5),
-                           break.size = .5,
-                           text.min = 25,
-                           canada.focus = can.utm,
-                           legend.key = "Predicted\nBody\nMass (g)",
-                           save.name = "massMean_MYLU_Canada",
-                           device.out = "pdf",
-                           width = 6,
-                           unit = "in")
+# mass.can <- masterPlotter2(x = plotStk$mass,
+#                            c.string = massColors(5),
+#                            break.size = .5,
+#                            text.min = 25,
+#                            canada.focus = can.utm,
+#                            legend.key = "Predicted\nBody\nMass (g)",
+#                            save.name = "massMean_MYLU_Canada",
+#                            device.out = "pdf",
+#                            width = 6,
+#                            unit = "in")
 
 
 fatColors <- colorRampPalette(c("#fff7bc","#fec44f", "#d95f0e"))
@@ -912,20 +927,20 @@ fat.full <- masterPlotter2(x = plotStk$fat,
                            canada.focus = NULL,
                            legend.key = "Predicted\nBody\nFat (g)",
                            save.name = "fatMean_MYLU",
-                           device.out = "pdf",
+                           device.out = "png",
                            width = 6,
                            unit = "in")
 
-fat.can <- masterPlotter2(x = plotStk$fat,
-                          c.string = fatColors(5),
-                          break.size = .5,
-                          text.min = 25,
-                          canada.focus =can.utm,
-                          legend.key = "Predicted\nBody\nFat (g)",
-                          save.name = "fatMean_MYLU_Canada",
-                          device.out = "pdf",
-                          width = 6,
-                          unit = "in")
+# fat.can <- masterPlotter2(x = plotStk$fat,
+#                           c.string = fatColors(5),
+#                           break.size = .5,
+#                           text.min = 25,
+#                           canada.focus =can.utm,
+#                           legend.key = "Predicted\nBody\nFat (g)",
+#                           save.name = "fatMean_MYLU_Canada",
+#                           device.out = "pdf",
+#                           width = 6,
+#                           unit = "in")
 
 
 ## Single figure
@@ -933,22 +948,22 @@ library(gridExtra)
 fig3 <- grid.arrange(mass.full,
                      fat.full,
                      nrow = 1)
-ggsave(file.path(win.res, "fig", "Mass_Fat_MYLU.pdf"),
+ggsave(file.path(win.res, "fig", "Mass_Fat_MYLU.png"),
        fig3,
-       device = cairo_pdf,
+       device = "png",
        width = 8,
        height = 4,
        units = "in")
 
-fig3Canada <- grid.arrange(mass.can,
-                           fat.can,
-                           nrow = 1)
-ggsave(file.path(win.res, "fig", "Mass_Fat_MYLU_Canda.pdf"),
-       fig3Canada,
-       device = cairo_pdf,
-       width = 8,
-       height = 4,
-       units = "in")
+# fig3Canada <- grid.arrange(mass.can,
+#                            fat.can,
+#                            nrow = 1)
+# ggsave(file.path(win.res, "fig", "Mass_Fat_MYLU_Canda.pdf"),
+#        fig3Canada,
+#        device = cairo_pdf,
+#        width = 8,
+#        height = 4,
+#        units = "in")
 rm(mass.can,mass.full,massColors,fat.can,fat.full,fatColors,fig3Canada,fig3)
 gc()
 
@@ -961,41 +976,41 @@ fatReq4x98 <- pairedPlotting2(x = "fat_4_98",
                              canada.focus = NULL,
                              legend.key = "Predicted\nBody Fat\nRequired (g)",
                              save.name = "fatRequired4_98_pair",
-                             device.out = "pdf",
+                             device.out = "png",
                              width = 8,
                              height = 4,
                              unit = "in")
 
-fatReq4x98 <- pairedPlotting2(x = "fatReq_4_98",
-                              parent.data = plotStk,
-                              c.string = reqColors(3),
-                              canada.focus = can.utm,
-                              legend.key = "Predicted\nBody Fat\nRequired (g)",
-                              save.name = "fatRequired4_98_Canada",
-                              device.out = "pdf",
-                              width = 8,
-                              height = 4,
-                              unit = "in")
+# fatReq4x98 <- pairedPlotting2(x = "fatReq_4_98",
+#                               parent.data = plotStk,
+#                               c.string = reqColors(3),
+#                               canada.focus = can.utm,
+#                               legend.key = "Predicted\nBody Fat\nRequired (g)",
+#                               save.name = "fatRequired4_98_Canada",
+#                               device.out = "pdf",
+#                               width = 8,
+#                               height = 4,
+#                               unit = "in")
 
 fatReq2x100 <- pairedPlotting2(x = "fat_2_100",
                               parent.data = plotStk,
                               c.string = reqColors(3),
                               legend.key = "Predicted\nBody Fat\nRequired (g)",
                               save.name = "fatRequired2_100_pair",
-                              device.out = "pdf",
+                              device.out = "png",
                               width = 8,
                               height = 4,
                               unit = "in")
-fatReq2x100 <- pairedPlotting2(x = "fatReq_2_100",
-                              parent.data = plotStk,
-                              c.string = reqColors(3),
-                              canada.focus = can.utm,
-                              legend.key = "Predicted\nBody Fat\nRequired (g)",
-                              save.name = "fatRequired2_100_pair_Canada",
-                              device.out = "pdf",
-                              width = 8,
-                              height = 4,
-                              unit = "in")
+# fatReq2x100 <- pairedPlotting2(x = "fatReq_2_100",
+#                               parent.data = plotStk,
+#                               c.string = reqColors(3),
+#                               canada.focus = can.utm,
+#                               legend.key = "Predicted\nBody Fat\nRequired (g)",
+#                               save.name = "fatRequired2_100_pair_Canada",
+#                               device.out = "pdf",
+#                               width = 8,
+#                               height = 4,
+#                               unit = "in")
 rm(fatReq4x98,fatReq2x100,reqColors)
 gc()
 
@@ -1014,7 +1029,7 @@ a <- pairedPlotting2(x = "surv_100_2",
                      break.size = .5,
                      legend.key = "Predicted\nBody Fat\nRemaining (g)",
                      save.name = "survival_2x100", 
-                     device.out = "pdf",
+                     device.out = "png",
                      width = 8,
                      height = 4,
                      unit = "in")
@@ -1042,7 +1057,7 @@ a <- pairedPlotting2(x = "surv_100_2",
                        c.string = survColors_4x98(5),
                        legend.key = "Predicted\nBody Fat\nRemaining (g)",
                        save.name = "survival_4x98", 
-                       device.out = "pdf",
+                       device.out = "png",
                        width = 8,
                        height = 4,
                        unit = "in")
@@ -1064,18 +1079,19 @@ a <- pairedPlotting2(x = "surv_100_2",
 survColors_4x98 <- colorRampPalette(c("#fdb863",
                                       "#E8E3F0", "#BAABD2", "#8C73B5","#5E3C99"))
 doh <- quadPlot2(x = "surv",
-                c.string = survColors_4x98(6),
-                legend.key = "Predicted\nBody Fat\nRemaining (g)",
-                save.name = "survQuad", 
-                device.out = "pdf",
-                width = 10.5,
-                height = 8,
-                unit = "in")
+                 parent.data = survMini,
+                 c.string = survColors_4x98(6),
+                 legend.key = "Predicted\nBody Fat\nRemaining (g)",
+                 save.name = "survQuad", 
+                 device.out = "png",
+                 width = 10.5,
+                 height = 8,
+                 unit = "in")
 
 rm(a, q, survColors_4x98, survColors_4x98.can, survColors_2x100)
 ## Precent increase plot
 
-a <- increasedExpendaturePlot2(x <- "fatReq_4_98",
+a <- increasedExpendaturePlot2(x <- "fat_98_4",
                               parent.data = plotStk,
                               res.agg = 20,
                               text.min = 50,
@@ -1083,44 +1099,46 @@ a <- increasedExpendaturePlot2(x <- "fatReq_4_98",
                               canada.focus = NULL,
                               legend.key = "Precent\nIncreased\nFat\nRequired",
                               save.name = "precIncrease_4x98",
-                              device.out = "pdf",
+                              device.out = "png",
                               width = 6, 
                               units = "in")
-a <- increasedExpendaturePlot2(x <- "fatReq_4_98",
-                               parent.data = plotStk,
-                               res.agg = 20,
-                               text.min = 50,
-                               north.america = NA.utm,
-                               canada.focus = can.utm,
-                               legend.key = "Precent\nIncreased\nFat\nRequired",
-                               save.name = "precIncrease_4x98_Canada",
-                               device.out = "pdf",
-                               width = 6, 
-                               units = "in")
+gc()
+# a <- increasedExpendaturePlot2(x <- "fat_98_4",
+#                                parent.data = plotStk,
+#                                res.agg = 20,
+#                                text.min = 50,
+#                                north.america = NA.utm,
+#                                canada.focus = can.utm,
+#                                legend.key = "Precent\nIncreased\nFat\nRequired",
+#                                save.name = "precIncrease_4x98_Canada",
+#                                device.out = "pdf",
+#                                width = 6, 
+#                                units = "in")
+gc()
 
-
-b <- increasedExpendaturePlot2(x <- "fatReq_2_100",
+b <- increasedExpendaturePlot2(x <- "fat_100_2",
                               parent.data = plotStk,
                               res.agg = 20,
                               text.min = 50,
                               north.america = NA.utm,
                               legend.key = "Precent\nIncreased\nFat\nRequired",
                               save.name = "precIncrease_2x100",
-                              device.out = "pdf",
+                              device.out = "png",
                               width = 6, 
                               units = "in")
+gc()
 
-b <- increasedExpendaturePlot2(x <- "fatReq_2_100",
-                               parent.data = plotStk,
-                               res.agg = 20,
-                               text.min = 50,
-                               north.america = NA.utm,
-                               canada.focus = can.utm,
-                               legend.key = "Precent\nIncreased\nFat\nRequired",
-                               save.name = "precIncrease_2x100_Canada",
-                               device.out = "pdf",
-                               width = 6, 
-                               units = "in")
+# b <- increasedExpendaturePlot2(x <- "fat_100_2",
+#                                parent.data = plotStk,
+#                                res.agg = 20,
+#                                text.min = 50,
+#                                north.america = NA.utm,
+#                                canada.focus = can.utm,
+#                                legend.key = "Precent\nIncreased\nFat\nRequired",
+#                                save.name = "precIncrease_2x100_Canada",
+#                                device.out = "pdf",
+#                                width = 6, 
+#                                units = "in")
 
 
 
