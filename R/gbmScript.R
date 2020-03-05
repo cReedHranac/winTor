@@ -289,7 +289,35 @@ M.rac.brt <- gbm.step(data = mass.df,
                     bag.fraction = .8,
                     n.folds = 10)
 summary(rac.brt)
-rac.brt$
-  
+plot(rac.brt$residuals)
+cor(dur.df$winter.duration, rac.brt$residuals)
+####  Spatial GLMS ####
+ ## Methodology adapted from: https://cran.r-project.org/web/packages/glmmfields/vignettes/spatial-glms.html
+library(glmmfields)
+options(mc.cores = parallel::detectCores())  
 
+dur.glm <- glm(formula = winter.duration ~ NA_dem + NA_northing + NA_nFrostyDays,
+               data = dur.df)
+dur.glm
+confint(dur.glm)
+## checking for spatial auto corrilation
+dur.df$glm_residuals <- residuals(dur.glm)
+ggplot(dur.df, aes(Long, Lat, colour = glm_residuals)) +
+  scale_color_gradient2() +
+  geom_point(size = 3)
+## spatial GLM
+dur_spatial <- glmmfields(winter.duration ~ NA_dem + NA_northing + NA_nFrostyDays,
+                        data = dur.df, family = ,
+                        lat = "Lat", lon = "Long",
+                        nknots = 12, iter = 10000, chains = 5,
+                        prior_intercept = student_t(3, 0, 10), 
+                        prior_beta = student_t(3, 0, 3),
+                        prior_sigma = half_t(3, 0, 3),
+                        prior_gp_theta = half_t(3, 0, 10),
+                        prior_gp_sigma = half_t(3, 0, 3),
+                        seed = 123,
+                        control = list(adapt_delta = 0.99,
+                                       max_treedepth = 15)# passed to rstan::sampling()
+)
 
+plot(dur_spatial, type = "residual-vs-fitted")
