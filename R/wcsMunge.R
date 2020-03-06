@@ -26,22 +26,26 @@ raw.dat <- fread(file.path(win.dat,"winAcousticsWCS_May2020.csv"))
 
 ## set up factors
 colnames(raw.dat)[[1]] <- "Site"
+for(i in 1:nrow(raw.dat)){
+  raw.dat$Site[[i]] = as.factor(paste0(unlist(strsplit(raw.dat$Site[[i]], " "))[-length(unlist(strsplit(raw.dat$Site[[i]], " ")))],
+                          collapse = " "))  
+}
 
 library(lubridate)
 ## set up some cleanings
 dat.1 <- raw.dat %>%
-  mutate(Night = as.character.Date(Night,
-                                   format = "%d/%m/%Y")) %>%
+  mutate(Night = as.Date(Night,
+                          format = "%d/%m/%Y")) %>%
   group_by(Site) %>%
   filter(n() > 2) %>% ## this helped to remove all the names without years
   ungroup %>%
-  mutate(Year =  last(unlist(strsplit(Site, " "))),
-         Site = paste0(unlist(strsplit(Site, " "))[-length(unlist(strsplit(Site, " ")))],
-                       sep = " ")) ## Create a year)
+  mutate(Site = paste0(unlist(strsplit(Site, " "))[-length(unlist(strsplit(Site, " ")))],
+                                 collapse = " ")) %>%
+  mutate(YearN =  last(unlist(strsplit(Site, " "))),  ## Create a year of detection
+         DayofYear = lubridate::yday(Night)) ## colapse to day of year so we can look across years
 
-paste(unlist(unlist(strsplit(raw.dat$Site[[1]], " "))[-length(unlist(strsplit(raw.dat$Site[[1]], " ")))]),
-      sep = " ")
-gsub()
-
-raw.dat$Night <- as.character.Date(raw.dat$Night,
-                                   format = "%d/%m/%Y")
+## plotting the data by nights
+plot(dat.1$DayofYear, dat.1$Number)
+skim(dat.1)
+Site = as.factor(paste0(unlist(strsplit(raw.dat$Site[[1]], " "))[-length(unlist(strsplit(raw.dat$Site[[1]], " ")))],
+                        collapse = " "))
