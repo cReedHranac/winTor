@@ -89,11 +89,83 @@ serdp.newDat <- file.path("D:", "Dropbox",
 
 
 dat.clean <- fread("data/qmrCleaned.csv")
+## filter outliers
+dat.clean <- dat.clean %>%
+  filter(fat > 0.85)
+head(dat.clean)
+
+## plot the !$
+ggplot(data = dat.clean, ##mass
+       aes(x= siteName, y = mass)) +
+  geom_point()
+
+ggplot(data = dat.clean, ##fat
+       aes(x= siteName, y = fat)) +
+  geom_point()
+
+ggplot(data = dat.clean, ## lean
+       aes(x= siteName, y = lean)) +
+  geom_point()
+
+ggplot(data = dat.clean, ## forearm
+       aes(x= siteName, y = forearm)) +
+  geom_point()
+
+## proportional QMR mass
+dat.clean  <- dat.clean %>%
+  mutate(fl = fat + lean,
+         flp = fl/mass)
+
+##plot this
+ggplot(data = dat.clean, ## flp
+       aes(x= siteName, y = flp)) +
+  geom_point()
+## LCC data looks suspect af
+plot(cor(dat.clean[,c(5:8,11:12)]))
+
 ## set factors
 dat.clean$sex <- as.factor(dat.clean$sex)
 dat.clean$state <- as.factor(dat.clean$state)
 
-#### Start modleing ####
+## create thesholding for
+other <- dat.clean %>%
+  filter(siteName != "LCC")
+ggplot(data = other, ## ohter
+       aes(x= siteName, y = flp)) +
+  geom_point()
+
+dat.1 <- dat.clean %>%
+  filter(flp > .87, 
+         flp < .96)
+
+ggplot(data = dat.1, ##flp post clean
+       aes(x= siteName, y = flp)) +
+  geom_point()
+
+## visulize with sex
+ggplot(data = dat.clean, ##mass
+       aes(x= siteName, y = mass, color = sex)) +
+  geom_point()
+
+ggplot(data = dat.clean, ##fat
+       aes(x= siteName, y = fat, color = sex)) +
+  geom_point()
+
+ggplot(data = dat.clean, ## lean
+       aes(x= siteName, y = lean, color = sex)) +
+  geom_point()
+
+ggplot(data = dat.clean, ## forearm
+       aes(x= siteName, y = forearm, color = sex)) +
+  geom_point()
+
+#### New modeling ####
+fat.pred <- lm(fat ~ mass, dat.clean)
+summary(fat.pred)
+
+
+
+#### Start modleing #### The code below this point is no longer used
 #### Outlier removal ####
 ### After taking a look at the inital plots, it appears that some of the Montana
 ### bats may be outliers (one in particular has a very low amount of fat)
