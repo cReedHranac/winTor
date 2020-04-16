@@ -453,7 +453,7 @@ logReg.2- list()
     ## spring compenent
     if(max(frame$DayofYear) <= 182 && nrow(frame)>0){
       ## create missing dates
-      days <- 1:150
+      days <- 1:max(frame$DayofYear) # NB only to max date of records
       if(any(days %!in% frame$DayofYear)){
         missing <- days[days %!in% frame$DayofYear]
         missing.df <- as_tibble(cbind(unique(x$Location)[[i]], 
@@ -466,13 +466,14 @@ logReg.2- list()
         names(missing.df) <- names(frame)
         frame.filled <- bind_rows(mutate_all(frame, as.character), missing.df)  
         
-        ## fill after max date in calls
-        max.in.frame <- max(frame$DayofYear)
-        frame.filled$bi[frame.filled$DayofYear > max.in.frame] <- 1
+        # ## fill after max date in calls
+        # max.in.frame <- 
+        # frame.filled$bi[frame.filled$DayofYear > max.in.frame] <- 1
         
       } else {
         frame.filled <- frame
       }
+      
       
     }
     
@@ -481,51 +482,42 @@ logReg.2- list()
       if(exists("frame.filled")){
         ## switch structure
         frame.filled[,3:7] <- sapply(frame.filled[,3:7], as.numeric)
-        ##fit glm on the binomial
-        mod <- glm(bi ~ DayofYear, family = binomial(link = "logit"), data = frame.filled)#
-        ##fit break point
-        fit.seg<-segmented(mod, seg.Z= ~DayofYear)
-        
-        bi.est <- as.data.frame(cbind(fit.seg$psi[2], ## remove estimate
-                        fit.seg$psi[3], ## se of est
-                        fit.seg$aic))
-        names(bi.est) <- c("bi.psi",
-                           "bi.se",
-                           "bi.aic")
-        
+       
+        # ##fit glm on the binomial
+        # mod <- glm(bi ~ DayofYear, family = binomial(link = "logit"), data = frame.filled)#
+        # ##fit break point
+        # fit.seg<-segmented(mod, seg.Z= ~DayofYear, psi = 90)
+        # 
+        # bi.est <- as.data.frame(cbind(fit.seg$psi[2], ## remove estimate
+        #                 fit.seg$psi[3], ## se of est
+        #                 fit.seg$aic))
+        # names(bi.est) <- c("bi.psi",
+        #                    "bi.se",
+        #                    "bi.aic")
         
         ##fit glm on the sumcalls
-        mod <- glm(biSum ~ DayofYear, family = gaussian, data = frame.filled)#
+        mod <- glm(`Nightly Sum of all calls` ~ DayofYear, family = gaussian, data = frame.filled)#
         ##fit break point
-        fit.seg<-segmented(mod, seg.Z= ~DayofYear)
+        fit.seg<-segmented(mod, seg.Z= ~DayofYear, psi = 100)
         
-        ga.est <- cbind(fit.seg$psi[2], ## remove estimate
-                        fit.seg$psi[3], ## se of est
-                        fit.seg$aic)
-        plot(fit.seg)
-        
-        
-        
-        
-        
-        
-        
-        
-        # fitting curves
-        mod.a <- augment(mod, newdata =  data.frame(days = days), type.predict = "response")
-        out[[v]] <- cbind(mod.a,
-                          Location = unique(x$Location)[[i]],
-                          YR = unique(frame.loc$YR)[[j]])
-        # finding p=.5
-        p <- 0.5
-        est <- (log(p/(1-p)) - coef(mod.a)[1]/coef(mod.a)[2])
+        ## get everything to read out
+        conf <- confint.segmented(fit.seg)
+        ga.est <- as.data.frame(cbind(fit.seg$psi[2], ## remove estimate
+                                      fit.seg$psi[3], ## se of est
+                                      confint.segmented(fit.seg)[2], ## lower bound
+                                      confint.segmented(fit.seg)[3], ## uper bound
+                                      between(0,slope(fit.seg)[[1]][1,4], slope(fit.seg)[[1]][1,5])))
+        ## final item tests incoming slope is 0
+        names(ga.est) <- c("psi", "psi.se", "ci.low", "ci.high", "slope.test")
+
+
+       
         out.est[[v]] <- cbind(Location = unique(x$Location)[[i]],
-                              YR = levels(frame.loc$YR)[unique(frame.loc$YR)[[j]]],
-                              est = est)
+                              ga.est)
         v <- v + 1 
       }
-    }
-  }
+  
+  
   out.df <- do.call(rbind, out)
   out.est.df <- do.call(rbind, out.est)
   colnames(out.df) <- c("Week", "fitted", "se.fit", "Location", "YR")
