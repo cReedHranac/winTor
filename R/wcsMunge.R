@@ -97,10 +97,17 @@ dat.fall <- a.dat %>%
 # table(dat.fall$Location, dat.fall$YR)
 # table(dat.spring$Location, dat.spring$YR)
 
+#### Fitting a breakpoint analysis ####
+library(segmented)
+
+fit.glm<-glm(bi ~ day, weights = rep(1,nrow(a)), family=binomial(link = "logit"), data=a)
+fit.seg<-segmented(fit.glm, seg.Z=~DayofYear,psi = 25)
+summary(fit.seg)
+plot(fit.seg)
+
+
 #### Clceaning points ####
 ## must pass through .5
-
-## Take median 
 
 clean.site.years <- function(x){
   ##Function to clean by first 2 criteria
@@ -212,15 +219,15 @@ logRegSite <- function(x){
   for(i in 1:length(unique(x$Location))){
     frame <- x %>%
       filter(Location == unique(x$Location)[[i]]) %>%
-      dplyr::select(Location, Week, bi) 
+      dplyr::select(Location, DayofYear, bi) 
     #remove duplicates if they exist
     frame <- frame[!duplicated(frame),]
     
     #create missing weeks
     if(nrow(frame)>0){
-      if(max(frame$Week) <= 25){
-        weeks <- seq(1,25)
-        missing <- weeks[weeks %!in% frame$Week]
+      if(max(frame$DayofYear) <= 182){
+        days <- 1:182
+        missing <- days[days %!in% frame$DayofYear]
         missing.df <- as_tibble(cbind(unique(x$Location)[[i]], 
                                       levels(frame.loc$YR)[unique(frame.loc$YR)[[j]]],
                                       missing, 
