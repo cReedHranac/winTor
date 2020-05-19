@@ -20,15 +20,35 @@ library(data.table)
 library(skimr)
 library(broom)
 library(segmented)
+library(gridExtra)
 #### Data ####
 ## have modified the raw data from the initial sheet by seperating out the year
 ## from the site name, and removing some of metadata included in the site names
 raw.dat <- fread(file.path(win.dat,"winAcousticsWCS_May2020.csv"),
                  na.strings= "")
 
+
+## create table for checking site consolidation done manually
+out <- list()
+for(i in 1:length(unique(raw.dat$LocCode))){
+  locCode <- unique(raw.dat$LocCode)[[i]]
+  
+  a <- raw.dat%>%
+    filter(LocCode==locCode)
+  SiteNames <- unique(a$Sheet)
+  a.out <- as.data.frame(cbind(
+    LocationCode = locCode,
+    Sites = SiteNames))
+  out[[i]] <- a.out
+}
+checkTable <- do.call(bind_rows, out)
+## Seems like it's likely condensed correctly. 
+
+
+
 #### preliminary cleaning and munge ####
 ## set up names
-colnames(raw.dat)[[1]] <- "Location"
+colnames(raw.dat)[[3]] <- "Location"
 
 library(lubridate)
 ## set up some cleanings
@@ -36,9 +56,10 @@ dat.1 <- raw.dat %>%
   filter(!is.na(Number)) %>%## remove dates with no numbers (idk why they exist)
   mutate(Night = as.Date(Night, ##format dates
                           format = "%d/%m/%Y"),
-         YR = as.factor(year(Night)), ## pull years out
+         YR = as.factor(year(Night)),  ## pull years out
+         LocCode = as.factor(LocCode),
          Week = week(Night)) %>% ## potenital for fitting by week
-  group_by(Location) %>%
+  group_by(LocCode) %>%
   filter(n() > 2,## this helped to remove all the names without years
          !is.na(Night)) %>% ## remove number with no date (again idk why they exist)
   group_by(Week) %>%
@@ -46,52 +67,28 @@ dat.1 <- raw.dat %>%
   ungroup %>%
   mutate(DayofYear = lubridate::yday(Night),
          bi = 1) %>%## colapse to day of year so we can look across years
-  select(!starts_with("V")) %>% ## remove the 2 empty columns
+  # select(!starts_with("V")) %>% ## remove the 2 empty columns
   group_by(Night, Location) %>% ## fix the Nightly sum of calls column
   mutate(`Nightly Sum of all calls` = sum(Number)) %>%
   ungroup
 
-
-## Create modified spring dates to see if that works
-  ## idea <- work around so I can handel the date wrapping around 0 each year
-dat.1$DayMod <- ifelse(dat.1$DayofYear <= 182, dat.1$DayofYear + 365, dat.1$DayofYear)
-
-
-## Handling the Location name and year issue
-## will not work in mutate statments for some reason
-for(i in 1:nrow(dat.1)){
-  
-  name <- paste0(unlist(strsplit(dat.1$Location[i], " "))[-length(unlist(strsplit(dat.1$Location[i], " ")))],
-                                                  collapse = " ")
-  yr <- last(unlist(strsplit(dat.1$Location[i], " ")))
-  dat.1$Location[i] <- name
-  dat.1$YRnamed[i] <- yr
-}
-## setting as factor
-dat.1$Location <- as.factor(dat.1$Location)
-
-## maualy handeling the date issues
-## ISSUE: years in the night column can still be messed up. shouldn't need to fix
-## if I don't used that but stick to the YR column
-levels(dat.1$YR)
-dat.1$YR[which(dat.1$YR == 14)] <- 2014
-dat.1$YR[which(dat.1$YR == 15)] <- 2015
-dat.1 <- droplevels(dat.1)
+# ## Handling the Location name and year issue
+# ## will not work in mutate statments for some reason
+# for(i in 1:nrow(dat.1)){
+#   
+#   name <- paste0(unlist(strsplit(dat.1$Location[i], " "))[-length(unlist(strsplit(dat.1$Location[i], " ")))],
+#                                                   collapse = " ")
+#   yr <- last(unlist(strsplit(dat.1$Location[i], " ")))
+#   dat.1$Location[i] <- name
+#   dat.1$YRnamed[i] <- yr
+# }
 
 ## Data frame to work from 
 a.dat <- dat.1
 
 ## prelim data visulization and checking for cleaning quality
 # skim(a.dat)
-# table(a.dat$Location)
-
-
-##split to front and back halves
-dat.spring <- a.dat %>%
-  filter(DayofYear <= 182)
-
-dat.fall <- a.dat %>%
-  filter(DayofYear > 182)
+# table(a.dat$LocCode)
 
 ## creating tables to see how she looks
 # table(dat.fall$Location, dat.fall$YR)
@@ -109,15 +106,15 @@ plot(fit.seg)
 #### Clceaning points ####
 ## must pass through .5
 
-clean.site.years <- function(x){
-  ##Function to clean by first 2 criteria
-  df <- x %>%
-    group_by(Location, YR) %>%
-    filter(n() > 2) %>%
-    ungroup %>%
-    group_by(Location)
-  return(df)
-}
+# clean.site.years <- function(x){
+#   ##Function to clean by first 2 criteria
+#   df <- x %>%
+#     group_by(Location, YR) %>%
+#     filter(n() > 2) %>%
+#     ungroup %>%
+#     group_by(Location)
+#   return(df)
+# }
 
 ## create logistic regression function for site and year 
 
@@ -329,8 +326,7 @@ fallHalf <- logWrapper(dat.fall)
 ##### idea 1: #####
 ## collapse all years in 1, 
 ##    Sum binary column and fit regression to that
-a <- clean.site.years(a.dat)
-x <- a
+
 
 logReg.1 <- function(x){
   out <- list()
@@ -441,29 +437,63 @@ as.Date(paste(258,2015), format="%j %Y")
 ## collapse all years into one
 ## use date and sum of all calls to try to fit each half of the data set
   ## may need to fiddle with the range of dates avaliable to not fit double bends
-a <- clean.site.years(dat.spring)
-x <- a
+clean.site.years <- function(x){
+  ##Function to clean by first 2 criteria
+  df <- x %>%
+    group_by(LocCode, YR) %>%
+    filter(n() > 2) %>%
+    ungroup %>%
+    group_by(LocCode)
+  return(df)
+}
 
-logReg.2- list()
-  out.est <- list()
+a <- clean.site.years(a.dat)
+a <- a %>%
+  group_by(LocCode) %>%
+  filter(max(DayofYear)>=30) %>%
+  ungroup
+
+
+
+x <- a.dat
+
+hibernationEstimation <- function(x){
+  ##function to estimate the hibernation duration of bats based on audio data
+  
+  ## split into fall and spring
+  dat.spring <- x %>%
+    filter(DayofYear <= 182) %>%
+    group_by(LocCode) %>%
+    filter(max(DayofYear)>=30, 
+           n() > 5)
+  
+  dat.fall <- x %>%
+    filter(DayofYear > 182) %>%
+    group_by(LocCode) %>%
+    filter(n() >= 10)
+  
+  
+  #### Front ####
+  out.f <- list()
+  out.est.f <- list()
+  out.plot.f <- list()
   v <- 1
-  for(i in 1:length(unique(x$Location))){
-    frame.loc <- x %>%
-      filter(Location == unique(x$Location)[[i]]) %>%
-      dplyr::select(Location, YR, DayofYear, bi, `Nightly Sum of all calls`) %>%
+  for(i in 1:length(unique(dat.spring$LocCode))){
+    frame.loc <- dat.spring %>%
+      filter(LocCode == unique(dat.spring$LocCode)[[i]]) %>%
+      dplyr::select(LocCode, YR, DayofYear, bi, `Nightly Sum of all calls`) %>%
       group_by(DayofYear) %>%
       mutate(biSum = n(),
              callSum = sum(`Nightly Sum of all calls`)) %>%
       ungroup()
     frame <- frame.loc[!duplicated(frame.loc),]
     
-    ## spring compenent
     if(max(frame$DayofYear) <= 182 && nrow(frame)>0){
       ## create missing dates
       days <- 1:max(frame$DayofYear) # NB only to max date of records
       if(any(days %!in% frame$DayofYear)){
         missing <- days[days %!in% frame$DayofYear]
-        missing.df <- as_tibble(cbind(unique(x$Location)[[i]], 
+        missing.df <- as_tibble(cbind(unique(dat.spring$LocCode)[[i]], 
                                       "fill",
                                       missing, 
                                       0, #bi
@@ -481,61 +511,163 @@ logReg.2- list()
         frame.filled <- frame
       }
       
-      
     }
     
-      
       #Run the glm if the data exists
       if(exists("frame.filled")){
         ## switch structure
         frame.filled[,3:7] <- sapply(frame.filled[,3:7], as.numeric)
        
-        # ##fit glm on the binomial
-        # mod <- glm(bi ~ DayofYear, family = binomial(link = "logit"), data = frame.filled)#
+        # # ##fit glm on the binomial
+        # mod <- lm(bi ~ DayofYear, data = frame.filled)#
         # ##fit break point
-        # fit.seg<-segmented(mod, seg.Z= ~DayofYear, psi = 90)
-        # 
-        # bi.est <- as.data.frame(cbind(fit.seg$psi[2], ## remove estimate
-        #                 fit.seg$psi[3], ## se of est
-        #                 fit.seg$aic))
-        # names(bi.est) <- c("bi.psi",
-        #                    "bi.se",
-        #                    "bi.aic")
+        # fit.seg<-segmented(mod, seg.Z= ~DayofYear) #, psi = 90
+        # conf <- confint.segmented(fit.seg)
+        # lm.bi <- as.data.frame(cbind(fit.seg$psi[2], ## remove estimate
+        #                               fit.seg$psi[3], ## se of est
+        #                               confint.segmented(fit.seg)[2], ## lower bound
+        #                               confint.segmented(fit.seg)[3], ## uper bound
+        #                               between(0,slope(fit.seg)[[1]][1,4], slope(fit.seg)[[1]][1,5])))
+        # names(lm.bi) <- c("psi", "psi.se", "ci.low", "ci.high", "slope.test")
         
-        ##fit glm on the sumcalls
-        mod <- glm(`Nightly Sum of all calls` ~ DayofYear, family = gaussian, data = frame.filled)#
+        ##fit lm on the binary
+        mod <- lm(biSum ~ DayofYear, data = frame.filled)#
         ##fit break point
-        fit.seg<-segmented(mod, seg.Z= ~DayofYear, psi = 100)
+        fit.seg<-segmented(mod, seg.Z= ~DayofYear) #, psi = 90
         
         ## get everything to read out
         conf <- confint.segmented(fit.seg)
-        ga.est <- as.data.frame(cbind(fit.seg$psi[2], ## remove estimate
+        lm.sum <- as.data.frame(cbind(fit.seg$psi[2], ## remove estimate
                                       fit.seg$psi[3], ## se of est
                                       confint.segmented(fit.seg)[2], ## lower bound
                                       confint.segmented(fit.seg)[3], ## uper bound
                                       between(0,slope(fit.seg)[[1]][1,4], slope(fit.seg)[[1]][1,5])))
         ## final item tests incoming slope is 0
-        names(ga.est) <- c("psi", "psi.se", "ci.low", "ci.high", "slope.test")
+        names(lm.sum) <- c("psi", "psi.se", "ci.low", "ci.high", "slope.test")
 
-
-       
-        out.est[[v]] <- cbind(Location = unique(x$Location)[[i]],
-                              ga.est)
+        out.est.f[[v]] <- cbind(LocCode = unique(dat.spring$LocCode)[[i]],
+                                    lm.sum, test = "lm.sum")
+        
+        ##plot compenents
+        out.plot.f[[v]] <- ggplot(frame.filled, aes(x= DayofYear, y = biSum)) +
+          # geom_tile(paste0("site ", unique(x$LocCode)[[i]] ))+
+          xlim(60, 180)+
+          geom_line() +
+          geom_vline(xintercept = lm.sum$psi, color = "red") +
+          theme_bw() + annotate("text", x= 90, y = 0,
+                                label= unique(dat.spring$LocCode)[[i]])
         v <- v + 1 
       }
   
+  }
+  out.df <- do.call(rbind, out.est.f)
   
-  out.df <- do.call(rbind, out)
-  out.est.df <- do.call(rbind, out.est)
-  colnames(out.df) <- c("Week", "fitted", "se.fit", "Location", "YR")
   ## Fiter for those not within range and without the requirements mentioned above
   est.df <- as.data.frame(out.est.df, row.names = NULL)
   rownames(est.df) <- NULL; est.df$est <- as.numeric(est.df$est)
+  
+  
+  #### Back ####
+  out.b <- list()
+  out.est.b <- list()
+  out.plot.b <- list()
+  v <- 1
+  for(i in 1:length(unique(dat.fall$LocCode))){
+    frame.loc <- dat.fall %>%
+      filter(LocCode == unique(dat.fall$LocCode)[[i]]) %>%
+      dplyr::select(LocCode, YR, DayofYear, bi, `Nightly Sum of all calls`) %>%
+      group_by(DayofYear) %>%
+      mutate(biSum = n(),
+             callSum = sum(`Nightly Sum of all calls`)) %>%
+      ungroup()
+    frame <- frame.loc[!duplicated(frame.loc),]
+    
+    if(min(frame$DayofYear) >= 182 && nrow(frame)>0){
+      ## create missing dates
+    
+      days <- min(frame$DayofYear):365 # NB only to max date of records
+      if(any(days %!in% frame$DayofYear)){
+        missing <- days[days %!in% frame$DayofYear]
+        missing.df <- as_tibble(cbind(unique(dat.fall$LocCode)[[i]], 
+                                      "fill",
+                                      missing, 
+                                      0, #bi
+                                      0, #Nighly Sum
+                                      0, #biSum
+                                      0)) ##callSum
+        names(missing.df) <- names(frame)
+        frame.filled <- bind_rows(mutate_all(frame, as.character), missing.df)  
+        
+        # ## fill after max date in calls
+        # max.in.frame <- 
+        # frame.filled$bi[frame.filled$DayofYear > max.in.frame] <- 1
+        
+      } else {
+        frame.filled <- frame
+      }
+      
+    }
+    
+    #Run the glm if the data exists
+    if(exists("frame.filled")){
+      ## switch structure
+      frame.filled[,3:7] <- sapply(frame.filled[,3:7], as.numeric)
+      
+      # # ##fit glm on the binomial
+      # mod <- lm(bi ~ DayofYear, data = frame.filled)#
+      # ##fit break point
+      # fit.seg<-segmented(mod, seg.Z= ~DayofYear) #, psi = 90
+      # conf <- confint.segmented(fit.seg)
+      # lm.bi <- as.data.frame(cbind(fit.seg$psi[2], ## remove estimate
+      #                               fit.seg$psi[3], ## se of est
+      #                               confint.segmented(fit.seg)[2], ## lower bound
+      #                               confint.segmented(fit.seg)[3], ## uper bound
+      #                               between(0,slope(fit.seg)[[1]][1,4], slope(fit.seg)[[1]][1,5])))
+      # names(lm.bi) <- c("psi", "psi.se", "ci.low", "ci.high", "slope.test")
+      
+      ##fit lm on the binary
+      mod <- lm(callSum ~ DayofYear, data = frame.filled)#
+      ##fit break point
+      fit.seg<-segmented(mod, seg.Z= ~DayofYear, psi = 273) #, psi = 90
+      
+      ## get everything to read out
+      conf <- confint.segmented(fit.seg)
+      lm.sum <- as.data.frame(cbind(fit.seg$psi[2], ## remove estimate
+                                    fit.seg$psi[3], ## se of est
+                                    confint.segmented(fit.seg)[2], ## lower bound
+                                    confint.segmented(fit.seg)[3], ## uper bound
+                                    between(0,slope(fit.seg)[[1]][1,4], slope(fit.seg)[[1]][1,5])))
+      ## final item tests incoming slope is 0
+      names(lm.sum) <- c("psi", "psi.se", "ci.low", "ci.high", "slope.test")
+      
+      out.est.b[[v]] <- cbind(LocCode = unique(dat.fall$LocCode)[[i]],
+                              lm.sum, test = "lm.sum")
+      
+      ##plot compenents
+      out.plot.b[[v]] <- ggplot(frame.filled, aes(x= DayofYear, y = callSum)) +
+        # geom_tile(paste0("site ", unique(x$LocCode)[[i]] ))+
+        xlim(200, 360)+
+        geom_line() +
+        geom_vline(xintercept = lm.sum$psi, color = "red") +
+        theme_bw() + annotate("text", x= 210, y = 0,
+                              label= unique(dat.fall$LocCode)[[i]])
+      v <- v + 1 
+    }
+    
+  }
+  out.df.b <- do.call(rbind, out.est.b)
+  
+  
+  
+  
+  
+  
+  
   out.est.df <- est.df %>%
-    group_by(Location, YR) %>%
+    group_by(LocCode, YR) %>%
     filter(est %in% weeks) %>%
     ungroup %>%
-    group_by(Location) %>%
+    group_by(LocCode) %>%
     # filter(any(length(unique(YR)) >= 2)) %>%
     summarise(est.med = median(est))
   
@@ -545,3 +677,24 @@ logReg.2- list()
   return(out.list)
   
 }
+
+
+
+
+
+
+for(i in 1:length(out.plot.f)){
+      }
+
+out.plot.f[[4]]
+
+out.plot.f[[10]]
+
+out.plot.f[[31]]
+
+out.plot.f[[53]]
+
+out.plot.f[[61]]
+plot(bi~DayofYear, foo)
+foo <- dat.fall %>%
+  filter(LocCode ==18)
