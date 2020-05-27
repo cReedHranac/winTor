@@ -26,37 +26,6 @@ win.res <- file.path(base.path, "Results")
 
 ##packages
 library(tidyverse);library(gbm); library(raster)
-#### Functions ####
-mod.form <- function(x, coVar){
-  ##Function to write out the formulas for me
-  ## x is to be the item predicted
-  ## covar is to be a list of the names oc covariates
-  
-  #univariate models
-  l1 <- list()
-  for(i in 1:length(coVar)){
-    l1[[i]] <- as.formula(paste(x,"~",coVar[[i]]))
-  }
-  
-  #with Norhting
-  coVar2 <- coVar[-2]
-  l2 <- list()
-  for(i in 1:length(coVar2)){
-    l2[[i]] <- as.formula(paste(x,"~",coVar[[2]],"+",coVar2[[i]]))
-  }
-  
-  #with Northing and DEM
-  coVar3 <- coVar[3:length(coVar)]
-  l3 <- list()
-  for(i in 1:length(coVar3)){
-    l3[[i]] <- as.formula(paste(x,"~",coVar[[2]],"+",coVar[[1]],"+",coVar3[[i]]))
-  }
-  
-  list.mods <- c(l1, l2, l3)
-  
-  return(list.mods)
-}
-
 #### Data ####
 dur <- read.csv("data/durationDataReferenced.csv")
 mass <- read.csv("data/massDataReferenced.csv")
@@ -283,6 +252,37 @@ moran.mc(dur$RESID, listw = nn.list, nsim = 999)
 ## lagrange multiplier - another test for spatial effects
 lm.LMtests(dur.mods[[12]], listw = nn.list, test = "all")
 
+#### Predictions and confidence bounds ####
+glmRasterIntervals <- function(model, coVars, outName){
+  conffun <- function(model, data = NULL) {
+    v <- predict.glm(object = model,
+                     newdata = data,
+                     type = "link", 
+                     se.fit = T)
+    pred.out <- cbind(p=v$fit,
+                      lwr = (v$fit - (v$se.fit*1.96)),
+                      upr = (v$fit + (v$se.fit*1.95)))
+    
+  return(pred.out)  
+  }
+  
+  conf.int <- raster::predict(model, object = coVars, fun = conffun, index = 1:3)
+  names(conf.int) <- c("p", "lwr", "upr")
+  
+  writeRaster(x = conf.int,
+              filename = file.path(win.res, outName),
+              format = "GTiff",
+              bylayer = T,
+              suffix = "names",
+              overwrite = T)
+  
+}
+
+dur.top.form <- mod.form("winter.duration",coVar = env.names)[[12]]
+dur.top.mod <- dur.mods[[12]]
+a <- glmRasterIntervals(dur.top.mod,
+                  coVars = env.stk,
+                  outName = "durationRaster")
 ####  Mass  analysis ####
 
 #spatial error model (not apparently necessary here, just to demonstrate)
