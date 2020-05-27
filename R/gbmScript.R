@@ -531,8 +531,6 @@ moran.mc(mass$RESID, listw = nn.list, nsim = 999)
 lm.LMtests(mass.mods[[10]], listw = nn.list, test = "all")
 
 ## significant auto-correlation among the residuals
-spatial.error <- errorsarlm(mass.mods[[10]], data = mass, listw = nn.list)
-summary(spatial.error)
 
 
 #### Predictions and confidence bounds ####
@@ -561,28 +559,27 @@ glmRasterIntervals <- function(model, coVars, outName){
   
 }
 
-dur.top.form <- mod.form("winter.duration",coVar = env.names)[[12]]
-dur.top.mod <- dur.mods[[12]]
-a <- glmRasterIntervals(dur.top.mod,
+mass.top.form <- mod.form("avgMass",coVar = env.names)[[10]]
+mass.top.mod <- mass.mods[[10]]
+a <- glmRasterIntervals(mass.top.mod,
                         coVars = env.stk,
-                        outName = "durationRaster")
+                        outName = "massRaster")
 
 
-#spatial error model (not apparently necessary here, just to demonstrate)
-#just one way to deal with spatial effects/spatially correlated residuals if they do exist
-spatial.error <- errorsarlm(model, data = tl.narm, listw = nn.list)
-summary(spatial.error)
+ggplot(mass@data, aes(Long, Lat, colour = RESID)) +
+  scale_color_gradient2() +
+  geom_point(size = 3)
 
 
 
 #### Variogram of the top models ####
 library(gstat)
 
-#top model duration
-dur.mod <- formula(dur.mods[[12]])
+#top model mass
+mass.mod
 
-v <- variogram(dur.mod,
-               data = dur)
+v <- variogram(mass.mod,
+               data = mass)
 v.exp = fit.variogram(v, vgm("Exp"), fit.kappa = T)
 v.mat <- fit.variogram(v, vgm("Mat"), fit.kappa = T)
 v.sph <- fit.variogram(v, vgm("Sph"), fit.kappa = T)
@@ -594,16 +591,16 @@ plot(v, v.mat)
 plot(v, v.sph)
 
 library(gridExtra)
-Variogram.dur <- grid.arrange(plot(v, v.exp),
+Variogram.mass <- grid.arrange(plot(v, v.exp),
                               plot(v, v.mat),
                               plot(v, v.sph),
                               ncol = 1)
 
-ggsave( file.path(win.res,"fig", "varioDuration.pdf"),
-        plot = Variogram.dur,
+ggsave( file.path(win.res,"fig", "varioMass.pdf"),
+        plot = Variogram.mass,
         device = cairo_pdf)
 
-
+#### Sandbox Below ####
 
 #
 mass.df <- mass.df[-which(mass.df$avgMass==14.5),]
