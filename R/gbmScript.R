@@ -257,13 +257,10 @@ glmRasterIntervals <- function(model, coVars, outName){
   conffun <- function(model, data = NULL) {
     v <- predict.glm(object = model,
                      newdata = data,
-                     type = "link", 
-                     se.fit = T)
-    pred.out <- cbind(p=v$fit,
-                      lwr = (v$fit - (v$se.fit*1.96)),
-                      upr = (v$fit + (v$se.fit*1.95)))
+                     type = "response",
+                     interval = "prediction")
     
-  return(pred.out)  
+  return(v)  
   }
   
   conf.int <- raster::predict(model, object = coVars, fun = conffun, index = 1:3)
