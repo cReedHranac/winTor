@@ -531,6 +531,92 @@ moran.mc(mass$RESID, listw = nn.list, nsim = 999)
 lm.LMtests(mass.mods[[10]], listw = nn.list, test = "all")
 
 ## significant auto-correlation among the residuals
+#### attempts at spatial GLM ####
+## Methodology adapted from: https://cran.r-project.org/web/packages/glmmfields/vignettes/spatial-glms.html
+library(glmmfields)
+options(mc.cores = parallel::detectCores())  
+system.time(
+mass_spatial <- glmmfields(mass.top.form,
+                          data = mass@data,
+                          lat = "Lat", lon = "Long",
+                          nknots = 6, iter = 10000, chains = 5,
+                          prior_intercept = student_t(3, 0, 10), 
+                          prior_beta = student_t(3, 0, 3),
+                          prior_sigma = half_t(3, 0, 3),
+                          prior_gp_theta = half_t(3, 0, 10),
+                          prior_gp_sigma = half_t(3, 0, 3),
+                          seed = 123,
+                          control = list(adapt_delta = 0.99,
+                                         max_treedepth = 15)# passed to rstan::sampling()
+))
+
+plot(mass_spatial, type = "spatial-residual", link = TRUE) +
+  geom_point(size = 3)
+## looks much better
+plot(mass_spatial, type = "residual-vs-fitted")
+plot(mass_spatial, type = "prediction", link = FALSE) +
+  viridis::scale_colour_viridis() +
+  geom_point(size = 3)
+# link scale:
+p <- predict(mass_spatial)
+head(p)
+p <- predict(mass_spatial, type = "response")
+head(p)
+## what am I missing here? shouldnt there be a difference?
+# prediction intervals on new observations (include observation error):
+p <- predict(mass_spatial, type = "response", interval = "prediction")
+## ^ I presume that this is what I should use?
+ 
+## See if we can adapt
+
+glmfieldsRasterIntervals <- function(top.model, coVars, outName){
+  conffun <- function(model, data = NULL) {
+    v <- predict(object = top.model,
+                     newdata = coVars,
+                     type = "response", 
+                     interval = "prediction")
+    # pred.out <- cbind(p=v$fit,
+    #                   lwr = (v$fit - (v$se.fit*1.96)),
+    #                   upr = (v$fit + (v$se.fit*1.95)))
+    
+    return(v)  
+  }
+  
+  conf.int <- raster::predict(top.model, object = coVars, fun = conffun, index = 1:3)
+  names(conf.int) <- c("p", "lwr", "upr")
+  
+  writeRaster(x = conf.int,
+              filename = file.path(win.res, outName),
+              format = "GTiff",
+              bylayer = T,
+              suffix = "names",
+              overwrite = T)
+  
+}
+
+
+massPred <- glmfieldsRasterIntervals(mass_spatial, 
+                                     coVars = env.stk,
+                                     outName = "massSpatialRaster")
+
+a <- raster::predict(object = env.stk, model = mass_spatial)
+a2 <- predict(object = mass_spatial,
+              newdata = env.stk,
+              type = "response",
+              interval = "prediction",
+              na.action = "pass")
+## prediction is being a jerk...
+## work around could be to:
+  ## turn to data frame
+  ## add cell column
+  ## add columns for lat and long
+  ## remove all non-complete rows
+  ## predict across through the standard function
+  ## fill back the predicted values into the raster cells manually
+env.df <- as.data.frame(env.stk)
+
+
+
 
 
 #### Predictions and confidence bounds ####
