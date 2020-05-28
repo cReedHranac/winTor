@@ -613,10 +613,15 @@ a2 <- predict(object = mass_spatial,
   ## remove all non-complete rows
   ## predict across through the standard function
   ## fill back the predicted values into the raster cells manually
-env.df <- as.data.frame(env.stk)
-
-
-
+env.df <- as.data.frame(rasterToPoints(env.stk))
+env.df <- env.df %>%
+  dplyr::select(x, y, NA_northing, NA_nDaysFreeze)
+colnames(env.df)[1:2] <- c("Long", "Lat")
+mass.pred <- predict(object = mass_spatial,
+                     newdata = env.df,
+                     type = "response",
+                     interval = "prediction",
+                     na.action = "pass")
 
 
 #### Predictions and confidence bounds ####
