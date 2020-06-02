@@ -25,7 +25,7 @@ win.res <- file.path(base.path, "Results")
 '%!in%' <- function(x,y)!('%in%'(x,y))
 
 ##packages
-library(tidyverse);library(gbm); library(raster)
+library(tidyverse);library(gbm); library(raster); library(spdep)
 #### Data ####
 dur <- read.csv("data/durationDataReferenced.csv")
 mass <- read.csv("data/massDataReferenced.csv")
@@ -533,7 +533,7 @@ lm.LMtests(mass.mods[[10]], listw = nn.list, test = "all")
 library(glmmfields)
 options(mc.cores = parallel::detectCores())  
 system.time(
-mass_spatial <- glmmfields(mass.top.form,
+mass_spatial <- glmmfields(mass.mod,
                           data = mass@data,
                           lat = "Lat", lon = "Long",
                           nknots = 6, iter = 10000, chains = 5,
@@ -621,6 +621,40 @@ mass.pred <- predict(object = mass_spatial,
                      na.action = "pass")
 
 
+## Raster method attempt 
+env.stk$Long <- xFromCell(env.stk[[1]], cell = 1:ncell(env.stk))
+env.stk$Lat <- yFromCell(env.stk[[1]],  cell = 1:ncell(env.stk))
+
+# test <- raster::predict(env.stk, model =mass_spatial )
+## Fail. memory overload 15777 Gb
+
+## lapply acorss
+env.df <- as.data.frame(env.stk) ## create dataframe
+env.df$cell <- 1:nrow(env.stk) ## add cell reference
+env.slim <- env.df[complete.cases(env.df),] ## select complete cases only
+# env.slim <- sapply(env.slim, as.numeric) ## doesnt solve
+# env.pred <- apply(env.slim, 1, predict,
+#                   object = mass_spatial,
+#                   type = "response",
+#                   interval = "prediction")
+## ^ doesnt work
+
+my.predict <- function(x){
+  predict(object = mass_spatial,
+                      newdata = as.tbl(x),
+                      type = "response",
+                      interval = "prediction"
+          )
+}
+
+env.pred <- apply(env.slim, 1, my.predict)
+# Error in UseMethod("as.tbl") : 
+#  no applicable method for 'as.tbl' applied to an object of class
+#  "c('double', 'numeric')"
+
+## I dont understand why this won't work. the env.slim data can be coheresed 
+## with the as.tbl arg
+  
 #### Predictions and confidence bounds ####
 glmRasterIntervals <- function(model, coVars, outName){
   conffun <- function(model, data = NULL) {
