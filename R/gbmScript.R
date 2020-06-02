@@ -25,7 +25,7 @@ win.res <- file.path(base.path, "Results")
 '%!in%' <- function(x,y)!('%in%'(x,y))
 
 ##packages
-library(tidyverse);library(gbm); library(raster)
+library(tidyverse);library(gbm); library(raster); library(spdep)
 #### Data ####
 dur <- read.csv("data/durationDataReferenced.csv")
 mass <- read.csv("data/massDataReferenced.csv")
@@ -533,7 +533,7 @@ lm.LMtests(mass.mods[[10]], listw = nn.list, test = "all")
 library(glmmfields)
 options(mc.cores = parallel::detectCores())  
 system.time(
-mass_spatial <- glmmfields(mass.top.form,
+mass_spatial <- glmmfields(mass.mod,
                           data = mass@data,
                           lat = "Lat", lon = "Long",
                           nknots = 6, iter = 10000, chains = 5,
@@ -566,42 +566,42 @@ p <- predict(mass_spatial, type = "response", interval = "prediction")
  
 ## See if we can adapt
 
-glmfieldsRasterIntervals <- function(top.model, coVars, outName){
-  conffun <- function(model, data = NULL) {
-    v <- predict(object = top.model,
-                     newdata = coVars,
-                     type = "response", 
-                     interval = "prediction")
-    # pred.out <- cbind(p=v$fit,
-    #                   lwr = (v$fit - (v$se.fit*1.96)),
-    #                   upr = (v$fit + (v$se.fit*1.95)))
-    
-    return(v)  
-  }
-  
-  conf.int <- raster::predict(top.model, object = coVars, fun = conffun, index = 1:3)
-  names(conf.int) <- c("p", "lwr", "upr")
-  
-  writeRaster(x = conf.int,
-              filename = file.path(win.res, outName),
-              format = "GTiff",
-              bylayer = T,
-              suffix = "names",
-              overwrite = T)
-  
-}
+# glmfieldsRasterIntervals <- function(top.model, coVars, outName){
+#   conffun <- function(model, data = NULL) {
+#     v <- predict(object = top.model,
+#                      newdata = coVars,
+#                      type = "response", 
+#                      interval = "prediction")
+#     # pred.out <- cbind(p=v$fit,
+#     #                   lwr = (v$fit - (v$se.fit*1.96)),
+#     #                   upr = (v$fit + (v$se.fit*1.95)))
+#     
+#     return(v)  
+#   }
+#   
+#   conf.int <- raster::predict(top.model, object = coVars, fun = conffun, index = 1:3)
+#   names(conf.int) <- c("p", "lwr", "upr")
+#   
+#   writeRaster(x = conf.int,
+#               filename = file.path(win.res, outName),
+#               format = "GTiff",
+#               bylayer = T,
+#               suffix = "names",
+#               overwrite = T)
+#   
+# }
+# 
+# 
+# massPred <- glmfieldsRasterIntervals(mass_spatial, 
+#                                      coVars = env.stk,
+#                                      outName = "massSpatialRaster")
 
-
-massPred <- glmfieldsRasterIntervals(mass_spatial, 
-                                     coVars = env.stk,
-                                     outName = "massSpatialRaster")
-
-a <- raster::predict(object = env.stk, model = mass_spatial)
-a2 <- predict(object = mass_spatial,
-              newdata = env.stk,
-              type = "response",
-              interval = "prediction",
-              na.action = "pass")
+# a <- raster::predict(object = env.stk, model = mass_spatial)
+# a2 <- predict(object = mass_spatial,
+#               newdata = env.stk,
+#               type = "response",
+#               interval = "prediction",
+#               na.action = "pass")
 ## prediction is being a jerk...
 ## work around could be to:
   ## turn to data frame
@@ -610,17 +610,52 @@ a2 <- predict(object = mass_spatial,
   ## remove all non-complete rows
   ## predict across through the standard function
   ## fill back the predicted values into the raster cells manually
-env.df <- as.data.frame(rasterToPoints(env.stk))
-env.df <- env.df %>%
-  dplyr::select(x, y, NA_northing, NA_nDaysFreeze)
-colnames(env.df)[1:2] <- c("Long", "Lat")
-mass.pred <- predict(object = mass_spatial,
-                     newdata = env.df,
-                     type = "response",
-                     interval = "prediction",
-                     na.action = "pass")
+# env.df <- as.data.frame(rasterToPoints(env.stk))
+# env.df <- env.df %>%
+#   dplyr::select(x, y, NA_northing, NA_nDaysFreeze)
+# colnames(env.df)[1:2] <- c("Long", "Lat")
+# mass.pred <- predict(object = mass_spatial,
+#                      newdata = env.df,
+#                      type = "response",
+#                      interval = "prediction",
+#                      na.action = "pass")
+# ^ fail
 
 
+## Raster method attempt 
+env.stk$Long <- xFromCell(env.stk[[1]], cell = 1:ncell(env.stk))
+env.stk$Lat <- yFromCell(env.stk[[1]],  cell = 1:ncell(env.stk))
+
+# test <- raster::predict(env.stk, model =mass_spatial )
+## Fail. memory overload 15777 Gb
+
+## lapply acorss
+env.df <- as.data.frame(env.stk) ## create dataframe
+env.df$cell <- 1:nrow(env.stk) ## add cell reference
+env.slim <- env.df[complete.cases(env.df),] ## select complete cases only
+# env.slim <- sapply(env.slim, as.numeric) ## doesnt solve
+# env.pred <- apply(env.slim, 1, predict,
+#                   object = mass_spatial,
+#                   type = "response",
+#                   interval = "prediction")
+## ^ doesnt work
+
+my.predict <- function(x){
+  predict(object = mass_spatial,
+                      newdata = as.tbl(x),
+                      type = "response",
+                      interval = "prediction"
+          )
+}
+
+env.pred <- apply(env.slim, 1, my.predict)
+# Error in UseMethod("as.tbl") : 
+#  no applicable method for 'as.tbl' applied to an object of class
+#  "c('double', 'numeric')"
+
+## I dont understand why this won't work. the env.slim data can be coheresed 
+## with the as.tbl arg
+  
 #### Predictions and confidence bounds ####
 glmRasterIntervals <- function(model, coVars, outName){
   conffun <- function(model, data = NULL) {
