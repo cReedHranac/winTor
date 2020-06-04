@@ -629,6 +629,49 @@ env.stk$Lat <- yFromCell(env.stk[[1]],  cell = 1:ncell(env.stk))
 # test <- raster::predict(env.stk, model =mass_spatial )
 ## Fail. memory overload 15777 Gb
 
+### Start JM
+
+# our prediction function - returns matrix of 3 columns
+conffun <- function(model, data = NULL, iter='all') {
+  v <- predict(object = model,
+               newdata = data,
+               type = "response",
+               interval = "prediction",
+               iter = iter)
+  return(as.matrix(v))  
+}
+
+# change raster options to have way lower chunksize to help
+# fit into memory. Can maybe increase this?
+raster::rasterOptions(chunksize=1e5)
+
+# vertical slice of 560k cells using 1k iterations takes 12 mins
+test <- crop(env.stk, extent(env.stk, 1, 5160, 8000, 8100)) 
+system.time(conf.int <- raster::predict(model = mass_spatial, object = test, fun = conffun, 
+                                        progress = 'text', index=1:3,
+                                        iter=1000))
+
+prod(dim(env.stk)/dim(test)) # multiplyer for how long the whole thing takes
+
+# try parallelism?
+library(cluster)
+library(parallel)
+
+# parallel using 4 cores and 1k iterations takes 50 mins for 5.6M cells
+test2 <- crop(env.stk, extent(env.stk, 1, 5160, 8000, 9000))
+prod(dim(env.stk)/dim(test2)) # multiplier for how long
+beginCluster(4)
+system.time({
+  r.prob.Cluster<-clusterR(test2, fun=predict, args=list(model=mass_spatial,
+                                                         fun=conffun,
+                                                         progress='text',
+                                                         index=1:3,
+                                                         iter=1000))
+})
+endCluster() #delete the cluster
+
+### END JM
+
 ## lapply acorss
 env.df <- as.data.frame(env.stk) ## create dataframe
 env.df$cell <- 1:nrow(env.stk) ## add cell reference
