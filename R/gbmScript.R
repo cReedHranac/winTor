@@ -8,16 +8,16 @@
 ## conserving the first portion of the LM crossvalidation to remove outliers
 
 #### Extra Paths####
-# if (!exists('base.path')) {
-#   if(.Platform$"OS.type" == "windows"){
-#     base.path = file.path("D:", "Dropbox", "wintor_aux")
-#   } else {
-#     base.path = "~/Dropbox/winTor_aux"
-#   }
-# }
+if (!exists('base.path')) {
+  if(.Platform$"OS.type" == "windows"){
+    base.path = file.path("D:", "Dropbox", "wintor_aux")
+  } else {
+    base.path = "~/Dropbox/winTor_aux"
+  }
+}
 
 ## path for new laptop since there are no partitions 
-base.path = file.path("C:","Users","chran","Dropbox","winTor_aux")
+# base.path = file.path("C:","Users","chran","Dropbox","winTor_aux")
 
 win.dat <- file.path(base.path, "data")
 win.res <- file.path(base.path, "Results")
@@ -669,6 +669,26 @@ system.time({
                                                          iter=1000))
 })
 endCluster() #delete the cluster
+
+
+## applting to full
+beginCluster(4)
+system.time({
+  r.prob.Cluster<-clusterR(env.stk, fun=predict, args=list(model=mass_spatial,
+                                                         fun=conffun,
+                                                         progress='text',
+                                                         index=1:3,
+                                                         iter=1000))
+})
+endCluster() #delete the cluster
+
+
+names(r.prob.Cluster) <- c("est", "lwr", "upr")
+writeRaster(r.prob.Cluster,
+            filename = file.path(win.res, "mass.tif"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "names")
 
 ### END JM
 
