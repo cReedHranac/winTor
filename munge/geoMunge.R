@@ -1,45 +1,41 @@
-## wintorLength geoMunge ###
+#### wintorLength geoMunge ####
+#### author: C.Reed Hranac ####
+
+## tested date: 13 June 2020
+
   ## Create spatial layers for project
-  ## Set to North American extent
+  ## Set to North American extent and resolution
+  ## write out into external data location
 
-##Links
-## Extra Paths
-if (!exists('base.path')) {
-  if(.Platform$"OS.type" == "windows"){
-    base.path = file.path("D:", "Dropbox", "wintor_aux")
-  } else {
-    base.path = "~/Dropbox/winTor_aux"
-  }
-}
 
-win.dat <- file.path(base.path, "data")
-win.res <- file.path(base.path, "Results")
-
-NA.Clim <- file.path("D:", "NA_NORM_8110_Bioclim_ASCII")
-NA.Ref <- file.path("D:", "NA_Reference_files_ASCII")
-data.dir <- file.path("D:/", "Dropbox","winTor_aux" , "data")
-worldClim <- file.path("D:", "WorldClim", "bclim")
-spring <- file.path(file.path(win.dat,"FBI_FLI"))
-
-## libraries
+## libraries used within
 library(raster); library(rgdal)
 
-## Create base layer for extent, resolution and projection (also temperature for later)
-mat <- raster(file.path(worldClim, "bio_1.bil"))
-mat.corrected <- calc(mat, function(x) x/10) #correcting the units from source
-NA.extent <- c(-172.3, -52,23.5,66.5) #extent of NA from artic circle to tropics
-mat.cropped <- crop(mat.corrected, NA.extent) #crop to NA extent
-rm(mat, mat.corrected) # clean
+## take snapshot of whats in the environment before
+env.prior <- ls()
 
-## October - April Layer #Static layer
+
+## Create layer for extent, resolution and projection 
+## this segment creates the data projection used throughout the project
+## based on the standard projection and resolution used in the bioclim products
+## available through the raster::getData function. For ease I have put a 
+## template raster in the data directory for this project that has already 
+## been cropped to the extent
+
+# mat <- raster(file.path(worldClim, "bio_1.bil")) ## mean anual temperature
+# mat.corrected <- calc(mat, function(x) x/10) #correcting the units from source
+# NA.extent <- c(-172.3, -52,23.5,66.5) #extent of NA from artic circle to tropics
+# mat.cropped <- crop(mat.corrected, NA.extent) #crop to NA extent
+# rm(mat, mat.corrected) # clean
+
+## template raster
+mat <- raster("data/NA_mat.tif")
+
+## Handling the NA Climate layers used
 NA.raster <- raster(file.path(NA.Ref, "ClimateNA_ID.asc"))
 lcc.proj <- "+proj=lcc +lat_1=49 +lat_2=77 +lat_0=0 +lon_0=-95 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs"
-  #reclassify to static value
-m <- c(-Inf,-1,NA,0,
-       cellStats(NA.raster, max),182)
-NA.182 <- reclassify(NA.raster,m)
-names(NA.182) <- "staticWinter"
-rm(NA.raster, m)
+proj4string(NA.raster) <- lcc.proj
+
 
 ## Number of frosty days (Inverse of the NFFD layer)
 nffd <- raster(file.path(NA.Clim, "NFFD.asc"))
@@ -55,46 +51,53 @@ ngd <- calc(dd5, fun = function(x) 365-(x/10000)*365) #Correct from % year and g
 names(ngd) <- "nonGrowingDays"
 rm(dd5)
 
-## Lattitude raster layer
-northing <- init(mat.cropped,
+## Number of freezing days per year (dd0)
+dd0 <- raster(file.path(NA.Clim, "DD_0.asc"))
+proj4string(dd0) <- lcc.proj
+names(dd0) <- "nFreezeDays"
+
+## Latitude raster layer
+northing <- init(mat,
                  fun = "y")
 names(northing) <- "northing"
 
 ## DEM
 NA.dem <- raster(file.path(NA.Ref, "ClimateNA_DEM.asc"))
+proj4string(NA.dem) <- lcc.proj
 names(NA.dem) <- "dem"
 
-## relative humidity for downstream
-rh <- raster(file.path(NA.Clim, "RH.asc"))
-proj4string(rh) <- lcc.proj
-names(rh) <- "relativeHumidity"
 
 
-## stack all together, crop and read out
-winTor <- stack(NA.182, nfd, NA.dem, rh, ngd)
-wintor.p <- projectRaster(winTor, mat.cropped) 
-writeRaster(wintor.p, filename = "data/NA", format = "GTiff", bylayer = T, suffix = "names", overwrite = T)
-writeRaster(mat.cropped, filename = "data/NA_mat.tif", format = "GTiff", overwrite = T)
-writeRaster(northing, filename = "data/NA_northing.tif", format = "GTiff", overwrite = T)
+## stack all together
+winTor <- stack(nfd, ngd, dd0)
 
+## Match projection, and resolution then write out
+wintor.p <- projectRaster(winTor, mat,
+                          filename = file.path(win.dat, "NA_.tif"),
+                          format = "GTiff",
+                          bylayer = T,
+                          suffix = "names",
+                          overwrite = T) 
 
-## Make a new one because fuck it
-frost <- raster(file.path(data.dir,"NA_nFrostyDays.tif"))
-dd0 <- raster(file.path(NA.Clim, "DD_0.asc"))
-proj4string(dd0) <- lcc.proj
-dd0.proj <- projectRaster(dd0, frost )
-dd0.days <- calc(dd0.proj,  fun = function(x) ((x/10000)*365))
-names(dd0.days) <- "nDaysFreeze"
-writeRaster(dd0.days, filename = file.path(data.dir,"NA_nDaysFreeze.tif"), format = "GTiff", overwrite = T)
-frost.freeze <- stack(frost, dd0.days)
+## the reference layers are a bit different so they need to be handled
+## individually
 
-frostFreeze <- calc(frost.freeze,
-                    function(x) x[[2]]+ .5*(x[[1]] - x[[2]]))
-names(frostFreeze) <- "NA_frostFreeze"
-writeRaster(frostFreeze, file.path(data.dir,"NA_frostFreeze.tif"), format = "GTiff", overwrite = T)
+## Northing layer
+writeRaster(northing,
+            file.path(win.dat, "NA_norhting.tif"),
+            format = "GTiff", 
+            overwrite = T)
+
+## DEM layer
+projectRaster(NA.dem, mat,
+              file.path(win.dat, "NA_dem.tif"),
+              format = "GTiff",
+              overwrite = T)
 
 ## Doesn't run as is but how I created the NA_OG1k layer
 ## Get old data layer to same res and such WATCH OUT RAM KILLER
+## "original" data layer as described in Hayman et al. 2016 and associated 
+## git repo avaliable at github.com/dtsh2/
 # old.layer <- raster("D://Dropbox/WNS2/parameterFiles/wxnightsUS.asc")
 # old.nights <- raster::shift(old.layer,x= -360)
 # proj4string(old.nights) <- proj4string(t5.raw)
@@ -105,9 +108,24 @@ writeRaster(frostFreeze, file.path(data.dir,"NA_frostFreeze.tif"), format = "GTi
 # names(old.1k) <- "OG_Winter"
 # ## crop and mask again 
 # OG.1k <- mask(crop(old.1k, t5.raw),t5.raw)
-# writeRaster(OG.1k, filename = file.path(win.res, "OG1k.tif"), format = "GTiff")
+# writeRaster(OG.1k, filename = file.path(win.dat, "OG1k.tif"), format = "GTiff")
 
-# ## spring metrics These guys are only for the Continental US...
-# spring.stk <- stack(list.files(file.path(win.dat,"FBI_FLI"), recursive = T, pattern = "*.tif", full.names = T))
-# spring.stk[[1]]
-# plot(spring.stk[[2]])
+## Species distribution
+## since Myotis lucifugus is the only species used in this work we can go ahead
+## and create a subset of the IUCN species distributions and  stash it for
+## later use
+
+library(sf)
+mam <- st_read(mam.dist, 
+               layer = "TERRESTRIAL_MAMMALS")
+mylu <- mam[mam$binomial == "Myotis lucifugus",]
+st_write(obj = mylu,
+         dsn = win.dat,
+         layer = "myluDist",
+         driver = "ESRI Shapefile")
+
+
+#### Clean up script items ####
+env.post <- ls()
+to.remove <- env.post[env.post %!in% env.prior]
+rm(list=to.remove)
