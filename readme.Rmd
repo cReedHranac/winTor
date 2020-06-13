@@ -1,0 +1,88 @@
+---
+title: "What is winter SI code walk through"
+author: "C. Reed Hranac Ph.D."
+date: "6/8/2020"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+This document is designed to allow the user to reproduce the analysis preformed for the "What is a winter? Modeling spatial variation in host traits and hibernation and their implications for overwintering energetic" manuscript. Most pertinent data will be contained within the git repo in which this project resides and others will have links to the relevant websites from which the data originates. 
+
+To begin with it will be necessary to have installed this R project, and the `batwintor` library, and as it is still in development, the tools to build it on a local machine may be needed. Other pacakages used for this analysis  are listed below with a tool to install them if they are not already installed on your machine.
+```{r}
+library(devtools)
+install_github("cReedHranac/wintor")
+install_github("cReedHranac/batwintor")
+
+## set repo options
+local({r <- getOption("repos")
+r["CRAN"] <- "https://cran.r-project.org"
+options(repos=r)
+})
+getOption("repos")
+
+## names of all installed packages
+packs <- rownames(installed.packages()) 
+## packaged used in this analysis
+req <- c("data.table", "tidyverse", "raster", "sf", "rgdal", "metR", "spdep"
+         )
+## packages needing installation
+toInstall <- req[!is.element(req,packs)] 
+
+if(length(toInstall)>0){
+  install.packages(toInstall)
+}
+
+## clean up workspace:
+rm(packs,req,toInstall)
+
+## additional item to help with RAM usasge when dealing with large rasters
+rasterOptions(memfrac = .3); rasterOptions(maxmemory = 1e+08)
+```
+## Directory and path generation.
+Since there is a high number of data layers generated throughout this process I also use external directories to hold interim data products. Directory path set up for my  personal machine is below however the paths can be modified to generate these same instances on your own machine. 
+
+
+```{r}
+base.path = file.path("C:","Users","chran","Dropbox")
+
+win.dat <- file.path(base.path, "winTor_aux", "data")
+win.res <- file.path(base.path, "winTor_aux","Results")
+
+## additional operator used throughout the analysis
+## The %!in% operator 
+'%!in%' <- function(x,y)!('%in%'(x,y))
+
+```
+
+
+## external data products to download prior to analysis
+This project also uses a number of data products from other research groups including species distribution maps for terrestrial mammals from the IUCN (`https://www.iucnredlist.org/resources/files/bcfb6dac-60e6-4f0e-a027-02df540e512e`), and the bioclimatic variables from the AdaptWest project (`https://sites.ualberta.ca/~ahamann/analytics/ClimateNA/NA_NORM_6190_Bioclim_ASCII.html`). These have their own directories on my machine are are set up as so:
+```{r}
+##  NA Bioclim layers
+NA.Clim <- file.path(base.path, "NA_NORM_8110_Bioclim_ASCII")
+## NA Clim spatial referencing resource
+NA.Ref <- file.path(base.path, "NA_Reference_files_ASCII")
+## Terrestrial mammals database
+mam.dist <- file.path(base.path, "TERRESTRIAL_MAMMALS")
+```
+
+Once all the relevant paths are set up and the data sets downloaded the relevant data products were generated through the `munge/geoMunge.R` script.
+
+```{r}
+source("munge/geoMunge.R")
+```
+
+Now that we have all the applicable datasets for the analysis we can open the modeling script and start to run the models
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
