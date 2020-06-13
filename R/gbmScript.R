@@ -1,46 +1,38 @@
 #######################################
-### GMB modling script for winTor###
+#### GMB modling script for winTor ####
+## Author: C. Reed Hranac            ##
+## Tested: 13 June 2020              ##
 #######################################
 
-### Re-work of the linear modeling scripts to use gbm methodology
+## this preforms the modeling for both the duration and mass components of the
+## analysis by:
+  ## loading the pre-cleaned data sets
+  ## extracting the relevant co-variate data from the rasters generated in munge
+  ## testing for spatial auto-correlation 
+  ## running cross-validation models to identify potential outlier points
+  ## running alternative models
+  ## model selection through AIC
+  ## reassessment of sptial auto-correlation 
+  ## correction of auto-correlation (if needed)
+  ## prediction of models back across the study extent
 
-## Script is currently in the sandbox stage working on different methodology 
-## conserving the first portion of the LM crossvalidation to remove outliers
 
-#### Extra Paths####
-if (!exists('base.path')) {
-  if(.Platform$"OS.type" == "windows"){
-    base.path = file.path("D:", "Dropbox", "wintor_aux")
-  } else {
-    base.path = "~/Dropbox/winTor_aux"
-  }
-}
-
-## path for new laptop since there are no partitions 
-# base.path = file.path("C:","Users","chran","Dropbox","winTor_aux")
-
-win.dat <- file.path(base.path, "data")
-win.res <- file.path(base.path, "Results")
-## The %!in% opperator 
-'%!in%' <- function(x,y)!('%in%'(x,y))
-
+env.prior <- ls()
 ##packages
-library(tidyverse);library(gbm); library(raster); library(spdep)
-#### Data ####
-dur <- read.csv("data/durationDataReferenced.csv")
-mass <- read.csv("data/massDataReferenced.csv")
+library(tidyverse); library(raster); library(spdep)
 
-## Co-variates
+#### WINTER DURATION ####
+## Data ##
+dur <- read.csv("data/durationDataReferenced.csv")
+
+## call in co-variates
 env.names <- c("NA_dem", "NA_northing", "NA_nFrostyDays",
                "NA_nonGrowingDays", "NA_nDaysFreeze", "NA_OG1k")
-env.stk <- raster::subset(stack(list.files(win.dat, pattern = "NA_*", full.names = T)), env.names)
+env.stk <- raster::subset(
+  raster::stack(list.files(win.dat, pattern = "NA_*", full.names = T)),
+  env.names)
 
-
-## ammending to have co-variate data
-coordinates(mass) <- ~ Long + Lat
-proj4string(mass) <- proj4string(env.stk)
-mass.df <- as.data.frame(cbind(mass, raster::extract(env.stk, mass)))
-
+## ammend estimates to a spatil data frame
 coordinates(dur) <- ~ Long + Lat
 proj4string(dur) <- proj4string(env.stk)
 dur@data <- cbind(dur@data, raster::extract(env.stk, dur))
@@ -64,7 +56,7 @@ dur@data$winter.duration[[36]] <- 166
 dur <- dur[-c(3,37),]
 ## checked and fixed
 
-#### Checking spatial autocorrilation ####
+#### Checking spatial auto-corrilation ####
 ##create distance matrix
 knn <- knearneigh(dur, k = 7) ## k set as the sqrt of nrow(dur)
 nneighbor <- knn2nb(knn)
@@ -89,7 +81,7 @@ shapiro.test(dur@data$winter.duration)
 mod.form <- function(x, coVar){
   ##Function to write out the formulas for me
   ## x is to be the item predicted
-  ## covar is to be a list of the names oc covariates
+  ## covar is to be a list of the names of co-variates
   
   #univariate models
   l1 <- list()
@@ -197,9 +189,9 @@ dur.points <- cross.wrapper(predictor = "winter.duration",
 
 dur.points
 ## No points identified for concern
+## points would need to have an adj p-value of < .5 for >5 of the models
 
 #### GLM application ####
-
 dur.mods <- lapply(mod.form("winter.duration",coVar = env.names),
                    FUN = glm, data = dur@data, family = "gaussian" )
 
@@ -240,46 +232,128 @@ dur.AIC <- aictab(dur.mods,
                                "north + dem + frost",
                                "north + dem + growing",
                                "north + dem + freeze",
-                               "north + dem + OG"))
-#### Spatial residuals ####
+                               "north + dem + OG"),
+                  sort = F)
+
+## write out the table to results
+write.csv(dur.AIC,
+          file =  file.path(win.res, 'durationResultsTable.csv'),
+          row.names = F)
+
+
+#### Re-assess Spatial residuals ####
+
+## top model
 dur.mod <- formula(dur.mods[[12]])
+
 ## add model residuals to spatial dataset
 dur@data$RESID <- residuals(dur.mods[[12]])
+
 ## plot residuals
 spplot(dur, "RESID")
+
 ## test residuals for spatial correlation
-moran.mc(dur$RESID, listw = nn.list, nsim = 999) 
+moran.mc(dur$RESID, listw = nn.list, nsim = 999)
+
+# Monte-Carlo simulation of Moran I
+# 
+# data:  dur$RESID 
+# weights: nn.list  
+# number of simulations + 1: 1000 
+# 
+# statistic = -0.0036285, observed rank = 646, p-value =
+#   0.354
+# alternative hypothesis: greater
+
 ## lagrange multiplier - another test for spatial effects
 lm.LMtests(dur.mods[[12]], listw = nn.list, test = "all")
 
+# Lagrange multiplier diagnostics for spatial dependence
+# 
+# data:  
+#   model: FUN(formula = X[[i]], family = "gaussian", data
+#              = ..1)
+# weights: nn.list
+# 
+# LMerr = 0.0027033, df = 1, p-value = 0.9585
+# 
+# 
+# Lagrange multiplier diagnostics for spatial dependence
+# 
+# data:  
+#   model: FUN(formula = X[[i]], family = "gaussian", data
+#              = ..1)
+# weights: nn.list
+# 
+# LMlag = 0.0048635, df = 1, p-value = 0.9444
+# 
+# 
+# Lagrange multiplier diagnostics for spatial dependence
+# 
+# data:  
+#   model: FUN(formula = X[[i]], family = "gaussian", data
+#              = ..1)
+# weights: nn.list
+# 
+# RLMerr = 2.0662e-07, df = 1, p-value = 0.9996
+# 
+# 
+# Lagrange multiplier diagnostics for spatial dependence
+# 
+# data:  
+#   model: FUN(formula = X[[i]], family = "gaussian", data
+#              = ..1)
+# weights: nn.list
+# 
+# RLMlag = 0.0021604, df = 1, p-value = 0.9629
+# 
+# 
+# Lagrange multiplier diagnostics for spatial dependence
+# 
+# data:  
+#   model: FUN(formula = X[[i]], family = "gaussian", data
+#              = ..1)
+# weights: nn.list
+# 
+# SARMA = 0.0048637, df = 2, p-value = 0.9976
+
+
+## No spatial correlation of residuals found, we should be fine to 
+## project this back across the distribution with out special consideration
+
+
+
 #### Predictions and confidence bounds ####
-glmRasterIntervals <- function(model, coVars, outName){
-  conffun <- function(model, data = NULL) {
-    v <- predict.glm(object = model,
-                     newdata = data,
+glmRasterIntervals <- function(top.model, coVars, outName){
+  conffun <- function(top.model, data = NULL) {
+    v <- predict.glm(object = top.model,
+                     data = data,
                      type = "response",
                      interval = "prediction")
     
-  return(v)  
+    return(v)  
   }
   
-  conf.int <- raster::predict(model, object = coVars, fun = conffun, index = 1:3)
+  conf.int <- raster::predict(top.model,
+                              newData = coVars,
+                              fun = conffun,
+                              index = 1:3)
   names(conf.int) <- c("p", "lwr", "upr")
   
-  writeRaster(x = conf.int,
-              filename = file.path(win.res, outName),
-              format = "GTiff",
-              bylayer = T,
-              suffix = "names",
-              overwrite = T)
-  
+  # writeRaster(x = conf.int,
+  #             filename = file.path(win.res, outName),
+  #             format = "GTiff",
+  #             bylayer = T,
+  #             suffix = "names",
+  #             overwrite = T)
+  # 
 }
 
-dur.top.form <- mod.form("winter.duration",coVar = env.names)[[12]]
 dur.top.mod <- dur.mods[[12]]
 a <- glmRasterIntervals(dur.top.mod,
-                  coVars = env.stk,
-                  outName = "durationRaster")
+                        coVars = env.stk,
+                        outName = "durationRaster")
+a
 ####  Mass  analysis ####
 #### Data ####
 mass <- read.csv("data/massDataReferenced.csv")
@@ -647,8 +721,11 @@ raster::rasterOptions(chunksize=1e5)
 
 # vertical slice of 560k cells using 1k iterations takes 12 mins
 test <- crop(env.stk, extent(env.stk, 1, 5160, 8000, 8100)) 
-system.time(conf.int <- raster::predict(model = mass_spatial, object = test, fun = conffun, 
-                                        progress = 'text', index=1:3,
+system.time(conf.int <- raster::predict(model = mass_spatial,
+                                        object = test,
+                                        fun = conffun, 
+                                        progress = 'text',
+                                        index=1:3,
                                         iter=1000))
 
 prod(dim(env.stk)/dim(test)) # multiplyer for how long the whole thing takes
