@@ -77,7 +77,14 @@ Once all the relevant paths are set up and the data sets downloaded the relevant
 source("munge/geoMunge.R")
 ```
 
-Now that we have all the applicable datasets for the analysis we can open the modeling script and start to run the models
+Now that we have all the applicable datasets for the analysis we can begin the analysis of this project. The first step in this is to find a relationship between the body mass of pre-hibernation bats, and the amount of fat that they take into the hibernation period. To do this we use QMR data previously published, plus data from our own field work that will be published shortly
+```{r}
+source("R/qmrAnalysis.R")
+```
+
+
+
+open the modeling script and start to run the models
 
 You can also embed plots, for example:
 

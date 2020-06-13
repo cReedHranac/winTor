@@ -128,4 +128,4 @@ st_write(obj = mylu,
 #### Clean up script items ####
 env.post <- ls()
 to.remove <- env.post[env.post %!in% env.prior]
-rm(list=to.remove)
+rm(list=to.remove); rm(env.post, to.remove)
