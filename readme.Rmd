@@ -28,8 +28,8 @@ getOption("repos")
 ## names of all installed packages
 packs <- rownames(installed.packages()) 
 ## packaged used in this analysis
-req <- c("data.table", "tidyverse", "raster", "sf", "rgdal", "metR", "spdep"
-         )
+req <- c("data.table", "tidyverse", "raster", "sf", "rgdal", "metR", "spdep",
+         "caret", "AICcmodavg")
 ## packages needing installation
 toInstall <- req[!is.element(req,packs)] 
 
@@ -77,9 +77,14 @@ Once all the relevant paths are set up and the data sets downloaded the relevant
 source("munge/geoMunge.R")
 ```
 
-Now that we have all the applicable datasets for the analysis we can begin the analysis of this project. The first step in this is to find a relationship between the body mass of pre-hibernation bats, and the amount of fat that they take into the hibernation period. To do this we use QMR data previously published, plus data from our own field work that will be published shortly
+Now that we have all the applicable datasets  we can begin the analysis of this project. The first step in this is to find a relationship between the body mass of pre-hibernation bats, and the amount of fat that they take into the hibernation period. To do this we use QMR data previously published, plus data from our own field work that will be published shortly
 ```{r}
 source("R/qmrAnalysis.R")
+```
+Now that we have found a scaling relationship between the bat mass and body fat we can begin to look at the larger spatial analysis portion of the project. In this next script we will use collected datasets for the duration of the winter hibernation period, and body mass to create spatially continuous estimates for each.
+
+```{r}
+
 ```
 
 

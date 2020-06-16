@@ -1,8 +1,8 @@
-#######################################
-#### GMB modling script for winTor ####
-## Author: C. Reed Hranac            ##
-## Tested: 13 June 2020              ##
-#######################################
+########################################
+#### GMB modeling script for winTor ####
+## Author: C. Reed Hranac             ##
+## Tested: 13 June 2020               ##
+########################################
 
 ## this preforms the modeling for both the duration and mass components of the
 ## analysis by:
@@ -32,7 +32,7 @@ env.stk <- raster::subset(
   raster::stack(list.files(win.dat, pattern = "NA_*", full.names = T)),
   env.names)
 
-## ammend estimates to a spatil data frame
+## amend estimates to a spatial data frame
 coordinates(dur) <- ~ Long + Lat
 proj4string(dur) <- proj4string(env.stk)
 dur@data <- cbind(dur@data, raster::extract(env.stk, dur))
@@ -325,17 +325,18 @@ lm.LMtests(dur.mods[[12]], listw = nn.list, test = "all")
 
 #### Predictions and confidence bounds ####
 glmRasterIntervals <- function(top.model, coVars, outName){
-  conffun <- function(top.model, data = NULL) {
-    v <- predict.glm(object = top.model,
-                     data = data,
-                     type = "response",
-                     interval = "prediction")
+  conffun <- function(x, data = NULL) {
+    v <- predict(object = x,
+                 newdata = data,
+                 type = "response",
+                 interval = "prediction")
     
     return(v)  
   }
   
-  conf.int <- raster::predict(top.model,
-                              newData = coVars,
+  conf.int <- raster::predict(object = coVars,
+                              model = top.model,
+                              data = coVars,
                               fun = conffun,
                               index = 1:3)
   names(conf.int) <- c("p", "lwr", "upr")
@@ -346,11 +347,11 @@ glmRasterIntervals <- function(top.model, coVars, outName){
   #             bylayer = T,
   #             suffix = "names",
   #             overwrite = T)
-  # 
+  return(conf.int) 
 }
 
 dur.top.mod <- dur.mods[[12]]
-a <- glmRasterIntervals(dur.top.mod,
+a <- glmRasterIntervals(top.model = dur.top.mod,
                         coVars = env.stk,
                         outName = "durationRaster")
 a
