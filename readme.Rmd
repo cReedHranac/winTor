@@ -48,7 +48,9 @@ Since there is a high number of data layers generated throughout this process I 
 
 
 ```{r}
-base.path = file.path("C:","Users","chran","Dropbox")
+# base.path = file.path("C:","Users","chran","Dropbox")
+base.path = file.path("D:","Dropbox")
+
 
 win.dat <- file.path(base.path, "winTor_aux", "data")
 win.res <- file.path(base.path, "winTor_aux","Results")
