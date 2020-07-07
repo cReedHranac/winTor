@@ -363,7 +363,7 @@ dur.predict <- raster::predict(object = env.stk,
 # 
 # a <- glmRasterIntervals(top.model = dur.top.mod,
 #                         coVars = env.stk,
-#                         outName = "durationRaster")
+#                         outName = "duration")
 # a
 ####  Mass  analysis ####
 #### Data ####
@@ -647,6 +647,9 @@ plot(mass_spatial, type = "prediction", link = FALSE) +
   geom_point(size = 3)
 
 #### Predictions and confidence bounds ####
+## create layers for lat and long
+env.stk$Long <- xFromCell(env.stk[[1]], cell = 1:ncell(env.stk))
+env.stk$Lat <- yFromCell(env.stk[[1]],  cell = 1:ncell(env.stk))
 
 ## our prediction function - returns matrix of 3 columns
 conffun <- function(model, data = NULL, iter='all') {
@@ -661,11 +664,13 @@ conffun <- function(model, data = NULL, iter='all') {
 ## change raster options to have way lower chunksize to help
 ## fit into memory. Can maybe increase this?
 raster::rasterOptions(chunksize=1e5)
+rasterOptions(memfrac = .3); rasterOptions(maxmemory = 1e+08)
 library(cluster)
 library(parallel)
 
+
 ## Use for prediction to full
-beginCluster(4) ## max number of cores you can use w/ 32gb of RAM
+beginCluster(2) ##can hand way too long depending on the number of cores
 system.time({
   r.prob.Cluster<-clusterR(env.stk, fun=predict, args=list(model=mass_spatial,
                                                          fun=conffun,
@@ -681,7 +686,8 @@ writeRaster(r.prob.Cluster,
             filename = file.path(win.res, "mass.tif"),
             format = "GTiff",
             bylayer = T,
-            suffix = "names")
+            suffix = "names",
+            overwrite = T)
 
 #### Variogram of the top models ####
 library(gstat)

@@ -11,45 +11,45 @@
 
 env.prior <- ls()
 #### Hibernation Energetics Modeling ####
-library(batwintor); library(data.table); library(raster); library(tidyverse)
-rasterOptions(memfrac = .3); rasterOptions(maxmemory = 1e+08)
-
+library(batwintor); library(data.table)
 ## Select species from the onboard dataset
-# mylu.params <- bat.params[bat.params$Species == "MYLU",]
-# 
-# ## Changing the mass to the median of masses within our data set
-# mylu.params$Mass <- 7.73
-# 
-# ## Select the fungal parameters that we want to use
-# fung.ch <- fung.params["Chaturvedi",]
-# 
-# ## Set up the hibernation space to model winter across
-# env <- buildEnv(temp = c(-4,10), #temperatures in degrees C
-#                 pct.rh = c(46, 100), #precent humidity
-#                 range.res.temp = .5, #resolution of the temperature
-#                 range.res.rh = 1, #resolution of the humidithy
-#                 twinter = 12, #maximal length of winter (in this case I have months)
-#                 winter.res = 1) #resolution of the time vector in vectors
-# 
-# ## Hibernation energetics model
-# mylu.mod <- hibernationModel(env = env,
-#                              bat.params = mylu.params,
-#                              fung.params = fung.ch)
-# 
-# ## write out
-# data.table::fwrite(x = mylu.mod,
-#                    file = win.dat)
+mylu.params <- bat.params[bat.params$Species == "MYLU",]
+
+## Changing the mass to the median of masses within our data set
+mylu.params$Mass <- 7.73
+
+## Select the fungal parameters that we want to use
+fung.ch <- fung.params["Chaturvedi",]
+
+## Set up the hibernation space to model winter across
+env <- buildEnv(temp = c(-4,10), #temperatures in degrees C
+                pct.rh = c(46, 100), #precent humidity
+                range.res.temp = .5, #resolution of the temperature
+                range.res.rh = 1, #resolution of the humidithy
+                twinter = 12, #maximal length of winter (in this case I have months)
+                winter.res = 1) #resolution of the time vector in vectors
+
+## Hibernation energetics model
+mylu.mod <- hibernationModel(env = env,
+                             bat.params = mylu.params,
+                             fung.params = fung.ch)
+
+## write out
+data.table::fwrite(x = mylu.mod,
+                   file = file.path(win.dat, "myluDynamicModel.csv"))
 
 ## clean up as that's a pretty large calculation
 env.hib <- ls()
 to.remove <- env.post[env.hib %!in% env.prior]
-rm(list=to.remove); rm(env.hib, to.remove)
+rm(list=to.remove); rm(env.hib, to.remove); gc()
 
 #### Fat required ####
 ## mylu hibernation energetics model
 mylu.mod <- fread(file.path(win.dat, "myluDynamicModel.csv"))
 
 ## winter duration layer
+library(raster)
+rasterOptions(memfrac = .3); rasterOptions(maxmemory = 1e+08) ## helps
 win <- raster(file.path(win.res, "durationRaster_p.tif"))
 
 ## create fixed microclimate conditions
@@ -57,9 +57,9 @@ rh.fix   <- calc(win, function(x) ifelse(!is.na(x), 98, NA))
 temp.fix <- calc(win, function(x) ifelse(!is.na(x), 4, NA))
 
 ## Function to do the work
-survivalMetrics <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
+survivalFat <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
   ### Function for converting the amount dynamic hibernation model results into 
-  ### grams of fat and applying those against winter duration
+  ### grams of fat and appling those againt winter duration
   ## mod.df <- dynamic hibernation model results
   ## pch.rh.rast <- relative humidity raster to apply spatially
   ## temp.rast <- temperature raster to apply spatially
@@ -74,8 +74,7 @@ survivalMetrics <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
   
   #Creating output raster dimensions
   out <- raster(pct.rh.rast); values(out) <- NA
-  out.s <- stack(out,out,out,out); names(out.s) <- c("fat.inf", "fat.null",
-                                                     "max.inf", "max.null")
+  out.s <- stack(out,out); names(out.s) <- c("fat.inf", "fat.null")
   
   #Extract data from rasters  to matrix for speed
   pct.rh <- as.matrix(pct.rh.rast, nrow = nrow(pct.rh.rast), ncol = ncol(pct.rh.rast))
@@ -84,11 +83,7 @@ survivalMetrics <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
   
   ## shifting hours to days
   mod.dif <- mod.df %>%
-    mutate_(days = ~hour.to.day(time)) %>%
-    group_by_(~Ta, ~pct.rh) %>%
-    mutate_(max.inf = ~max(days*surv.inf),
-            max.null = ~max(days*surv.null)) %>%
-    ungroup
+    mutate_(days = ~hour.to.day(time)) 
   
   ####Look Up Table ####
   #Vectors for look up table structure
@@ -97,11 +92,11 @@ survivalMetrics <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
   days_vals <- unique(mod.dif$days)
   
   #Look Up Table
-  lut <- array(NA, dim=c(length(Ta_vals), length(pct.rh_vals), length(days_vals),  4)) # 2 for fat.inf and fat.null
-  dimnames(lut)[[1]] <- Ta_vals                                                        # 2 more for the max time
+  lut <- array(NA, dim=c(length(Ta_vals), length(pct.rh_vals), length(days_vals),  2)) # 2 for fat.inf and fat.null
+  dimnames(lut)[[1]] <- Ta_vals
   dimnames(lut)[[2]] <- pct.rh_vals
   dimnames(lut)[[3]] <- days_vals
-  dimnames(lut)[[4]] <- c("fat.inf", "fat.null", "max.inf", "max.null")
+  dimnames(lut)[[4]] <- c("fat.inf", "fat.null")
   
   
   #Fill look up table
@@ -111,9 +106,7 @@ survivalMetrics <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
       cat("Look up table generation up to", i, "of", nrow(mod.dif), "\n")
     }
     lut[as.character(d$Ta), as.character(d$pct.rh), as.character(d$days),] <- c(d$g.fat.consumed,
-                                                                                d$n.g.fat.consumed,
-                                                                                d$max.inf,
-                                                                                d$max.null)
+                                                                                d$n.g.fat.consumed)
   }
   
   ####Find closest####
@@ -136,9 +129,8 @@ survivalMetrics <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
     out.z <- matrix(ncol = ncol(pct.rh), nrow = nrow(pct.rh))
     for(i in 1:length(pct.rh)){
       # first find the closest humidity and Ta
-      if(i %% 100000 == 0){
-        cat("Raster layer: ", j, "of", nlayers(out.s),
-            " -- ", (i/length(pct.rh))*100, "% complete\n")
+      if(i %% 1000 == 0){
+        cat("Raster layer: ", j, "of", nlayers(out.s), "up to", i, "of", length(pct.rh), "\n")
       }
       pct.rh_i <- find_closest(pct.rh[[i]], pct.rh_vals)
       Ta_i  <- find_closest(temp[[i]], Ta_vals)
@@ -148,15 +140,11 @@ survivalMetrics <- function(mod.df, pct.rh.rast, temp.rast, win.rast){
     # Set values back from matrix to raster
     out.s[[j]] <- setValues(out.s[[j]], out.z)
   }
-  
-  # ammend the max survived layers
-  out.s[[3]] <- out.s[[3]] - win.rast;names(out.s)[[3]] <- "survDays.inf"
-  out.s[[4]] <- out.s[[4]] - win.rast;names(out.s)[[4]] <- "survDays.null"
   return(out.s)
 }
  
 ## Apply the function
-fat.req <- survivalMetrics(mod.df = mylu.mod,
+fat.req <- survivalFat(mod.df = mylu.mod,
                            pct.rh.rast = rh.fix,
                            temp.rast = temp.fix,
                            win.rast = win)
@@ -168,27 +156,52 @@ writeRaster(fat.req,
             bylayer = T,
             suffix = "names",
             overwrite = T)
-gc()
-#### Best Temperature Available ####
-## one more version, this time where we use the best temperature available 
+
+rm(fat.req);gc()
+
+#### Best Temperature Avaliable ####
+## one more version, this time where we use the best temperature avaliable 
 ## based on the work of McClure et al, 2020 (in submission, contact me for 
 ## access)
 
 best.temp <- raster(file.path(win.dat, "Mylu_bestavailTF_NA.tif"))
-best.fat.req <- survivalMetrics(mod.df = mylu.mod,
-                                pct.rh.rast = rh.fix,
-                                temp.rast = best.temp,
-                                win.rast = win)
+
+best.req <- survivalFat(mod.df = mylu.mod,
+                        pct.rh.rast = rh.fix,
+                        temp.rast = best.temp,
+                        win.rast = win)
 
 ## write out
-writeRaster(best.fat.req,
-            filename = file.path(win.res, "myluFatReq_Best.tif"),
+writeRaster(best.req,
+            filename = file.path(win.res, "myluFatReq_BEST.tif"),
             format = "GTiff",
             bylayer = T,
             suffix = "names",
             overwrite = T)
 
-#### Clean up script items ####
-env.post <- ls()
-to.remove <- env.post[env.post %!in% env.prior]
-rm(list=to.remove); rm(env.post, to.remove)
+#### Duration of maximal hibernation ####
+
+fixed.survival <- survivalRaster(mod.df = mylu.mod,
+                                 pct.rh.rast = rh.fix,
+                                 temp.rast = temp.fix)
+best.survival <- survivalRaster(mod.df = mylu.mod,
+                                pct.rh.rast = rh.fix,
+                                temp.rast = best.temp)
+
+## subtract the duration of winter
+fixed.v.winter <- fixed.survival - win; names(fixed.v.winter) <- c("inf", "null", "diff")
+best.v.winter <- best.survival - win; names(best.v.winter)  <- c("inf", "null", "diff")
+
+## write out
+writeRaster(fixed.v.winter,
+            filename = file.path(win.res, "survivalDays_fixed.tif"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "names",
+            overwrite = T)
+writeRaster(best.v.winter,
+            filename = file.path(win.res, "survivalDays_best.tif"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "names",
+            overwrite = T)
