@@ -363,7 +363,7 @@ dur.predict <- raster::predict(object = env.stk,
 # 
 # a <- glmRasterIntervals(top.model = dur.top.mod,
 #                         coVars = env.stk,
-#                         outName = "durationRaster")
+#                         outName = "duration")
 # a
 ####  Mass  analysis ####
 #### Data ####
