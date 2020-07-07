@@ -157,7 +157,51 @@ writeRaster(fat.req,
             suffix = "names",
             overwrite = T)
 
+rm(fat.req);gc()
+
 #### Best Temperature Avaliable ####
 ## one more version, this time where we use the best temperature avaliable 
 ## based on the work of McClure et al, 2020 (in submission, contact me for 
 ## access)
+
+best.temp <- raster(file.path(win.dat, "Mylu_bestavailTF_NA.tif"))
+
+best.req <- survivalFat(mod.df = mylu.mod,
+                        pct.rh.rast = rh.fix,
+                        temp.rast = best.temp,
+                        win.rast = win)
+
+## write out
+writeRaster(best.req,
+            filename = file.path(win.res, "myluFatReq_BEST.tif"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "names",
+            overwrite = T)
+
+#### Duration of maximal hibernation ####
+
+fixed.survival <- survivalRaster(mod.df = mylu.mod,
+                                 pct.rh.rast = rh.fix,
+                                 temp.rast = temp.fix)
+best.survival <- survivalRaster(mod.df = mylu.mod,
+                                pct.rh.rast = rh.fix,
+                                temp.rast = best.temp)
+
+## subtract the duration of winter
+fixed.v.winter <- fixed.survival - win; names(fixed.v.winter) <- c("inf", "null", "diff")
+best.v.winter <- best.survival - win; names(best.v.winter)  <- c("inf", "null", "diff")
+
+## write out
+writeRaster(fixed.v.winter,
+            filename = file.path(win.res, "survivalDays_fixed.tif"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "names",
+            overwrite = T)
+writeRaster(best.v.winter,
+            filename = file.path(win.res, "survivalDays_best.tif"),
+            format = "GTiff",
+            bylayer = T,
+            suffix = "names",
+            overwrite = T)
