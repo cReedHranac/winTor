@@ -21,54 +21,30 @@ env.prior <- ls()
 ## libraries
 library(tidyverse); library(sf); library(raster); library(data.table)
 
-## Creating North America Geo-political boundaries for background. 
-# 
-# ## creating North America political boundaries 
-# ## create these from the tools in the raster package
+## after these are all generated the first time you can comment out all the 
+## previous lines
+
+##creating North America political boundries 
 # canada <- getData("GADM",country="CAN",level=1)
 # usa <- getData("GADM",country="USA", level=1)
 # mexico <- getData("GADM",country="MEX", level=1)
 # North.America <- rbind(canada,usa,mexico)
-# 
-# ## using the sp and rgdal packages is a bit simpler during this bit but I 
-# ## generally will try to use the sf package for the rest
-# 
-# ## crop and mask to the study extent
-# study.raster <- raster("data/NA_mat.tif")
-# NA.crop <- crop(North.America, study.raster)
-# 
-# ## change to the UTM for astetic reasons
-# NA.utm <- spTransform(North.America, CRS("+init=epsg:2955"))
-# 
-# ## write out
-# library(rgdal)
-# writeOGR(NA.utm,
-#          dsn = file.path(win.dat, "shapeFiles"),
-#          layer = "NorthAmerica",
+# plot(North.America)
+# writeOGR(North.America,
+#          dsn = win.dat,
+#          layer = "NorthAmerica.WGS",
 #          driver = "ESRI Shapefile")
-# 
-# North.America <- st_read(win.dat, layer="NorthAmerica")
-# 
-# ## mylu distribution subset from the IUCN dataset
-# mylu.dist <- st_read(file.path(win.dat, "shapeFiles"), 
-#                      layer = "myotis_lucifugus")
-# 
-# ## assign the correct proj4
-# st_crs(mylu.dist) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
-# 
-# ## transform to the utm proj4
-# mylu.utm <- st_transform(mylu.dist, 2955)
-# 
-# st_write(mylu.utm,
-#          dsn = file.path(win.dat, "shapeFiles"),
-#          layer = "MYLU_utm",
-#          driver = "ESRI Shapefile")
-# env.post <- ls()
-# to.remove <- env.post[env.post %!in% env.prior]
-# rm(list=to.remove); rm(env.post, to.remove)
 
-## after these are all generated the first time you can comment out all the 
-## previous lines
+library(sf);library(rgdal);library(raster)
+North.America <- st_read(win.dat, layer="NorthAmerica.WGS")
+NA.utm <- st_transform(North.America, 2955)
+
+##mylu distribution
+mylu.dist <- st_read(file.path(win.dat, "shapeFiles"), 
+                     layer = "myotis_lucifugus")
+
+st_crs(mylu.dist) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+mylu.utm <- st_transform(mylu.dist, 2955)
 
 ## read the products back in 
 NA.utm <- st_read(dsn = file.path(win.dat, "shapeFiles"),
@@ -97,38 +73,38 @@ full.utm <- st_transform(full.sf, 2955)
 
 ##further crop to the species extent 
 NA.mylu <- st_crop(NA.utm, mylu.utm) ## this apparently wont work
-mylu.extent <- extent(mylu.utm)
 
 ## plot
 (dat.map <- ggplot() +
     ##North American political boundaries
-    geom_sf(data = NA.utm,
+    geom_sf(data = NA.mylu,
             aes(group = "Name_1"),
             color="grey20",
-            fill="grey90")+
+            fill=NA)+
     geom_sf(data = mylu.utm,
             aes(group = "SP_ID"),
             color="dodgerblue4",
-            fill=NA, 
-            size = .7)+
+            fill="lightblue1", 
+            size = .7,
+            alpha = .2)+
     geom_sf(data = full.utm,
             aes(shape = `Data Type`, color = `Data Type`),
-            alpha = .6, #position = "dodge",
+            alpha = .7, #position = "dodge",
             size = 2,
             show.legend = "point")+
     scale_x_continuous(expand = c(0,0))+
     scale_y_continuous(expand = c(0,0))+
-    scale_color_manual(values=c("#E69F00","#56B4E9")) +
+    scale_color_manual(values=c("black","red")) +
     theme_bw()
 )
 
 
-# ggsave(filename = file.path(win.res, "fig", "dataLocations.pdf"),
-#        dat.map, device = "pdf",
-#        height = 4.875,
-#        width = 7.85,
-#        units = "in",
-#        dpi = 400)
+ggsave(filename = file.path(win.res, "fig", "dataLocations.png"),
+       dat.map, device = "png",
+       height = 4.875,
+       width = 7.85,
+       units = "in",
+       dpi = 300)
 
 ## this refuses to work and I have no idea why. NA background wont crop to
 ## the mylu distribution despite this exact code working earlier and the
