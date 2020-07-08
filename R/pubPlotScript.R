@@ -11,7 +11,7 @@
   ## figure 2: Predicted winter duration across North America
   ## figure 3: Predicted body mass and body fat
   ## figure 4: Predicted hibernation survival 
-  ## figure 5: Increased energry expenature due to WNS infection
+  ## figure 5: Increased energy expenditure due to WNS infection
 
   ## Si figures:
 
@@ -19,18 +19,18 @@
 env.prior <- ls()
 
 ## libraries
-library(tidyverse); library(sf); library(raster)
+library(tidyverse); library(sf); library(raster); library(data.table)
 
-## Creating North America Geo-political boundries for backround. 
+## Creating North America Geo-political boundaries for background. 
 # 
-# ## creating North America political boundries 
+# ## creating North America political boundaries 
 # ## create these from the tools in the raster package
 # canada <- getData("GADM",country="CAN",level=1)
 # usa <- getData("GADM",country="USA", level=1)
 # mexico <- getData("GADM",country="MEX", level=1)
 # North.America <- rbind(canada,usa,mexico)
 # 
-# ## using the sp and rgdal packages is a bit simplier during this bit but I 
+# ## using the sp and rgdal packages is a bit simpler during this bit but I 
 # ## generally will try to use the sf package for the rest
 # 
 # ## crop and mask to the study extent
@@ -69,3 +69,67 @@ library(tidyverse); library(sf); library(raster)
 
 ## after these are all generated the first time you can comment out all the 
 ## previous lines
+
+## read the products back in 
+NA.utm <- st_read(dsn = file.path(win.dat, "shapeFiles"),
+                  layer = "NorthAmerica")
+mylu.utm <- st_read(dsn = file.path(win.dat, "shapeFiles"),
+                    layer = "MYLU_utm")
+mylu.utm <- st_transform(mylu.utm,
+                         "+proj=utm +zone=11 +ellps=GRS80 +units=m +no_defs")
+
+####  Figure 1 ####
+#### location x Data type ####
+dur.raw <- fread("data/durationDataReferenced.csv")
+mass.raw <- fread("data/massDataReferenced.csv")
+
+dur.raw$type <- "Duration"
+mass.raw$type <- "Mass"
+
+full.dat <- full_join(dur.raw, mass.raw) %>%
+  dplyr::select(Lat, Long, type)
+colnames(full.dat)[[3]] <- "Data Type"
+
+full.sf <- st_as_sf(full.dat,
+                    coords = c("Long","Lat"))
+st_crs(full.sf) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+full.utm <- st_transform(full.sf, 2955)
+
+##further crop to the species extent 
+NA.mylu <- st_crop(NA.utm, mylu.utm) ## this apparently wont work
+mylu.extent <- extent(mylu.utm)
+
+## plot
+(dat.map <- ggplot() +
+    ##North American political boundaries
+    geom_sf(data = NA.utm,
+            aes(group = "Name_1"),
+            color="grey20",
+            fill="grey90")+
+    geom_sf(data = mylu.utm,
+            aes(group = "SP_ID"),
+            color="dodgerblue4",
+            fill=NA, 
+            size = .7)+
+    geom_sf(data = full.utm,
+            aes(shape = `Data Type`, color = `Data Type`),
+            alpha = .6, #position = "dodge",
+            size = 2,
+            show.legend = "point")+
+    scale_x_continuous(expand = c(0,0))+
+    scale_y_continuous(expand = c(0,0))+
+    scale_color_manual(values=c("#E69F00","#56B4E9")) +
+    theme_bw()
+)
+
+
+# ggsave(filename = file.path(win.res, "fig", "dataLocations.pdf"),
+#        dat.map, device = "pdf",
+#        height = 4.875,
+#        width = 7.85,
+#        units = "in",
+#        dpi = 400)
+
+## this refuses to work and I have no idea why. NA background wont crop to
+## the mylu distribution despite this exact code working earlier and the
+## error message for the crop is complete bs, they have the exact same crs
