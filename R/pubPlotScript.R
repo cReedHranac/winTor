@@ -19,41 +19,69 @@
 env.prior <- ls()
 
 ## libraries
-library(tidyverse); library(sf); library(raster); library(data.table)
+library(tidyverse); library(sf); library(raster); library(data.table); library(metR)
+rasterOptions(memfrac = .3); rasterOptions(maxmemory = 1e+08) ## you'll need this
 
-## after these are all generated the first time you can comment out all the 
-## previous lines
+## after these are all generated the first time you can comment out
+## creating North America political boundries 
 
-##creating North America political boundries 
 # canada <- getData("GADM",country="CAN",level=1)
 # usa <- getData("GADM",country="USA", level=1)
 # mexico <- getData("GADM",country="MEX", level=1)
 # North.America <- rbind(canada,usa,mexico)
-# plot(North.America)
+# library(rgdal)
 # writeOGR(North.America,
-#          dsn = win.dat,
+#          dsn = file.path(win.dat, "shapeFiles"),
 #          layer = "NorthAmerica.WGS",
 #          driver = "ESRI Shapefile")
 
-library(sf);library(rgdal);library(raster)
-North.America <- st_read(win.dat, layer="NorthAmerica.WGS")
+North.America <- st_read(file.path(win.dat, "shapeFiles"),
+                         layer="NorthAmerica.WGS")
 NA.utm <- st_transform(North.America, 2955)
 
-##mylu distribution
+## mylu distribution
 mylu.dist <- st_read(file.path(win.dat, "shapeFiles"), 
                      layer = "myotis_lucifugus")
 
 st_crs(mylu.dist) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
 mylu.utm <- st_transform(mylu.dist, 2955)
 
-## create utm projections and crop to the mylu distribution for all the prods
-## create new 
+## small clean
+rm(North.America, mylu.dist);gc()
 
-dur.rast <- raster(file.path(win.res, "duration_p.tif"))
-m.cropped <- stack(list.files(win.res,
-                              pattern = "myluCropped_*",
-                              full.names = T))
-dur.utm <- projectRaster(dur.rast, CRS(mylu.utm))
+## create utm projections and crop to the mylu distribution for all the prods
+prod.utm <- file.path(win.res, "prodUTM")
+
+# ## duration is seperate due to it having a different extent
+# dur.rast <- raster(file.path(win.res, "duration_p.tif"))
+# 
+# ## remove values below 0 since that doesn't make sence
+# dur.rast <- calc(dur.rast, function(x) ifelse(!is.na(x) & x < 0, 0, x))
+# 
+# projectRaster(dur.rast, crs = crs(NA.utm),
+#               filename = file.path(prod.utm, "duration_utm.tif"),
+#               format = "GTiff",
+#               overwrite = T)
+# rm(dur.rast);gc()
+# 
+# m.cropped <- list.files(win.res,
+#                         pattern = "myluCropped_*",
+#                         full.names = T)
+# 
+# ## do all the rest in a for loop to handel the memory requirements
+# for(i in 1:length(m.cropped)){
+#   ## read in
+#   a <- raster(m.cropped[[i]])
+#   names(a) <- paste0(strsplit(names(a), "_")[[1]][-c(1,2)], collapse = "_")
+#   a.repro <- projectRaster(a, crs = crs(mylu.utm),
+#                            filename = file.path(prod.utm, paste0(names(a),"_utm.tif")),
+#                            format = "GTiff",
+#                            overwrite = T)
+#   cat(names(a), "written at: ", timestamp(),"\n")
+#   rm(a, a.repro);gc()
+# }
+
+
 #### Functions ####
 masterPlotter <- function(x,
                           break.size,
@@ -61,8 +89,8 @@ masterPlotter <- function(x,
                           vis.break = NULL,
                           res.agg = 20,
                           dist.map = mylu.utm,
-                          north.america = NA.mylu,
-                          canada.focus = NULL,
+                          use.dist = F,
+                          north.america = NA.utm,
                           legend.key, text.min =25,
                           save.name = NULL,  device.out = NULL,  ...){
   ##Function for plotting single feature wintor spatial figures   
@@ -72,8 +100,8 @@ masterPlotter <- function(x,
   # break.by <- for handling the number of break to appear in the data
   # res.agg <- unit of aggragation (generally for the dev period with large maps)
   # dist.map <- species distribution map of you want it to be included in the plotting
+  # use.dist <- T/F arg for weather to use the map or not
   # north.america <- geo-political boundries to plot on top of
-  # canada.focus <- something you can get an extent from to crop from
   # legend.key <- string to place on the legend
   # text.min <- minimum size for text appearance
   # save.name <- string for saving the figures
@@ -87,18 +115,8 @@ masterPlotter <- function(x,
   else{
     x.ag <- x}
   
-  ## Canada focus flag
-  if(!is.null(canada.focus)){
-    x.ag <- crop(x.ag, extent(canada.focus))
-    dist.crop <- st_crop(dist.map, extent(canada.focus))
-    north.america <- st_crop(north.america, dist.crop)
-    
-  }
-  else{
-    ## Crop background to distribution
-    dist.crop <- dist.map
-    north.america <- st_crop(north.america, dist.crop)
-  }
+  ## dist map cropping, mainly for astetics
+  north.america <- st_crop(north.america, dist.map)
   
   ## Convert to df
   x.pts <- cbind(xyFromCell(x.ag, 1:ncell(x.ag)), values(x.ag)) #to points
@@ -142,13 +160,7 @@ masterPlotter <- function(x,
             color="grey20",
             fill=NA) +
     
-    geom_sf(data = dist.crop,
-            aes(group = "SP_ID"),
-            colour = "dodgerblue4",
-            size = .7,
-            fill = NA)   +
-    
-    #Lables
+        #Lables
     geom_text_contour(data = x.df, 
                       aes(x= Easting, y = Northing, z = winter),
                       stroke = 0.2, min.size = text.min,
@@ -160,8 +172,20 @@ masterPlotter <- function(x,
           legend.title=element_text(size=9),
           axis.title = element_blank(),
           plot.margin=grid::unit(c(0,0,0,0), "mm")) +
-    scale_x_continuous(limits =  c(extent(dist.crop)[1],extent(dist.crop)[2]))+
-    scale_y_continuous(limits = c(extent(dist.crop)[3],extent(dist.crop)[4]))
+    scale_x_continuous(limits =  c(extent(dist.map)[1],extent(dist.map)[2]))+
+    scale_y_continuous(limits = c(extent(dist.map)[3],extent(dist.map)[4]))
+    
+  
+  if(use.dist==T){
+    g.win <- g.win +
+      geom_sf(data = dist.map,
+              aes(group = "SP_ID"),
+              colour = "dodgerblue4",
+              size = .7,
+              fill = NA)
+      
+  }
+  
   
   ## Save Flag  
   if(!is.null(save.name)){
@@ -239,4 +263,18 @@ ggsave(filename = file.path(win.res, "fig", "dataLocations.png"),
 ## predicted duration of winter
 
 ## prediction raster
-dur.rast <- raster(file.path(win.res, "duration_p.tif"))
+dur.rast <- raster(file.path(prod.utm, "duration_utm.tif"))
+
+## color set
+winterColors <- colorRampPalette(c("#e0ecf4", "#9ebcda","#8856a7"))
+
+## plot and write
+dur.plot <- masterPlotter(x = dur.rast, break.size = 30, c.string = winterColors(5),
+                          use.dist = F,legend.key = "Predicted\nDuration\nWnter\n(Days)",
+                          text.min = 50, save.name = "winDuration_Mean_MYLU",
+                          device.out = "png", width = 6, unit = "in")
+gc()
+
+#### Figure 3 ####
+## predicted mass and fat for M. lucifugus
+
