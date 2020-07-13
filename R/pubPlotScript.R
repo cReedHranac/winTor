@@ -52,17 +52,26 @@ rm(North.America, mylu.dist);gc()
 ## create utm projections and crop to the mylu distribution for all the prods
 prod.utm <- file.path(win.res, "prodUTM")
 
-# ## duration is seperate due to it having a different extent
-# dur.rast <- raster(file.path(win.res, "duration_p.tif"))
-# 
-# ## remove values below 0 since that doesn't make sence
-# dur.rast <- calc(dur.rast, function(x) ifelse(!is.na(x) & x < 0, 0, x))
-# 
-# projectRaster(dur.rast, crs = crs(NA.utm),
-#               filename = file.path(prod.utm, "duration_utm.tif"),
-#               format = "GTiff",
-#               overwrite = T)
-# rm(dur.rast);gc()
+## duration is seperate due to it having a different extent
+dur.rast <- raster(file.path(win.res, "duration_p.tif"))
+## do a mylu cropped version too
+dur.c <- raster(file.path(win.res, "myluCropped__win.tif"))
+
+## remove values below 0 since that doesn't make sence
+dur.rast <- calc(dur.rast, function(x) ifelse(!is.na(x) & x < 0, 0, x))
+dur.c <- calc(dur.c, function(x) ifelse(!is.na(x) & x < 0, 0, x))
+
+
+projectRaster(dur.rast, crs = crs(NA.utm),
+              filename = file.path(prod.utm, "duration_utm.tif"),
+              format = "GTiff",
+              overwrite = T)
+
+projectRaster(dur.c, crs = crs(NA.utm),
+              filename = file.path(prod.utm, "durationC_utm.tif"),
+              format = "GTiff",
+              overwrite = T)
+rm(dur.rast, dur.c);gc()
 # 
 # m.cropped <- list.files(win.res,
 #                         pattern = "myluCropped_*",
