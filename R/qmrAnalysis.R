@@ -109,7 +109,7 @@ summary(fat.pred)
 #### plotting ####
 state.lean.plot <- ggplot(data = dat.clean) +
   geom_boxplot(aes(x = state, y = lean, color = state))+
-  ylab("Lean Mass (g)") +
+  ylab("Lean Mass (g)") + xlab("State") +
   theme_bw()
 
 ggsave(filename = file.path(win.res, "fig", "stateLean.png"),
@@ -128,7 +128,7 @@ fat.mass.plot <- ggplot(dat.clean) +
            x=7.9, y = 3.5,
            label = paste0("Fat Mass = ",round(fat.pred$coefficients[[1]],2)," + ",
                           round(fat.pred$coefficients[[2]],2)," * Mass")) +
-  xlab("Mass (g)") +
+  xlab("Body Mass (g)") +
   ylab("Fat mass (g)") + 
   theme_bw()
 
