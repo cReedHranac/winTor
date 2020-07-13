@@ -574,10 +574,11 @@ surv <- pairedPlotting(x = "sDay_best", parent.data = sDay.best, break.size = 30
                        unit = "in")
 #### Figure 5 ####
 ## increased energy expendature due to WNS infection
-# lets do this with fat
-fat.stk <- stack(list.files(prod.utm, "sFat", full.names = T)[3:4])
+# lets do this with fat required for hibernation survival
+fat.stk <- stack(list.files(prod.utm, "fat", full.names = T)[3:4])
 
-a <- increasedExpendaturePlot(x <- "sFat",
+
+a <- increasedExpendaturePlot(x <- "fat",
                                parent.data = fat.stk,
                                res.agg = 20,
                                text.min = 50,
@@ -590,8 +591,8 @@ a <- increasedExpendaturePlot(x <- "sFat",
                                units = "in")
 
 
-fat.best <- stack(list.files(prod.utm, "sFat", full.names = T)[1:2])
-b <- increasedExpendaturePlot(x <- "sFat_Best",
+fat.best <- stack(list.files(prod.utm, "fat", full.names = T)[1:2])
+b <- increasedExpendaturePlot(x <- "fat_BEST",
                               parent.data = fat.best,
                               res.agg = 20,
                               text.min = 50,
