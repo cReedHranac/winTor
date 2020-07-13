@@ -82,6 +82,7 @@ prod.utm <- file.path(win.res, "prodUTM")
 # }
 
 
+
 #### Functions ####
 masterPlotter <- function(x,
                           break.size,
@@ -207,6 +208,233 @@ masterPlotter <- function(x,
   return(g.win)
 }
 
+pairedPlotting <- function(x,
+                            parent.data = plotStk,
+                            break.size,
+                            res.agg = 20,
+                            text.min = 25,
+                            north.america = NA.utm,
+                            canada.focus = NULL,
+                            dist.map = mylu.utm,
+                            c.string, 
+                            legend.key = "Fill this in",
+                            save.name = NULL, device.out = NULL,
+                            ...){
+  ## Subset out the paired layers
+  target.data <- parent.data[[grep(pattern = x, 
+                                   names(parent.data))]]
+  
+  ## Create DataFrame (aggragation is mainly for the dev period)
+  if(!is.null(res.agg)){ #aggratetion bits
+    x.ag <- raster::aggregate(target.data, res.agg)
+  }
+  else{
+    x.ag <- target.data}
+  ## Canada focus flag
+  if(!is.null(canada.focus)){
+    x.ag <- crop(x.ag, extent(canada.focus))
+    dist.crop <- st_crop(dist.map, extent(canada.focus))
+    north.america <- st_crop(north.america, dist.crop)
+    
+  }
+  else{
+    ## Crop background to distribution
+    dist.crop <- dist.map
+    north.america <- st_crop(north.america, dist.crop)
+  }
+  
+  ## Convert to df
+  x.pts <- cbind(xyFromCell(x.ag, 1:ncell(x.ag)), values(x.ag)) #to points
+  x.df <- data.frame(x.pts)
+  #Note infected and null are generally in that order 
+  colnames(x.df) <- c("Easting", "Northing", "Infected", "Uninfected")
+  
+  x.df <- x.df %>%
+    gather(key = "Status", 
+           value = "Value",
+           c("Infected", "Uninfected"))
+  ##reorder factor levels
+  x.df$Status <- factor(x.df$Status, levels = c("Uninfected", "Infected"))
+  ##break points for the legend
+  break.string <- seq(floor(min(x.df$Value, na.rm = T)),
+                      ceiling(max(x.df$Value, na.rm = T)),
+                      by = break.size)
+  
+  g.win <- ggplot()+
+    geom_contour_fill(data = x.df,
+                      aes(x= Easting, y = Northing, z = Value),
+                      breaks = break.string,
+                      na.fill = -9999)+
+    #handling the NA 
+    stat_subset(data = x.df, 
+                aes(x= Easting, y = Northing, subset = is.na(Value)),
+                geom = "raster",
+                fill = "#ffffff")+
+    
+    #oooohhhhh pretty colors
+    scale_fill_gradientn(legend.key,
+                         colors = c.string,
+                         limits=  c(min(break.string),
+                                    max(break.string))) +
+    
+    ##North American political boundries
+    geom_sf(data = north.america,
+            aes(group = "Name_1"),
+            color="grey20",
+            fill=NA)+
+    geom_sf(data = dist.crop,
+            aes(group = "SP_ID"),
+            colour = "dodgerblue4",
+            fill = NA)   +
+    #Lables
+    geom_text_contour(data = x.df, 
+                      aes(x= Easting, y = Northing, z = Value),
+                      stroke = 0.2, min.size = text.min,
+                      rotate = F, check_overlap = T)+
+    theme_bw()+
+    theme(legend.position = "bottom",
+          legend.text=element_text(size=7),
+          legend.title=element_text(size=9),
+          axis.title = element_blank(),
+          plot.margin=grid::unit(c(0,0,0,0), "mm"))+
+    scale_x_continuous(limits =  c(extent(dist.crop)[1],extent(dist.crop)[2]))+
+    scale_y_continuous(limits = c(extent(dist.crop)[3],extent(dist.crop)[4]))+
+    facet_wrap( .~ Status,
+                nrow = 1)
+  
+  ## Save Flag  
+  if(!is.null(save.name)){
+    if(device.out == "pdf"){
+      dev.ext <- cairo_pdf
+    } else if (device.out =="eps"){
+      dev.ext <- cairo_ps
+    } else {
+      dev.ext <- device.out
+    }
+    
+    ggsave(filename = file.path(win.res,"fig", paste0(save.name,".", device.out)),
+           g.win, 
+           dpi = 400,
+           device = dev.ext,
+           ...)}
+  gc()
+  return(g.win)
+}
+
+increasedExpendaturePlot <- function(x,
+                                      parent.data = plotStk, 
+                                      res.agg = 20,
+                                      north.america =NA.utm,
+                                      canada.focus = NULL,
+                                      dist.map = mylu.utm,
+                                      text.min = 35,
+                                      legend.key = "Fill this in",
+                                      save.name = NULL,
+                                      device.out = NULL,
+                                      ...){
+  
+  ## Subset out the paired layers
+  target.data <- parent.data[[grep(pattern = x, 
+                                   names(parent.data))]]
+  
+  ## Create DataFrame (aggragation is mainly for the dev period)
+  if(!is.null(res.agg)){ #aggratetion bits
+    x.ag <- raster::aggregate(target.data, res.agg)
+  }
+  else{
+    x.ag <- target.data}
+  ## Canada focus flag
+  if(!is.null(canada.focus)){
+    x.ag <- crop(x.ag, extent(canada.focus))
+    dist.crop <- st_crop(dist.map, extent(canada.focus))
+    north.america <- st_crop(north.america, dist.crop)
+    
+  }
+  else{
+    ## Crop background to distribution
+    dist.crop <- dist.map
+    north.america <- st_crop(north.america, dist.crop)
+  }
+  
+  ## Convert to df
+  x.pts <- cbind(xyFromCell(x.ag, 1:ncell(x.ag)), values(x.ag)) #to points
+  x.df <- data.frame(x.pts)
+  #Note infected and null are generally in that order 
+  colnames(x.df) <- c("Easting", "Northing", "Infected", "Uninfected")
+  
+  x.df <- x.df %>%
+    mutate(precIncrease = (Infected/Uninfected)*100)
+  
+  ## create breaks
+  break.string <- seq(floor(min(x.df$precIncrease, na.rm = T)),
+                      ceiling(max(x.df$precIncrease, na.rm = T)),
+                      by = 25)
+  colourCount = length(break.string)
+  getPalette = colorRampPalette(RColorBrewer::brewer.pal(colourCount, "Spectral"))
+  
+  g.win <- ggplot() +
+    ##Contouring
+    geom_contour_fill(data = x.df,
+                      aes(x= Easting, y = Northing, z = precIncrease),
+                      breaks = break.string,
+                      na.fill = -9999)+
+    #handling the NA 
+    stat_subset(data = x.df, 
+                aes(x= Easting, y = Northing, subset = is.na(precIncrease)),
+                geom = "raster",
+                fill = "#ffffff")+
+    
+    scale_fill_gradientn(legend.key,
+                         colors = rev(getPalette(colourCount)),
+                         limits=  c(min(break.string),
+                                    max(break.string))) +
+    ##North American political boundries
+    geom_sf(data = north.america,
+            aes(group = "Name_1"),
+            color="grey20",
+            fill=NA)+
+    
+    geom_sf(data = dist.crop,
+            aes(group = "SP_ID"),
+            colour = "dodgerblue4",
+            size = .7,
+            fill = NA)   +
+    
+    #Lables
+    geom_text_contour(data = x.df, 
+                      aes(x= Easting, y = Northing, z = precIncrease),
+                      stroke = 0.2, min.size = text.min,
+                      rotate = F, check_overlap = T)+
+    
+    theme_bw()+
+    scale_x_continuous(limits =  c(extent(dist.crop)[1],extent(dist.crop)[2]))+
+    scale_y_continuous(limits = c(extent(dist.crop)[3],extent(dist.crop)[4]))+
+    theme(legend.position = "bottom",
+          legend.text=element_text(size=7),
+          legend.title=element_text(size=9),
+          axis.title = element_blank())
+  
+  ## Save Flag  
+  if(!is.null(save.name)){
+    if(device.out == "pdf"){
+      dev.ext <- cairo_pdf
+    } else if (device.out =="eps"){
+      dev.ext <- cairo_ps
+    } else {
+      dev.ext <- device.out
+    }
+    
+    ggsave(filename = file.path(win.res,"fig",
+                                paste0(save.name,".", device.out)),
+           g.win, 
+           dpi = 400,
+           device = dev.ext,
+           ...)}
+  gc()
+  
+  return(g.win)
+}
+
 ####  Figure 1 ####
 #### location x Data type 
 dur.raw <- fread("data/durationDataReferenced.csv")
@@ -228,7 +456,7 @@ full.utm <- st_transform(full.sf, 2955)
 NA.mylu <- st_crop(NA.utm, mylu.utm) ## this apparently wont work
 
 ## plot
-(dat.map <- ggplot() +
+dat.map <- ggplot() +
     ##North American political boundaries
     geom_sf(data = NA.mylu,
             aes(group = "Name_1"),
@@ -236,20 +464,19 @@ NA.mylu <- st_crop(NA.utm, mylu.utm) ## this apparently wont work
             fill=NA)+
     geom_sf(data = mylu.utm,
             aes(group = "SP_ID"),
-            color="dodgerblue4",
-            fill="lightblue1", 
+            color="grey10",
+            fill="grey80", 
             size = .7,
             alpha = .2)+
     geom_sf(data = full.utm,
-            aes(shape = `Data Type`, color = `Data Type`),
+            aes(shape = `Data Type`),
             alpha = .7, #position = "dodge",
             size = 2,
             show.legend = "point")+
     scale_x_continuous(expand = c(0,0))+
     scale_y_continuous(expand = c(0,0))+
-    scale_color_manual(values=c("black","red")) +
     theme_bw()
-)
+
 
 
 ggsave(filename = file.path(win.res, "fig", "dataLocations.png"),
@@ -273,8 +500,98 @@ dur.plot <- masterPlotter(x = dur.rast, break.size = 30, c.string = winterColors
                           use.dist = F,legend.key = "Predicted\nDuration\nWnter\n(Days)",
                           text.min = 50, save.name = "winDuration_Mean_MYLU",
                           device.out = "png", width = 6, unit = "in")
-gc()
+rm(dur.rast,winterColors,dur.plot);gc()
 
 #### Figure 3 ####
 ## predicted mass and fat for M. lucifugus
+
+mass.p <- raster(file.path(prod.utm, "mass_utm.tif"))
+fat.p <- raster(file.path(prod.utm, "fat_utm.tif"))
+
+## colors
+massColors <- colorRampPalette(c("#f7fcb9", "#31a354"))
+fatColors <- colorRampPalette(c("#fff7bc","#fec44f", "#d95f0e"))
+
+## mass
+mass.plot <- masterPlotter(x = mass.p, break.size = .5, c.string = massColors(5),
+                           vis.break = c(5,14), use.dist = T, legend.key = "Predicted\nBody\nMass (g)",
+                           text.min = 50, save.name = "massMean_MYLU", device.out = "png",
+                           width = 6, unit = "in")
+
+## fat
+fat.plot <- masterPlotter(x = fat.p, break.size = .5, c.string = fatColors(5),
+                           vis.break = c(0,5.5), use.dist = T, legend.key = "Predicted\nBody\nFat (g)",
+                           text.min = 50, save.name = "fatMean_MYLU", device.out = "png", 
+                          width = 6, unit = "in")
+
+## combine
+library(gridExtra)
+fig3 <- grid.arrange(mass.plot,
+                     fat.plot,
+                     nrow = 1)
+ggsave(file.path(win.res, "fig", "Mass_Fat_MYLU.png"),
+       fig3,
+       device = "png",
+       width = 8,
+       height = 4,
+       units = "in")
+rm(mass.p, fat.p, massColors, fatColors, mass.plot, fat.plot, fig3);gc()
+
+#### Figure 4 ####
+## predicted hibernation survival
+sDay.fixed <- stack(list.files(prod.utm, "sDay_fixed", full.names = T))
+above0 <- colorRampPalette(c("#E8E3F0", "#5E3C99"))
+
+survColors <- colorRampPalette(c("#fdb863",## The one below 0
+                                       above0(10)))
+
+surv <- pairedPlotting(x = "sDay_fixed", parent.data = sDay.fixed, break.size = 30,text.min = 50,
+               c.string = survColors(8),legend.key = "survival\n Capacity\n (days)",
+               save.name = "survDays_fixed", device.out = "png", width = 8, height = 4,
+               unit = "in")
+
+## best temperature condtions
+sDay.best <- stack(list.files(prod.utm, "sDay_best", full.names = T))
+plot(sDay.best)
+below0 <- colorRampPalette(c( "#E08214", "#fdb863"))
+above0 <- colorRampPalette(c("#E8E3F0", "#5E3C99"))
+
+survColors <- colorRampPalette(c(below0(5),## The one below 0
+                                 above0(12)))
+
+surv <- pairedPlotting(x = "sDay_best", parent.data = sDay.best, break.size = 30,text.min = 50,
+                       c.string = survColors(12),legend.key = "survival\n Capacity\n (days)",
+                       save.name = "survDays_fixed", device.out = "png", width = 8, height = 4,
+                       unit = "in")
+#### Figure 5 ####
+## increased energy expendature due to WNS infection
+# lets do this with fat
+fat.stk <- stack(list.files(prod.utm, "sFat", full.names = T)[3:4])
+
+a <- increasedExpendaturePlot(x <- "sFat",
+                               parent.data = fat.stk,
+                               res.agg = 20,
+                               text.min = 50,
+                               north.america = NA.utm,
+                               canada.focus = NULL,
+                               legend.key = "Precent\nIncreased\nFat\nRequired",
+                               save.name = "precIncrease_fixed",
+                               device.out = "png",
+                               width = 6, 
+                               units = "in")
+
+
+fat.best <- stack(list.files(prod.utm, "sFat", full.names = T)[1:2])
+b <- increasedExpendaturePlot(x <- "sFat_Best",
+                              parent.data = fat.best,
+                              res.agg = 20,
+                              text.min = 50,
+                              north.america = NA.utm,
+                              canada.focus = NULL,
+                              legend.key = "Precent\nIncreased\nFat\nRequired",
+                              save.name = "precIncrease_best",
+                              device.out = "png",
+                              width = 6, 
+                              units = "in")
+
 
