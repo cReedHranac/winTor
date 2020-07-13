@@ -50,7 +50,7 @@ mylu.mod <- fread(file.path(win.dat, "myluDynamicModel.csv"))
 ## winter duration layer
 library(raster)
 rasterOptions(memfrac = .3); rasterOptions(maxmemory = 1e+08) ## helps
-win <- raster(file.path(win.res, "durationRaster_p.tif"))
+win <- raster(file.path(win.res, "duration_p.tif"))
 
 ## create fixed microclimate conditions
 rh.fix   <- calc(win, function(x) ifelse(!is.na(x), 98, NA))
