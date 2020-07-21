@@ -593,7 +593,7 @@ best.Survival <- grid.arrange(surv.b, b, layout_matrix = matrix(c(1,2,2,1,2,2), 
 
 
 ggsave(file.path(win.res, "fig", "bestSurvival_super.png"),
-       fixed.Survival,
+       best.Survival,
        device = "png",
        width = 8,
        height = 6,
@@ -687,3 +687,28 @@ ggsave(filename = file.path(win.res, "fig", "dataLocations.png"),
        width = 7.85,
        units = "in",
        dpi = 300)
+
+#### Sensitivity figure
+mylu.mod <- fread(file.path(win.dat, "myluDynamicModel.csv"))
+time.v <- seq(1,240,by=14)
+
+mylu.sub90 <- mylu.mod %>%
+  filter(Ta %in% c(2, 4, 6, 8),
+         pct.rh %in% seq(90, 100, by =2), 
+         time %in% day.to.hour(time.v)) %>%
+  mutate(DiffDate = hour.to.day(time),
+         DiffMass = n.g.fat.consumed,
+         Temp = as.factor(Ta),
+         RH = as.factor(pct.rh))
+
+(wideRH.plot <- ggplot() +
+    ##model lines
+    geom_line(data = mylu.sub90,
+              aes(x= DiffDate,
+                  y = DiffMass,
+                  linetype = Temp,
+                  color = RH))+
+    theme_bw() +
+    facet_grid(~Ta)
+  
+)
