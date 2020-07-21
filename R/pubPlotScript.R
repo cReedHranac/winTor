@@ -177,7 +177,7 @@ masterPlotter <- function(x,
                       rotate = F, check_overlap = T)+
     
     theme_bw()+
-    theme(legend.position = "bottom",
+    theme(#legend.position = "bottom",
           legend.text=element_text(size=7),
           legend.title=element_text(size=9),
           axis.title = element_blank(),
@@ -218,17 +218,17 @@ masterPlotter <- function(x,
 }
 
 pairedPlotting <- function(x,
-                            parent.data = plotStk,
-                            break.size,
-                            res.agg = 20,
-                            text.min = 25,
-                            north.america = NA.utm,
-                            canada.focus = NULL,
-                            dist.map = mylu.utm,
-                            c.string, 
-                            legend.key = "Fill this in",
-                            save.name = NULL, device.out = NULL,
-                            ...){
+                           parent.data = plotStk,
+                           vis.break = NULL,
+                           res.agg = 20,
+                           text.min = 25,
+                           break.size,
+                           north.america = NA.utm,
+                           dist.map = mylu.utm,
+                           c.string, 
+                           legend.key = "Fill this in",
+                           save.name = NULL, device.out = NULL,
+                           ...){
   ## Subset out the paired layers
   target.data <- parent.data[[grep(pattern = x, 
                                    names(parent.data))]]
@@ -239,18 +239,10 @@ pairedPlotting <- function(x,
   }
   else{
     x.ag <- target.data}
-  ## Canada focus flag
-  if(!is.null(canada.focus)){
-    x.ag <- crop(x.ag, extent(canada.focus))
-    dist.crop <- st_crop(dist.map, extent(canada.focus))
-    north.america <- st_crop(north.america, dist.crop)
-    
-  }
-  else{
-    ## Crop background to distribution
-    dist.crop <- dist.map
-    north.america <- st_crop(north.america, dist.crop)
-  }
+  
+  dist.crop <- dist.map
+  north.america <- st_crop(north.america, dist.crop)
+  
   
   ## Convert to df
   x.pts <- cbind(xyFromCell(x.ag, 1:ncell(x.ag)), values(x.ag)) #to points
@@ -265,9 +257,12 @@ pairedPlotting <- function(x,
   ##reorder factor levels
   x.df$Status <- factor(x.df$Status, levels = c("Uninfected", "Infected"))
   ##break points for the legend
-  break.string <- seq(floor(min(x.df$Value, na.rm = T)),
-                      ceiling(max(x.df$Value, na.rm = T)),
+  ## handing break for the visuals
+  
+  break.string <- seq(vis.break[[1]],
+                      vis.break[[2]],
                       by = break.size)
+  
   
   g.win <- ggplot()+
     geom_contour_fill(data = x.df,
@@ -301,7 +296,7 @@ pairedPlotting <- function(x,
                       stroke = 0.2, min.size = text.min,
                       rotate = F, check_overlap = T)+
     theme_bw()+
-    theme(legend.position = "bottom",
+    theme(#legend.position = "bottom",
           legend.text=element_text(size=7),
           legend.title=element_text(size=9),
           axis.title = element_blank(),
@@ -418,7 +413,7 @@ increasedExpendaturePlot <- function(x,
     theme_bw()+
     scale_x_continuous(limits =  c(extent(dist.crop)[1],extent(dist.crop)[2]))+
     scale_y_continuous(limits = c(extent(dist.crop)[3],extent(dist.crop)[4]))+
-    theme(legend.position = "bottom",
+    theme(#legend.position = "bottom",
           legend.text=element_text(size=7),
           legend.title=element_text(size=9),
           axis.title = element_blank())
@@ -444,7 +439,205 @@ increasedExpendaturePlot <- function(x,
   return(g.win)
 }
 
-####  Figure 1 ####
+
+
+#### Figure 1 ####
+## predicted duration of winter
+
+## prediction raster
+dur.rast <- raster(file.path(prod.utm, "durationC_utm.tif"))
+
+## color set
+winterColors <- colorRampPalette(c("#e0ecf4", "#9ebcda","#8856a7"))
+
+## plot and write
+dur.plot <- masterPlotter(x = dur.rast, break.size = 30, c.string = winterColors(5),
+                          use.dist = F,legend.key = "Predicted\nDuration\nWnter\n(Days)",
+                          text.min = 50, save.name = "winDuration_Mean_MYLU",
+                          device.out = "png", width = 6, unit = "in")
+rm(dur.rast,winterColors,dur.plot);gc()
+
+#### Figure 2 ####
+## predicted mass and fat for M. lucifugus
+## includes the state analysis and body mass/ body mass relationship
+
+mass.p <- raster(file.path(prod.utm, "mass_utm.tif"))
+fat.p <- raster(file.path(prod.utm, "fat_utm.tif"))
+
+## colors
+massColors <- colorRampPalette(c("#f7fcb9", "#31a354"))
+fatColors <- colorRampPalette(c("#fff7bc","#fec44f", "#d95f0e"))
+
+## mass
+mass.plot <- masterPlotter(x = mass.p, break.size = .5, c.string = massColors(5),
+                           vis.break = c(5,14), use.dist = T, legend.key = "Predicted\nBody\nMass (g)",
+                           text.min = 50)
+# , save.name = "massMean_MYLU", device.out = "png",
+#                            width = 6, unit = "in")
+
+## fat
+fat.plot <- masterPlotter(x = fat.p, break.size = .5, c.string = fatColors(5),
+                           vis.break = c(0,5.5), use.dist = T, legend.key = "Predicted\nBody\nFat (g)",
+                           text.min = 50)
+# , save.name = "fatMean_MYLU", device.out = "png", 
+#                           width = 6, unit = "in")
+
+## qMR analysis components
+##data
+dat.clean <- fread("data/qmrCleaned.csv")
+## clean in the same fashion as in that script
+dat.clean <- dat.clean %>%
+  filter(fat > 0.85) %>%
+  mutate(fl = fat + lean,
+         flp = fl/mass)
+dat.clean$sex <- as.factor(dat.clean$sex)
+dat.clean$state <- as.factor(dat.clean$state)
+## LM
+fat.pred <- lm(fat ~ mass, dat.clean)
+
+## State Lean mass plot
+state.lean.plot <- ggplot(data = dat.clean) +
+  geom_boxplot(aes(x = state, y = lean, color = state))+
+  ylab("Lean Mass (g)") + xlab("State") +
+  theme_bw()
+
+## Linear relationship
+fat.mass.plot <- ggplot(dat.clean) + 
+  geom_point(aes(x = mass, y = fat, color = state), show.legend = F) + 
+  geom_abline(aes(intercept = fat.pred$coefficients[[1]],
+                  slope = fat.pred$coefficients[[2]])) +
+  annotate("text",
+           x=7.9, y = 3.5,
+           label = paste0("Fat Mass = ",round(fat.pred$coefficients[[1]],2)," + ",
+                          round(fat.pred$coefficients[[2]],2)," * Mass")) +
+  xlab("Body Mass (g)") +
+  ylab("Fat mass (g)") + 
+  theme_bw()
+## combine
+library(gridExtra)
+fig3 <- grid.arrange(state.lean.plot, mass.plot,
+                     fat.mass.plot,fat.plot,
+                     nrow = 2)
+ggsave(file.path(win.res, "fig", "Mass_Fat_Superfig.png"),
+       fig3,
+       device = "png",
+       width = 8,
+       height = 6,
+       units = "in")
+rm(mass.p, fat.p, massColors, fatColors, mass.plot, fat.plot, fig3,
+   dat.clean, fat.pred, state.lean.plot, fat.mass.plot);gc()
+
+#### Figure 3 ####
+## predicted hibernation survival
+## and increased energy for the fixed simulation
+sDay.fixed <- stack(list.files(prod.utm, "sDay_fixed", full.names = T))
+
+## usefull to check the visable range of results for best plotting
+# rasterVis::levelplot(sDay.fixed) 
+
+
+below0 <- colorRampPalette(c( "#E08214", "#fdb863"))
+above0 <- colorRampPalette(c("#E8E3F0", "#5E3C99"))
+## figuring out color scheemes
+## range; -65:371
+## to get teh color to work correctly you need to get the vis break and color string to line up
+## and use the break size to scale
+
+fix.color <- c(below0(1), above0(5.75)) ## maybe divide each one by the break size?
+
+surv <- pairedPlotting(x = "sDay_fixed", parent.data = sDay.fixed, vis.break = c(-56,322),
+                       break.size = 14,text.min = 50,
+                       c.string = fix.color,legend.key = "survival\n Capacity\n (days)" )
+                       # ,save.name = "survDays_fixed", device.out = "png", width = 8, height = 4,
+                       # unit = "in")
+
+fat.stk <- stack(list.files(prod.utm, "fat", full.names = T)[3:4])
+
+a <- increasedExpendaturePlot(x <- "fat", parent.data = fat.stk, res.agg = 20,
+                              text.min = 50, north.america = NA.utm, canada.focus = NULL,
+                              legend.key = "Precent\nIncreased\nFat\nRequired")
+                              # save.name = "precIncrease_fixed", device.out = "png",
+                              # width = 6, units = "in")
+fixed.Survival <- grid.arrange(surv, a, layout_matrix = matrix(c(1,2,2,1,2,2), nrow = 3, ncol = 2))
+
+
+ggsave(file.path(win.res, "fig", "fixedSurvival_super.png"),
+       fixed.Survival,
+       device = "png",
+       width = 8,
+       height = 6,
+       units = "in")
+
+#### Figure 5 ####
+## best temperature condtions
+sDay.best <- stack(list.files(prod.utm, "sDay_best", full.names = T))
+rasterVis::levelplot(sDay.best)
+
+surv.b <- pairedPlotting(x = "sDay_best", parent.data = sDay.best, vis.break = c(-56,322),
+                       break.size = 14,text.min = 50,
+                       c.string = fix.color,legend.key = "survival\n Capacity\n (days)")
+                       # ,save.name = "survDays_best", device.out = "png", width = 8, height = 4,
+                       # unit = "in")
+
+
+fat.best <- stack(list.files(prod.utm, "fat", full.names = T)[1:2])
+
+b <- increasedExpendaturePlot(x <- "fat_BEST",parent.data = fat.best, res.agg = 20,
+                              text.min = 50, north.america = NA.utm,
+                              canada.focus = NULL, legend.key = "Precent\nIncreased\nFat\nRequired")
+                              # save.name = "precIncrease_best",
+                              # device.out = "png",
+                              # width = 6, 
+                              # units = "in")
+best.Survival <- grid.arrange(surv.b, b, layout_matrix = matrix(c(1,2,2,1,2,2), nrow = 3, ncol = 2))
+
+
+ggsave(file.path(win.res, "fig", "bestSurvival_super.png"),
+       fixed.Survival,
+       device = "png",
+       width = 8,
+       height = 6,
+       units = "in")
+
+#### Die/ No Die ####
+sFat.fixed <- stack(list.files(prod.utm, "sFat_", full.names = T)[3:4])
+rasterVis::levelplot(sFat.fixed)
+
+## calculating precent that dies
+fixed.bi <- raster::calc(sFat.fixed$sFat_inf_utm, function(x) x<=0)
+rasterVis::levelplot(fixed.bi)
+(length(fixed.bi[fixed.bi==F])/length(fixed.bi[is.na(fixed.bi)]))*100
+## 0.9288195 die
+
+fixed.bi <- raster::calc(sFat.fixed$sFat_inf_utm, function(x) x>0)
+rasterVis::levelplot(fixed.bi)
+length(fixed.bi[fixed.bi=F])/length(fixed.bi[!is.na(fixed.bi)]) * 100
+###
+###
+sFat.best <- stack(list.files(prod.utm, "sFat_Best", full.names = T))
+rasterVis::levelplot(sFat.best)
+## calcing precent die
+best.bi <- raster::calc(sFat.best$sFat_Best_inf_utm, function(x) x<=0)
+rasterVis::levelplot(best.bi)
+(length(best.bi[best.bi==F])/length(best.bi[is.na(best.bi)]))*100
+## 1.019079
+
+
+
+idea <- stack(fixed.bi,best.bi);names(idea) <- c("fix", "best")
+
+idea.f <- Which(fixed.bi, cell=T)
+idea.b <- Which(best.bi, cell = T)
+
+win.f <- raster::extract(dur.rast, idea.f)
+win.b <- raster::extract(dur.rast, idea.b)
+
+min(win.f)
+min(win.b)
+
+
+
+#### SI Figures ####
 #### location x Data type 
 dur.raw <- fread("data/durationDataReferenced.csv")
 mass.raw <- fread("data/massDataReferenced.csv")
@@ -466,25 +659,25 @@ NA.mylu <- st_crop(NA.utm, mylu.utm) ## this apparently wont work
 
 ## plot
 dat.map <- ggplot() +
-    ##North American political boundaries
-    geom_sf(data = NA.mylu,
-            aes(group = "Name_1"),
-            color="grey20",
-            fill=NA)+
-    geom_sf(data = mylu.utm,
-            aes(group = "SP_ID"),
-            color="grey10",
-            fill="grey80", 
-            size = .7,
-            alpha = .2)+
-    geom_sf(data = full.utm,
-            aes(shape = `Data Type`),
-            alpha = .7, #position = "dodge",
-            size = 2,
-            show.legend = "point")+
-    scale_x_continuous(expand = c(0,0))+
-    scale_y_continuous(expand = c(0,0))+
-    theme_bw()
+  ##North American political boundaries
+  geom_sf(data = NA.mylu,
+          aes(group = "Name_1"),
+          color="grey20",
+          fill=NA)+
+  geom_sf(data = mylu.utm,
+          aes(group = "SP_ID"),
+          color="grey10",
+          fill="grey80", 
+          size = .7,
+          alpha = .2)+
+  geom_sf(data = full.utm,
+          aes(shape = `Data Type`),
+          alpha = .7, #position = "dodge",
+          size = 2,
+          show.legend = "point")+
+  scale_x_continuous(expand = c(0,0))+
+  scale_y_continuous(expand = c(0,0))+
+  theme_bw()
 
 
 
@@ -494,114 +687,3 @@ ggsave(filename = file.path(win.res, "fig", "dataLocations.png"),
        width = 7.85,
        units = "in",
        dpi = 300)
-
-#### Figure 2 ####
-## predicted duration of winter
-
-## prediction raster
-dur.rast <- raster(file.path(prod.utm, "durationC_utm.tif"))
-
-## color set
-winterColors <- colorRampPalette(c("#e0ecf4", "#9ebcda","#8856a7"))
-
-## plot and write
-dur.plot <- masterPlotter(x = dur.rast, break.size = 30, c.string = winterColors(5),
-                          use.dist = F,legend.key = "Predicted\nDuration\nWnter\n(Days)",
-                          text.min = 50, save.name = "winDuration_Mean_MYLU",
-                          device.out = "png", width = 6, unit = "in")
-rm(dur.rast,winterColors,dur.plot);gc()
-
-#### Figure 3 ####
-## predicted mass and fat for M. lucifugus
-
-mass.p <- raster(file.path(prod.utm, "mass_utm.tif"))
-fat.p <- raster(file.path(prod.utm, "fat_utm.tif"))
-
-## colors
-massColors <- colorRampPalette(c("#f7fcb9", "#31a354"))
-fatColors <- colorRampPalette(c("#fff7bc","#fec44f", "#d95f0e"))
-
-## mass
-mass.plot <- masterPlotter(x = mass.p, break.size = .5, c.string = massColors(5),
-                           vis.break = c(5,14), use.dist = T, legend.key = "Predicted\nBody\nMass (g)",
-                           text.min = 50, save.name = "massMean_MYLU", device.out = "png",
-                           width = 6, unit = "in")
-
-## fat
-fat.plot <- masterPlotter(x = fat.p, break.size = .5, c.string = fatColors(5),
-                           vis.break = c(0,5.5), use.dist = T, legend.key = "Predicted\nBody\nFat (g)",
-                           text.min = 50, save.name = "fatMean_MYLU", device.out = "png", 
-                          width = 6, unit = "in")
-
-## combine
-library(gridExtra)
-fig3 <- grid.arrange(mass.plot,
-                     fat.plot,
-                     nrow = 1)
-ggsave(file.path(win.res, "fig", "Mass_Fat_MYLU.png"),
-       fig3,
-       device = "png",
-       width = 8,
-       height = 4,
-       units = "in")
-rm(mass.p, fat.p, massColors, fatColors, mass.plot, fat.plot, fig3);gc()
-
-#### Figure 4 ####
-## predicted hibernation survival
-sDay.fixed <- stack(list.files(prod.utm, "sDay_fixed", full.names = T))
-above0 <- colorRampPalette(c("#E8E3F0", "#5E3C99"))
-
-survColors <- colorRampPalette(c("#fdb863",## The one below 0
-                                       above0(10)))
-
-surv <- pairedPlotting(x = "sDay_fixed", parent.data = sDay.fixed, break.size = 30,text.min = 50,
-               c.string = survColors(8),legend.key = "survival\n Capacity\n (days)",
-               save.name = "survDays_fixed", device.out = "png", width = 8, height = 4,
-               unit = "in")
-
-## best temperature condtions
-sDay.best <- stack(list.files(prod.utm, "sDay_best", full.names = T))
-plot(sDay.best)
-below0 <- colorRampPalette(c( "#E08214", "#fdb863"))
-above0 <- colorRampPalette(c("#E8E3F0", "#5E3C99"))
-
-survColors <- colorRampPalette(c(below0(5),## The one below 0
-                                 above0(12)))
-
-surv <- pairedPlotting(x = "sDay_best", parent.data = sDay.best, break.size = 30,text.min = 50,
-                       c.string = survColors(12),legend.key = "survival\n Capacity\n (days)",
-                       save.name = "survDays_fixed", device.out = "png", width = 8, height = 4,
-                       unit = "in")
-#### Figure 5 ####
-## increased energy expendature due to WNS infection
-# lets do this with fat required for hibernation survival
-fat.stk <- stack(list.files(prod.utm, "fat", full.names = T)[3:4])
-
-
-a <- increasedExpendaturePlot(x <- "fat",
-                               parent.data = fat.stk,
-                               res.agg = 20,
-                               text.min = 50,
-                               north.america = NA.utm,
-                               canada.focus = NULL,
-                               legend.key = "Precent\nIncreased\nFat\nRequired",
-                               save.name = "precIncrease_fixed",
-                               device.out = "png",
-                               width = 6, 
-                               units = "in")
-
-
-fat.best <- stack(list.files(prod.utm, "fat", full.names = T)[1:2])
-b <- increasedExpendaturePlot(x <- "fat_BEST",
-                              parent.data = fat.best,
-                              res.agg = 20,
-                              text.min = 50,
-                              north.america = NA.utm,
-                              canada.focus = NULL,
-                              legend.key = "Precent\nIncreased\nFat\nRequired",
-                              save.name = "precIncrease_best",
-                              device.out = "png",
-                              width = 6, 
-                              units = "in")
-
-
