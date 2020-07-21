@@ -240,7 +240,32 @@ write.csv(dur.AIC,
           file =  file.path(win.res, 'durationResultsTable.csv'),
           row.names = F)
 
+## summary of top model
+summary(dur.mods[[12]])
 
+# Call:
+#   FUN(formula = X[[i]], family = "gaussian", data = ..1)
+# 
+# Deviance Residuals: 
+#   Min       1Q   Median       3Q      Max  
+# -59.968  -22.874    3.032   20.085   70.297  
+# 
+# Coefficients:
+#   Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)    39.22916   52.34561   0.749   0.4575    
+# NA_northing    -0.22453    1.15702  -0.194   0.8470    
+# NA_dem         -0.03246    0.01531  -2.120   0.0395 *  
+# NA_nFrostyDays  0.82549    0.14057   5.873 4.82e-07 ***
+#   ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# (Dispersion parameter for gaussian family taken to be 1096.782)
+# 
+# Null deviance: 111587  on 48  degrees of freedom
+# Residual deviance:  49355  on 45  degrees of freedom
+# AIC: 487.89
+# 
+# Number of Fisher Scoring iterations: 2
 #### Re-assess Spatial residuals ####
 
 ## top model
@@ -595,6 +620,32 @@ write.csv(mass.AIC,
           file =  file.path(win.res, 'massResultsTable.csv'),
           row.names = F)
 
+## Model Summary for top model
+summary(mass.mods[[10]])
+
+# Call:
+#   FUN(formula = X[[i]], family = "gaussian", data = ..1)
+# 
+# Deviance Residuals: 
+#   Min       1Q   Median       3Q      Max  
+# -3.8171  -0.7263   0.0566   1.0085   3.3453  
+# 
+# Coefficients:
+#   Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)    10.28621    1.82371   5.640 1.64e-06 ***
+# NA_northing    -0.07666    0.04179  -1.835 0.074192 .  
+# NA_nDaysFreeze  0.04111    0.01138   3.612 0.000857 ***
+#   ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# (Dispersion parameter for gaussian family taken to be 2.436732)
+# 
+# Null deviance: 128.956  on 41  degrees of freedom
+# Residual deviance:  95.033  on 39  degrees of freedom
+# AIC: 161.49
+# 
+# Number of Fisher Scoring iterations: 2
+
 #### Spatial residuals ####
 mass.mod <- formula(mass.mods[[10]])
 ## add model residuals to spatial dataset
@@ -637,6 +688,9 @@ mass_spatial <- glmmfields(mass.mod,
                           control = list(adapt_delta = 0.99,
                                          max_treedepth = 15)# passed to rstan::sampling()
 ))
+
+## Summary
+summary(mass_spatial)
 
 plot(mass_spatial, type = "spatial-residual", link = TRUE) +
   geom_point(size = 3)
