@@ -400,7 +400,6 @@ increasedExpendaturePlot <- function(x,
     
     geom_sf(data = dist.crop,
             aes(group = "SP_ID"),
-            colour = "dodgerblue4",
             size = .7,
             fill = NA)   +
     
@@ -441,6 +440,57 @@ increasedExpendaturePlot <- function(x,
 
 
 
+#### location x Data type ####
+dur.raw <- fread("data/durationDataReferenced.csv")
+mass.raw <- fread("data/massDataReferenced.csv")
+
+dur.raw$type <- "Duration"
+mass.raw$type <- "Mass"
+
+full.dat <- full_join(dur.raw, mass.raw) %>%
+  dplyr::select(Lat, Long, type)
+colnames(full.dat)[[3]] <- "Data Type"
+
+full.sf <- st_as_sf(full.dat,
+                    coords = c("Long","Lat"))
+st_crs(full.sf) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+full.utm <- st_transform(full.sf, 2955)
+
+##further crop to the species extent 
+NA.mylu <- st_crop(NA.utm, mylu.utm) ## this apparently wont work
+
+## plot
+dat.map <- ggplot() +
+  ##North American political boundaries
+  geom_sf(data = NA.mylu,
+          aes(group = "Name_1"),
+          color="grey20",
+          fill=NA)+
+  geom_sf(data = mylu.utm,
+          aes(group = "SP_ID"),
+          color="grey10",
+          fill="grey80", 
+          size = .7,
+          alpha = .2)+
+  geom_sf(data = full.utm,
+          aes(shape = `Data Type`),
+          size = 2,
+          show.legend = "point")+
+  scale_x_continuous(expand = c(0,0))+
+  scale_y_continuous(expand = c(0,0))+
+  theme_bw()
+
+
+
+ggsave(filename = file.path(win.res, "fig", "dataLocations.png"),
+       dat.map, device = "png",
+       height = 4.875,
+       width = 7.85,
+       units = "in",
+       dpi = 300)
+
+rm(dur.raw, mass.raw, full.dat, full.sf, full.utm, dat.map)
+
 #### predicted duration of winter  ####
 
 ## prediction raster
@@ -456,8 +506,8 @@ dur.plot <- masterPlotter(x = dur.rast, break.size = 30, c.string = winterColors
                           device.out = "png", width = 6, unit = "in")
 rm(dur.rast,winterColors,dur.plot);gc()
 
-#### Figure 2 ####
-## predicted mass and fat for M. lucifugus
+#### predicted mass and fat for M. lucifugus ####
+## 
 ## includes the state analysis and body mass/ body mass relationship
 
 mass.p <- raster(file.path(prod.utm, "mass_utm.tif"))
@@ -560,23 +610,26 @@ fat.stk <- stack(list.files(prod.utm, "fat", full.names = T)[3:4])
 
 a <- increasedExpendaturePlot(x <- "fat", parent.data = fat.stk, res.agg = 20,
                               text.min = 50, north.america = NA.utm, canada.focus = NULL,
-                              legend.key = "Precent\nIncreased\nFat\nRequired")
+                              legend.key = "Precent\nIncreased\nFat\nExpended")
                               # save.name = "precIncrease_fixed", device.out = "png",
                               # width = 6, units = "in")
-fixed.Survival <- grid.arrange(surv, a, layout_matrix = matrix(c(1,2,2,1,2,2), nrow = 3, ncol = 2))
+fixed.Survival <- grid.arrange(surv, a,
+                               layout_matrix = matrix(c(1,2,2,1,2,2),
+                                                      nrow = 3, ncol = 2),
+                               heights = c(.37, 0.315, 0.315),
+                               widths = c(1,1))
 
 
 ggsave(file.path(win.res, "fig", "fixedSurvival_super.png"),
        fixed.Survival,
        device = "png",
-       width = 8,
-       height = 6,
+       width = 7.5,
+       height = 7.5,
        units = "in")
 
-#### Figure 5 ####
+#### Figure 4 ####
 ## best temperature condtions
 sDay.best <- stack(list.files(prod.utm, "sDay_best", full.names = T))
-rasterVis::levelplot(sDay.best)
 
 surv.b <- pairedPlotting(x = "sDay_best", parent.data = sDay.best, vis.break = c(-56,322),
                        break.size = 14,text.min = 50,
@@ -589,19 +642,22 @@ fat.best <- stack(list.files(prod.utm, "fat", full.names = T)[1:2])
 
 b <- increasedExpendaturePlot(x <- "fat_BEST",parent.data = fat.best, res.agg = 20,
                               text.min = 50, north.america = NA.utm,
-                              canada.focus = NULL, legend.key = "Precent\nIncreased\nFat\nRequired")
+                              canada.focus = NULL, legend.key = "Precent\nIncreased\nFat\nExpended")
                               # save.name = "precIncrease_best",
                               # device.out = "png",
                               # width = 6, 
                               # units = "in")
-best.Survival <- grid.arrange(surv.b, b, layout_matrix = matrix(c(1,2,2,1,2,2), nrow = 3, ncol = 2))
+best.Survival <- grid.arrange(surv.b, b,
+                              layout_matrix = matrix(c(1,2,2,1,2,2), nrow = 3, ncol = 2),
+                              heights = c(.37, 0.315, 0.315),
+                              widths = c(1,1))
 
 
 ggsave(file.path(win.res, "fig", "bestSurvival_super.png"),
        best.Survival,
        device = "png",
-       width = 8,
-       height = 6,
+       width = 7.5,
+       height = 7.5,
        units = "in")
 
 #### Die/ No Die ####
@@ -643,55 +699,6 @@ min(win.b)
 
 
 #### SI Figures ####
-#### location x Data type 
-dur.raw <- fread("data/durationDataReferenced.csv")
-mass.raw <- fread("data/massDataReferenced.csv")
-
-dur.raw$type <- "Duration"
-mass.raw$type <- "Mass"
-
-full.dat <- full_join(dur.raw, mass.raw) %>%
-  dplyr::select(Lat, Long, type)
-colnames(full.dat)[[3]] <- "Data Type"
-
-full.sf <- st_as_sf(full.dat,
-                    coords = c("Long","Lat"))
-st_crs(full.sf) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
-full.utm <- st_transform(full.sf, 2955)
-
-##further crop to the species extent 
-NA.mylu <- st_crop(NA.utm, mylu.utm) ## this apparently wont work
-
-## plot
-dat.map <- ggplot() +
-  ##North American political boundaries
-  geom_sf(data = NA.mylu,
-          aes(group = "Name_1"),
-          color="grey20",
-          fill=NA)+
-  geom_sf(data = mylu.utm,
-          aes(group = "SP_ID"),
-          color="grey10",
-          fill="grey80", 
-          size = .7,
-          alpha = .2)+
-  geom_sf(data = full.utm,
-          aes(shape = `Data Type`),
-          alpha = .7, #position = "dodge",
-          size = 2,
-          show.legend = "point")+
-  scale_x_continuous(expand = c(0,0))+
-  scale_y_continuous(expand = c(0,0))+
-  theme_bw()
-
-
-
-ggsave(filename = file.path(win.res, "fig", "dataLocations.png"),
-       dat.map, device = "png",
-       height = 4.875,
-       width = 7.85,
-       units = "in",
-       dpi = 300)
 
 #### Sensitivity figure ####
 mylu.mod <- fread(file.path(win.dat, "myluDynamicModel.csv"))
