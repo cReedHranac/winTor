@@ -670,7 +670,7 @@ moran.mc(mass$RESID, listw = nn.list, nsim = 999)
 lm.LMtests(mass.mods[[10]], listw = nn.list, test = "all")
 
 ## significant auto-correlation among the residuals
-#### attempts at spatial GLM ####
+#### Spatial GLM ####
 ## Methodology adapted from: https://cran.r-project.org/web/packages/glmmfields/vignettes/spatial-glms.html
 library(glmmfields)
 options(mc.cores = parallel::detectCores())  
@@ -742,33 +742,6 @@ writeRaster(r.prob.Cluster,
             bylayer = T,
             suffix = "names",
             overwrite = T)
-
-#### Variogram of the top models ####
-library(gstat)
-
-#top model mass
-mass.mod
-
-v <- variogram(mass.mod,
-               data = mass)
-v.exp = fit.variogram(v, vgm("Exp"), fit.kappa = T)
-v.mat <- fit.variogram(v, vgm("Mat"), fit.kappa = T)
-v.sph <- fit.variogram(v, vgm("Sph"), fit.kappa = T)
-
-par(mfrow = c(1,3))
-
-plot(v, v.exp)
-plot(v, v.mat)
-plot(v, v.sph)
-
-library(gridExtra)
-Variogram.mass <- grid.arrange(plot(v, v.exp),
-                              plot(v, v.mat),
-                              plot(v, v.sph),
-                              ncol = 1)
-
-ggsave( file.path(win.res,"fig", "varioMass.png"),
-        plot = Variogram.mass)
 
 #### Clean up script items ####
 env.post <- ls()
