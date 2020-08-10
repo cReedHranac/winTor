@@ -177,7 +177,7 @@ masterPlotter <- function(x,
                       rotate = F, check_overlap = T)+
     
     theme_bw()+
-    theme(#legend.position = "bottom",
+    theme(legend.position = "bottom",
           legend.text=element_text(size=7),
           legend.title=element_text(size=9),
           axis.title = element_blank(),
@@ -441,8 +441,7 @@ increasedExpendaturePlot <- function(x,
 
 
 
-#### Figure 1 ####
-## predicted duration of winter
+#### predicted duration of winter  ####
 
 ## prediction raster
 dur.rast <- raster(file.path(prod.utm, "durationC_utm.tif"))
@@ -452,7 +451,7 @@ winterColors <- colorRampPalette(c("#e0ecf4", "#9ebcda","#8856a7"))
 
 ## plot and write
 dur.plot <- masterPlotter(x = dur.rast, break.size = 30, c.string = winterColors(5),
-                          use.dist = F,legend.key = "Predicted\nDuration\nWnter\n(Days)",
+                          use.dist = F,legend.key = "Predicted\nDuration\nWinter\n(Days)",
                           text.min = 50, save.name = "winDuration_Mean_MYLU",
                           device.out = "png", width = 6, unit = "in")
 rm(dur.rast,winterColors,dur.plot);gc()
@@ -497,7 +496,8 @@ fat.pred <- lm(fat ~ mass, dat.clean)
 
 ## State Lean mass plot
 state.lean.plot <- ggplot(data = dat.clean) +
-  geom_boxplot(aes(x = state, y = lean, color = state))+
+  geom_boxplot(aes(x = state, y = lean, color = state),
+               show.legend = F)+
   ylab("Lean Mass (g)") + xlab("State") +
   theme_bw()
 
@@ -515,14 +515,19 @@ fat.mass.plot <- ggplot(dat.clean) +
   theme_bw()
 ## combine
 library(gridExtra)
-fig3 <- grid.arrange(state.lean.plot, mass.plot,
-                     fat.mass.plot,fat.plot,
-                     nrow = 2)
+fig3 <- grid.arrange(state.lean.plot, fat.mass.plot,
+                     mass.plot, fat.plot,
+                     nrow = 2,
+                     heights = c(.4,.6))
+
+fig3.2 <- cowplot::ggdraw(fig3) + 
+  theme(plot.background = element_rect(fill=NA, color = NA))
+
 ggsave(file.path(win.res, "fig", "Mass_Fat_Superfig.png"),
        fig3,
        device = "png",
-       width = 8,
-       height = 6,
+       width = 7.5,
+       height = 5.5,
        units = "in")
 rm(mass.p, fat.p, massColors, fatColors, mass.plot, fat.plot, fig3,
    dat.clean, fat.pred, state.lean.plot, fat.mass.plot);gc()
@@ -547,7 +552,7 @@ fix.color <- c(below0(1), above0(5.75)) ## maybe divide each one by the break si
 
 surv <- pairedPlotting(x = "sDay_fixed", parent.data = sDay.fixed, vis.break = c(-56,322),
                        break.size = 14,text.min = 50,
-                       c.string = fix.color,legend.key = "survival\n Capacity\n (days)" )
+                       c.string = fix.color,legend.key = "Survival\nCapacity\n(days)" )
                        # ,save.name = "survDays_fixed", device.out = "png", width = 8, height = 4,
                        # unit = "in")
 
@@ -575,7 +580,7 @@ rasterVis::levelplot(sDay.best)
 
 surv.b <- pairedPlotting(x = "sDay_best", parent.data = sDay.best, vis.break = c(-56,322),
                        break.size = 14,text.min = 50,
-                       c.string = fix.color,legend.key = "survival\n Capacity\n (days)")
+                       c.string = fix.color,legend.key = "Survival\nCapacity\n(days)")
                        # ,save.name = "survDays_best", device.out = "png", width = 8, height = 4,
                        # unit = "in")
 
@@ -688,7 +693,7 @@ ggsave(filename = file.path(win.res, "fig", "dataLocations.png"),
        units = "in",
        dpi = 300)
 
-#### Sensitivity figure
+#### Sensitivity figure ####
 mylu.mod <- fread(file.path(win.dat, "myluDynamicModel.csv"))
 time.v <- seq(1,240,by=14)
 
@@ -697,18 +702,42 @@ mylu.sub90 <- mylu.mod %>%
          pct.rh %in% seq(90, 100, by =2), 
          time %in% day.to.hour(time.v)) %>%
   mutate(DiffDate = hour.to.day(time),
-         DiffMass = n.g.fat.consumed,
+         DiffMass_n = n.g.fat.consumed,
+         DiffMass_i = g.fat.consumed,
          Temp = as.factor(Ta),
          RH = as.factor(pct.rh))
 
-(wideRH.plot <- ggplot() +
+##try to change the data structure to get everything in one plot
+
+sub90.n <- mylu.sub90 %>%
+  dplyr::select(Temp, RH, DiffDate, DiffMass_n) %>%
+  mutate(Infection = F)
+colnames(sub90.n)[[4]] <- "DiffMass"
+sub90.i <- mylu.sub90 %>%
+  dplyr::select(Temp, RH, DiffDate, DiffMass_i) %>%
+  mutate(Infection = T)
+colnames(sub90.i)[[4]] <- "DiffMass"
+
+sub.90 <- bind_rows(sub90.n, sub90.i)
+
+
+null.plot <- ggplot() +
     ##model lines
-    geom_line(data = mylu.sub90,
+    geom_line(data = sub.90,
               aes(x= DiffDate,
                   y = DiffMass,
-                  linetype = Temp,
-                  color = RH))+
+                  color = RH,
+                  linetype = Infection))+ 
+  xlab("Time (days)")+
+  ylab("Fat Consumed (g)")+
+  labs(color = "Relative\nHumidity")+
     theme_bw() +
-    facet_grid(~Ta)
-  
-)
+    facet_grid(~Temp)
+
+ggsave(filename = file.path(win.res, "fig", "SI_sensitivityFig.png"),
+       null.plot, device = "png",
+       height = 4.5,
+       width = 7,
+       units = "in",
+       dpi = 300)
+
