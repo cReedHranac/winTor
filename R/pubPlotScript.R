@@ -440,57 +440,6 @@ increasedExpendaturePlot <- function(x,
 
 
 
-#### location x Data type ####
-dur.raw <- fread("data/durationDataReferenced.csv")
-mass.raw <- fread("data/massDataReferenced.csv")
-
-dur.raw$type <- "Duration"
-mass.raw$type <- "Mass"
-
-full.dat <- full_join(dur.raw, mass.raw) %>%
-  dplyr::select(Lat, Long, type)
-colnames(full.dat)[[3]] <- "Data Type"
-
-full.sf <- st_as_sf(full.dat,
-                    coords = c("Long","Lat"))
-st_crs(full.sf) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
-full.utm <- st_transform(full.sf, 2955)
-
-##further crop to the species extent 
-NA.mylu <- st_crop(NA.utm, mylu.utm) ## this apparently wont work
-
-## plot
-dat.map <- ggplot() +
-  ##North American political boundaries
-  geom_sf(data = NA.mylu,
-          aes(group = "Name_1"),
-          color="grey20",
-          fill=NA)+
-  geom_sf(data = mylu.utm,
-          aes(group = "SP_ID"),
-          color="grey10",
-          fill="grey80", 
-          size = .7,
-          alpha = .2)+
-  geom_sf(data = full.utm,
-          aes(shape = `Data Type`),
-          size = 2,
-          show.legend = "point")+
-  scale_x_continuous(expand = c(0,0))+
-  scale_y_continuous(expand = c(0,0))+
-  theme_bw()
-
-
-
-ggsave(filename = file.path(win.res, "fig", "dataLocations.png"),
-       dat.map, device = "png",
-       height = 4.875,
-       width = 7.85,
-       units = "in",
-       dpi = 300)
-
-rm(dur.raw, mass.raw, full.dat, full.sf, full.utm, dat.map)
-
 #### predicted duration of winter  ####
 
 ## prediction raster
@@ -501,9 +450,9 @@ winterColors <- colorRampPalette(c("#e0ecf4", "#9ebcda","#8856a7"))
 
 ## plot and write
 dur.plot <- masterPlotter(x = dur.rast, break.size = 30, c.string = winterColors(5),
-                          use.dist = F,legend.key = "Predicted\nDuration\nWinter\n(Days)",
-                          text.min = 50, save.name = "winDuration_Mean_MYLU",
-                          device.out = "png", width = 6, unit = "in")
+                          use.dist = F,legend.key = "Predicted\nDuration\nWinter\n(Days)",text.min = 50)
+                          # , save.name = "winDuration_Mean_MYLU",
+                          # device.out = "png", width = 6, unit = "in")
 rm(dur.rast,winterColors,dur.plot);gc()
 
 #### predicted mass and fat for M. lucifugus ####
@@ -573,16 +522,16 @@ fig3 <- grid.arrange(state.lean.plot, fat.mass.plot,
 fig3.2 <- cowplot::ggdraw(fig3) + 
   theme(plot.background = element_rect(fill=NA, color = NA))
 
-ggsave(file.path(win.res, "fig", "Mass_Fat_Superfig.png"),
-       fig3,
-       device = "png",
-       width = 7.5,
-       height = 5.5,
-       units = "in")
+# ggsave(file.path(win.res, "fig", "Mass_Fat_Superfig.png"),
+#        fig3,
+#        device = "png",
+#        width = 7.5,
+#        height = 5.5,
+#        units = "in")
 rm(mass.p, fat.p, massColors, fatColors, mass.plot, fat.plot, fig3,
    dat.clean, fat.pred, state.lean.plot, fat.mass.plot);gc()
 
-#### Figure 3 ####
+#### Hibernation survival fixed conditions ####
 ## predicted hibernation survival
 ## and increased energy for the fixed simulation
 sDay.fixed <- stack(list.files(prod.utm, "sDay_fixed", full.names = T))
@@ -620,14 +569,14 @@ fixed.Survival <- grid.arrange(surv, a,
                                widths = c(1,1))
 
 
-ggsave(file.path(win.res, "fig", "fixedSurvival_super.png"),
-       fixed.Survival,
-       device = "png",
-       width = 7.5,
-       height = 7.5,
-       units = "in")
-
-#### Figure 4 ####
+# ggsave(file.path(win.res, "fig", "fixedSurvival_super.png"),
+#        fixed.Survival,
+#        device = "png",
+#        width = 7.5,
+#        height = 7.5,
+#        units = "in")
+rm(sDay.fixed, surv, fat.stk, a, fixed.Survival);gc()
+#### Hibernation survival at best conditions ####
 ## best temperature condtions
 sDay.best <- stack(list.files(prod.utm, "sDay_best", full.names = T))
 
@@ -653,51 +602,13 @@ best.Survival <- grid.arrange(surv.b, b,
                               widths = c(1,1))
 
 
-ggsave(file.path(win.res, "fig", "bestSurvival_super.png"),
-       best.Survival,
-       device = "png",
-       width = 7.5,
-       height = 7.5,
-       units = "in")
-
-#### Die/ No Die ####
-sFat.fixed <- stack(list.files(prod.utm, "sFat_", full.names = T)[3:4])
-rasterVis::levelplot(sFat.fixed)
-
-## calculating precent that dies
-fixed.bi <- raster::calc(sFat.fixed$sFat_inf_utm, function(x) x<=0)
-rasterVis::levelplot(fixed.bi)
-(length(fixed.bi[fixed.bi==F])/length(fixed.bi[is.na(fixed.bi)]))*100
-## 0.9288195 die
-
-fixed.bi <- raster::calc(sFat.fixed$sFat_inf_utm, function(x) x>0)
-rasterVis::levelplot(fixed.bi)
-length(fixed.bi[fixed.bi=F])/length(fixed.bi[!is.na(fixed.bi)]) * 100
-###
-###
-sFat.best <- stack(list.files(prod.utm, "sFat_Best", full.names = T))
-rasterVis::levelplot(sFat.best)
-## calcing precent die
-best.bi <- raster::calc(sFat.best$sFat_Best_inf_utm, function(x) x<=0)
-rasterVis::levelplot(best.bi)
-(length(best.bi[best.bi==F])/length(best.bi[is.na(best.bi)]))*100
-## 1.019079
-
-
-
-idea <- stack(fixed.bi,best.bi);names(idea) <- c("fix", "best")
-
-idea.f <- Which(fixed.bi, cell=T)
-idea.b <- Which(best.bi, cell = T)
-
-win.f <- raster::extract(dur.rast, idea.f)
-win.b <- raster::extract(dur.rast, idea.b)
-
-min(win.f)
-min(win.b)
-
-
-
+# ggsave(file.path(win.res, "fig", "bestSurvival_super.png"),
+#        best.Survival,
+#        device = "png",
+#        width = 7.5,
+#        height = 7.5,
+#        units = "in")
+rm(sDay.best, fat.best, surv.b, best.Survival); gc()
 #### SI Figures ####
 
 #### Sensitivity figure ####
@@ -741,10 +652,14 @@ null.plot <- ggplot() +
     theme_bw() +
     facet_grid(~Temp)
 
-ggsave(filename = file.path(win.res, "fig", "SI_sensitivityFig.png"),
-       null.plot, device = "png",
-       height = 4.5,
-       width = 7,
-       units = "in",
-       dpi = 300)
+# ggsave(filename = file.path(win.res, "fig", "SI_sensitivityFig.png"),
+#        null.plot, device = "png",
+#        height = 4.5,
+#        width = 7,
+#        units = "in",
+#        dpi = 300)
 
+#### Clean up script items ####
+env.post <- ls()
+to.remove <- env.post[env.post %!in% env.prior]
+rm(list=to.remove); rm(env.post, to.remove)
