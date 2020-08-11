@@ -612,8 +612,8 @@ best.Survival <- grid.arrange(surv.b, b,
 rm(sDay.best, fat.best, surv.b, best.Survival); gc()
 #### SI Figures ####
 #### location x Data type ####
-dur.raw <- fread("data/durationDataReferenced.csv")
-mass.raw <- fread("data/massDataReferenced.csv")
+dur.raw <- fread(file.path(win.dat,"durationDataReferenced.csv"))
+mass.raw <- fread(file.path(win.dat,"massDataReferenced.csv"))
 
 dur.raw$type <- "Duration"
 mass.raw$type <- "Mass"
