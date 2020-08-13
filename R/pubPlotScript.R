@@ -20,7 +20,8 @@
 env.prior <- ls()
 
 ## libraries
-library(tidyverse); library(sf); library(raster); library(data.table); library(metR)
+library(tidyverse); library(sf); library(raster)
+library(data.table); library(metR); library(gridExtra)
 rasterOptions(memfrac = .3); rasterOptions(maxmemory = 1e+08) ## you'll need this
 
 ## after these are all generated the first time you can comment out
@@ -560,7 +561,7 @@ fat.stk <- stack(list.files(prod.utm, "fat", full.names = T)[3:4])
 
 a <- increasedExpendaturePlot(x <- "fat", parent.data = fat.stk, res.agg = 20,
                               text.min = 50, north.america = NA.utm, canada.focus = NULL,
-                              legend.key = "Precent\nIncreased\nFat\nExpended")
+                              legend.key = "Precent\nIncrease\nin Fat\nExpended")
                               # save.name = "precIncrease_fixed", device.out = "png",
                               # width = 6, units = "in")
 fixed.Survival <- grid.arrange(surv, a,
@@ -570,12 +571,12 @@ fixed.Survival <- grid.arrange(surv, a,
                                widths = c(1,1))
 
 
-# ggsave(file.path(win.res, "fig", "fixedSurvival_super.png"),
-#        fixed.Survival,
-#        device = "png",
-#        width = 7.5,
-#        height = 7.5,
-#        units = "in")
+ggsave(file.path(win.res, "fig", "fixedSurvival_super.png"),
+       fixed.Survival,
+       device = "png",
+       width = 7.5,
+       height = 7.5,
+       units = "in")
 rm(sDay.fixed, surv, fat.stk, a, fixed.Survival);gc()
 #### Hibernation survival at best conditions ####
 ## best temperature condtions
@@ -592,7 +593,7 @@ fat.best <- stack(list.files(prod.utm, "fat", full.names = T)[1:2])
 
 b <- increasedExpendaturePlot(x <- "fat_BEST",parent.data = fat.best, res.agg = 20,
                               text.min = 50, north.america = NA.utm,
-                              canada.focus = NULL, legend.key = "Precent\nIncreased\nFat\nExpended")
+                              canada.focus = NULL, legend.key = "Precent\nIncrease\nin Fat\nExpended")
                               # save.name = "precIncrease_best",
                               # device.out = "png",
                               # width = 6, 
@@ -603,12 +604,12 @@ best.Survival <- grid.arrange(surv.b, b,
                               widths = c(1,1))
 
 
-# ggsave(file.path(win.res, "fig", "bestSurvival_super.png"),
-#        best.Survival,
-#        device = "png",
-#        width = 7.5,
-#        height = 7.5,
-#        units = "in")
+ggsave(file.path(win.res, "fig", "bestSurvival_super.png"),
+       best.Survival,
+       device = "png",
+       width = 7.5,
+       height = 7.5,
+       units = "in")
 rm(sDay.best, fat.best, surv.b, best.Survival); gc()
 #### SI Figures ####
 #### location x Data type ####
