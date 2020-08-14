@@ -48,6 +48,7 @@ Since there is a high number of data layers generated throughout this process I 
 
 
 ```{r}
+set.seed(123)
 # base.path = file.path("C:","Users","chran","Dropbox")
 base.path = file.path("D:","Dropbox")
 
@@ -89,7 +90,11 @@ Now that we have found a scaling relationship between the bat mass and body fat 
 source("R/glmScript.R")
 ```
 
-Since we now have spatial described estimations of pre-hibernation body fat and the duration of the hibernation period it's time to integrate the energetic components of the analysis. To begin we run a run the dynamic energetic model across a combination of potential hibernacula conditions.
+Since we now have spatial described estimations of pre-hibernation body fat and the duration of the hibernation period it's time to integrate the energetic components of the analysis. To begin we run a run the dynamic energetic model across a combination of potential hibernacula conditions. Following that, we apply the results spatially, and determing the amount of fat required to survive hibernation, how bats could hibernate in terms of days, and what these mean for the survival of bats according to the amount of fat that they take into hibernation and the duration of hibernation according to our predicted values
+
+```{r}
+source("R/hibernationSurvival.R")
+```
 
 open the modeling script and start to run the models
 

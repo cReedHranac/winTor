@@ -11,37 +11,37 @@
 
 env.prior <- ls()
 #### Hibernation Energetics Modeling ####
-library(batwintor); library(data.table)
-## Select species from the onboard dataset
-mylu.params <- bat.params[bat.params$Species == "MYLU",]
-
-## Changing the mass to the median of masses within our data set
-mylu.params$Mass <- 7.73
-
-## Select the fungal parameters that we want to use
-fung.ch <- fung.params["Chaturvedi",]
-
-## Set up the hibernation space to model winter across
-env <- buildEnv(temp = c(-4,10), #temperatures in degrees C
-                pct.rh = c(46, 100), #precent humidity
-                range.res.temp = .5, #resolution of the temperature
-                range.res.rh = 1, #resolution of the humidithy
-                twinter = 12, #maximal length of winter (in this case I have months)
-                winter.res = 1) #resolution of the time vector in vectors
-
-## Hibernation energetics model
-mylu.mod <- hibernationModel(env = env,
-                             bat.params = mylu.params,
-                             fung.params = fung.ch)
-
-## write out
-data.table::fwrite(x = mylu.mod,
-                   file = file.path(win.dat, "myluDynamicModel.csv"))
-
-## clean up as that's a pretty large calculation
-env.hib <- ls()
-to.remove <- env.post[env.hib %!in% env.prior]
-rm(list=to.remove); rm(env.hib, to.remove); gc()
+# library(batwintor); library(data.table)
+# ## Select species from the onboard dataset
+# mylu.params <- bat.params[bat.params$Species == "MYLU",]
+# 
+# ## Changing the mass to the median of masses within our data set
+# mylu.params$Mass <- 7.73
+# 
+# ## Select the fungal parameters that we want to use
+# fung.ch <- fung.params["Chaturvedi",]
+# 
+# ## Set up the hibernation space to model winter across
+# env <- buildEnv(temp = c(-4,10), #temperatures in degrees C
+#                 pct.rh = c(46, 100), #precent humidity
+#                 range.res.temp = .5, #resolution of the temperature
+#                 range.res.rh = 1, #resolution of the humidithy
+#                 twinter = 12, #maximal length of winter (in this case I have months)
+#                 winter.res = 1) #resolution of the time vector in vectors
+# 
+# ## Hibernation energetics model
+# mylu.mod <- hibernationModel(env = env,
+#                              bat.params = mylu.params,
+#                              fung.params = fung.ch)
+# 
+# ## write out
+# data.table::fwrite(x = mylu.mod,
+#                    file = file.path(win.dat, "myluDynamicModel.csv"))
+# 
+# ## clean up as that's a pretty large calculation
+# env.hib <- ls()
+# to.remove <- env.post[env.hib %!in% env.prior]
+# rm(list=to.remove); rm(env.hib, to.remove); gc()
 
 #### Fat required ####
 ## mylu hibernation energetics model
@@ -151,7 +151,7 @@ fat.req <- survivalFat(mod.df = mylu.mod,
 
 ## write out
 writeRaster(fat.req,
-            filename = file.path(win.res, "myluFatReq.tif"),
+            filename = file.path(win.res, "myluFatReq_fixed.tif"),
             format = "GTiff",
             bylayer = T,
             suffix = "names",
@@ -173,7 +173,7 @@ best.req <- survivalFat(mod.df = mylu.mod,
 
 ## write out
 writeRaster(best.req,
-            filename = file.path(win.res, "myluFatReq_BEST.tif"),
+            filename = file.path(win.res, "myluFatReq_Best.tif"),
             format = "GTiff",
             bylayer = T,
             suffix = "names",
@@ -205,3 +205,8 @@ writeRaster(best.v.winter,
             bylayer = T,
             suffix = "names",
             overwrite = T)
+
+#### Clean up script items ####
+env.post <- ls()
+to.remove <- env.post[env.post %!in% env.prior]
+rm(list=to.remove); rm(env.post, to.remove)

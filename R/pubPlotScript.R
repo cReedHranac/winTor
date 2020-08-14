@@ -54,45 +54,6 @@ rm(North.America, mylu.dist);gc()
 ## create utm projections and crop to the mylu distribution for all the prods
 prod.utm <- file.path(win.res, "prodUTM")
 
-## duration is seperate due to it having a different extent
-# dur.rast <- raster(file.path(win.res, "duration_p.tif"))
-# ## do a mylu cropped version too
-# dur.c <- raster(file.path(win.res, "myluCropped__win.tif"))
-# 
-# ## remove values below 0 since that doesn't make sence
-# dur.rast <- calc(dur.rast, function(x) ifelse(!is.na(x) & x < 0, 0, x))
-# dur.c <- calc(dur.c, function(x) ifelse(!is.na(x) & x < 0, 0, x))
-# 
-# 
-# projectRaster(dur.rast, crs = crs(NA.utm),
-#               filename = file.path(prod.utm, "duration_utm.tif"),
-#               format = "GTiff",
-#               overwrite = T)
-# 
-# projectRaster(dur.c, crs = crs(NA.utm),
-#               filename = file.path(prod.utm, "durationC_utm.tif"),
-#               format = "GTiff",
-#               overwrite = T)
-# rm(dur.rast, dur.c);gc()
-# 
-# m.cropped <- list.files(win.res,
-#                         pattern = "myluCropped_*",
-#                         full.names = T)
-# 
-# ## do all the rest in a for loop to handel the memory requirements
-# for(i in 1:length(m.cropped)){
-#   ## read in
-#   a <- raster(m.cropped[[i]])
-#   names(a) <- paste0(strsplit(names(a), "_")[[1]][-c(1,2)], collapse = "_")
-#   a.repro <- projectRaster(a, crs = crs(mylu.utm),
-#                            filename = file.path(prod.utm, paste0(names(a),"_utm.tif")),
-#                            format = "GTiff",
-#                            overwrite = T)
-#   cat(names(a), "written at: ", timestamp(),"\n")
-#   rm(a, a.repro);gc()
-# }
-
-
 
 #### Functions ####
 masterPlotter <- function(x,
@@ -452,9 +413,9 @@ winterColors <- colorRampPalette(c("#e0ecf4", "#9ebcda","#8856a7"))
 
 ## plot and write
 dur.plot <- masterPlotter(x = dur.rast, break.size = 30, c.string = winterColors(5),
-                          use.dist = F,legend.key = "Predicted\nDuration\nWinter\n(Days)",text.min = 50)
-                          # , save.name = "winDuration_Mean_MYLU",
-                          # device.out = "png", width = 6, unit = "in")
+                          use.dist = F,legend.key = "Predicted\nDuration\nWinter\n(Days)",text.min = 50,
+                          save.name = "winDuration_Mean_MYLU",
+                          device.out = "png", width = 6, unit = "in")
 rm(dur.rast,winterColors,dur.plot);gc()
 
 #### predicted mass and fat for M. lucifugus ####
