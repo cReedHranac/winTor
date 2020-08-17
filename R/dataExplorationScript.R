@@ -4,7 +4,7 @@
 env.prior <- ls()
 
 ## libraries
-library(tidyverse); library(raster); library(rgdal)
+library(tidyverse); library(raster); library(rgdal); library(sf)
 library(data.table); library(metR); library(gridExtra)
 rasterOptions(memfrac = .3); rasterOptions(maxmemory = 1e+08) ## you'll need this
 
@@ -26,242 +26,149 @@ rasterOptions(memfrac = .3); rasterOptions(maxmemory = 1e+08) ## you'll need thi
 #          layer = "NorthAmerica.WGS",
 #          driver = "ESRI Shapefile")
 
-North.America <- readOGR(file.path(win.dat, "shapeFiles"),
+North.America <- st_read(file.path(win.dat, "shapeFiles"),
                          layer="NorthAmerica.WGS")
-NA.utm <- spTransform(North.America, 2955)
+NA.utm <- st_transform(North.America, 2955)
 
 ## mylu distribution
 mylu.dist <- readOGR(file.path(win.dat, "shapeFiles"), 
                      layer = "myotis_lucifugus")
 
 proj4string(mylu.dist) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
-mylu.utm <- st_transform(mylu.dist, 2955)
 
-## small clean
-rm(North.America, mylu.dist);gc()
-
-
-### Raster items
-items <- c("duration_p.tif", "mass_p.tif", 
-           "myluFatReq_fixed_fat.null.tif","myluFatReq_fixed_fat.inf.tif",
-           "myluFatReq_best_fat.null.tif", "myluFatReq_fixed_fat.inf.tif")
-
-i.stk <- stack(file.path(win.res, items))
-
-## crop to the species extent
-  ## done now mainly to save computational power
-gc()
-
-maskCrop <- function(x,y){
-  a <- mask(crop(x,y),y)
-  return(a)
-}
-
-beginCluster(2)
-system.time(
-ic.stk <- clusterR(i.stk, fun = maskCrop, args = list(y=mylu.dist))
-)
-endCluster()
-  
-beginCluster(2) ##can hand way too long depending on the number of cores
-system.time({
-  r.prob.Cluster<-clusterR(env.stk, fun=predict, args=list(model=mass_spatial,
-                                                           fun=conffun,
-                                                           progress='text',
-                                                           index=1:3,
-                                                           iter=1000))
-})  
-  
-## Create the fat layer
-## create the survival layers for fat and day
-## Create the precent increase layers
-## Tansform: use multicore application of function
+# ### Raster items
+# items <- c("duration_p.tif", "mass_p.tif", 
+#            "myluFatReq_fixed_fat.null.tif","myluFatReq_fixed_fat.inf.tif",
+#            "myluFatReq_best_fat.null.tif", "myluFatReq_best_fat.inf.tif", 
+#            list.files(win.res, "survivalDays"))
+# 
+# i.stk <- stack(file.path(win.res, items))
+# 
+# ## crop to the species extent
+#   ## done now mainly to save computational power
+# gc()
+# 
+# ic <- mask(crop(i.stk, mylu.dist), mylu.dist)
+# 
+# ## create the fat layer
+# ic$fat <-  -2.83901 + 0.59675*ic$mass_p
+# 
+# ## create the survival layers for fat and day
+# ic$sfat_fixed_null <- ic$fat - ic$myluFatReq_fixed_fat.null
+# ic$sfat_fixed_inf <- ic$fat - ic$myluFatReq_fixed_fat.inf
+# ic$sfat_best_null <- ic$fat - ic$myluFatReq_Best_fat.null
+# ic$sfat_best_inf <- ic$fat - ic$myluFatReq_Best_fat.inf
+# 
+# ## Create the percent increase layers
+# ic$percInc_fixed <- (ic$myluFatReq_fixed_fat.inf/ic$myluFatReq_fixed_fat.null)*100
+# ic$percInc_best <- (ic$myluFatReq_Best_fat.inf/ic$myluFatReq_Best_fat.null)*100
+# 
+# names(ic) <- c("duration", "mass",
+#                "fatReq_fixed_null", "fatReq_fixed_inf", "fatReq_best_null", "fatReq_best_inf",
+#                "sDay_best_inf", "sDay_best_null", "sDay_fixed_inf", "sDay_fixed_null",
+#                "fat",
+#                "sfat_fixed_null", "sfat_fixed_inf",
+#                "sfat_best_null","sfat_best_inf",
+#                "percInc_fixed", "percInc_best")
+# 
+# 
+# ## Tansform and write out
+# ## out location
+# prod.utm <- file.path(win.res, "prodUTM")
+# ic.l <- unstack(ic)
+# ## loop to project and write
+# 
+# for( i in 1:nlayers(ic)){
+#   a<- projectRaster(from = ic.l[[i]],
+#                 crs = CRS("+init=epsg:2955"),
+#                 filename = file.path(prod.utm, paste0(names(ic.l[[i]]), "_utm.tif")),
+#                 overwrite = T)
+#   cat("layer ", names(ic.l[[i]]), " complete at: ", date(), "\n" )
+#   rm(a);gc()
+# }
+# 
+# rm(i.stk, ic, ic.l, items);gc()
 ## write out
+
+
+## Read the layers back in and create the summary file
+items <- c("duration_utm.tif", "mass_utm.tif", "fat_utm.tif",
+           "fatReq_fixed_null_utm.tif", "fatReq_fixed_inf_utm.tif",
+           "fatReq_best_null_utm.tif", "fatReq_best_inf_utm.tif",
+           "sfat_fixed_null_utm.tif", "sfat_fixed_inf_utm.tif",
+           "sfat_best_null_utm.tif", "sfat_best_inf_utm.tif",
+           "sDay_fixed_null_utm.tif", "sDay_fixed_inf_utm.tif",
+           "sDay_best_null_utm.tif", "sDay_best_inf_utm.tif",
+           "percInc_fixed_utm.tif", "percInc_best_utm.tif")
+
+prod.utm <- file.path(win.res, "prodUTM")
+stk <- raster::stack(file.path(prod.utm, items))
+
 ## summary items <- aggregation stack for median
 
-
-# duration is seperate due to it having a different extent
-dur.rast <- raster(file.path(win.res, "duration_p.tif"))
-
-## do a mylu cropped version too
-dur.c <- raster(file.path(win.res, "myluCropped_win.tif"))
-
-## remove values below 0 generated as an extrapolation error
-dur.rast <- calc(dur.rast, function(x) ifelse(!is.na(x) & x < 0, 0, x))
-dur.c <- calc(dur.c, function(x) ifelse(!is.na(x) & x < 0, 0, x))
-
-
-projectRaster(dur.rast, crs = crs(NA.utm),
-              filename = file.path(prod.utm, "duration_utm.tif"),
-              format = "GTiff",
-              overwrite = T)
-
-projectRaster(dur.c, crs = crs(NA.utm),
-              filename = file.path(prod.utm, "durationC_utm.tif"),
-              format = "GTiff",
-              overwrite = T)
-rm(dur.rast, dur.c);gc()
-
-m.cropped <- list.files(win.res,
-                        pattern = "myluCropped_*",
-                        full.names = T)
-
-## do all the rest in a for loop to handel the memory requirements
-for(i in 1:length(m.cropped)){
-  ## read in
-  a <- raster(m.cropped[[i]])
-  names(a) <- paste0(strsplit(names(a), "_")[[1]][-c(1,2)], collapse = "_")
-  a.repro <- projectRaster(a, crs = crs(mylu.utm),
-                           filename = file.path(prod.utm, paste0(names(a),"_utm.tif")),
-                           format = "GTiff",
-                           overwrite = T)
-  cat(names(a), "written at: ", timestamp(),"\n")
-  rm(a, a.repro);gc()
-}
-
-
-
-
-
-
-
-
-
-
-## explore the best avaliable temperature layer
-best.avail <- raster(file.path(win.dat, "Mylu_bestavailTF_NA.tif"))
-## find the lower defended temperature in the data set
-library(batwintor)
-bat.params[1, "Ttormin"]
-lower.than.best <- raster::calc(best.avail, function(x) x < 2)
-
-rasterVis::levelplot(lower.than.best)
-(length(lower.than.best[lower.than.best==F])/length(lower.than.best[is.na(lower.than.best)]))*100
-## 
-
-## same thing but crop to te species distribution first
-library(rgdal)
-mylu.dist <- readOGR(file.path(win.dat, "shapeFiles"), 
-                     layer = "myotis_lucifugus")
-
-proj4string(mylu.dist) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
-best.mylu <- mask(crop(best.avail, mylu.dist), mylu.dist)
-mylu.best<- raster::calc(best.mylu, function(x) x < 2)
-
-rasterVis::levelplot(mylu.best)
-(length(mylu.best[mylu.best==T])/length(mylu.best[is.na(mylu.best)]))*100
-## 4.379554
-
-#### creating a table 
-files <- c("win_utm.tif",
-           "mass_utm.tif",
-           "fat_utm.tif",
-           "fat_null_utm.tif",
-           "fat_inf_utm.tif",
-           "fat_BEST_null_utm.tif",
-           "fat_BEST_inf_utm.tif",
-           "sFat_null_utm.tif",
-           "sFat_inf_utm.tif",
-           "sFat_Best_null_utm.tif",
-           "sFat_Best_inf_utm.tif")
-
-stk <- stack(file.path(win.res, "prodUTM", files))
-
-##different extnet by one cell for some reason
-other <- c("sDay_fixed_null_utm.tif",
-           "sDay_fixed_inf_utm.tif",
-           "sDay_best_null_utm.tif",
-           "sDay_best_inf_utm.tif")
-stk.o <- stack(file.path(win.res, "prodUTM", other))
-
-inc.fixed <- (stk$fat_inf_utm/stk$fat_null_utm)*100
+mean.stk <- cellStats(stk, mean)
+qu.stk.1 <- quantile(stk[[1:10]], 
+                   probs = c(.05, .95))
+qu.stk.2 <- quantile(stk[[11:17]], 
+                     probs = c(.05, .95))
+qu.stk <- rbind(qu.stk.1, qu.stk.2)
+sd.stk <- cellStats(stk, sd)
+min.stk <- minValue(stk)
+max.stk <- maxValue(stk)
+## to get the median it looks like we'll have to aggrate
+stk.20 <- raster::aggregate(stk, 25)
+med.ag <- cellStats(stk.20, median)
 
 stk.odf <- cbind( med.ag, mean.stk, sd.stk, qu.stk, min.stk, max.stk)
+write.csv(stk.odf, 
+          file.path(win.res, "rasterSummary.csv"))
 
-## original stacks
-org.files <- c(list.files(win.res, pattern = "survivalDays_fixed", full.names = T)[2:3],
-               list.files(win.res, pattern = "survivalDays_best", full.names = T)[2:3])
-org.stk <- stack(org.files)
-org.crop <- mask(crop(org.stk, mylu.dist), mylu.dist)
+rm(stk.20);gc()
 
-org.crop <- projectRaster(org.stk, stk)
+#### examine the survival threshold values ####
 
-mean.stk <- cellStats(org.crop, mean)
-qu.stk <- quantile(org.crop, 
-                   probs = c(.05, .95))
-sd.stk <- cellStats(org.crop, sd)
-## to get the median it looks like we'll have to aggrate
-stk.20 <- raster::aggregate(org.crop, 20)
-med.ag <- cellStats(stk.20, median)
-min.stk <- minValue(org.crop)
-max.stk <- maxValue(org.crop)
+## number of cells in the dist with values
+n.cells <- length(stk$duration_utm[!is.na(stk$duration_utm)])
 
-odf <- cbind( med.ag, mean.stk, sd.stk, qu.stk, min.stk, max.stk)
+## proportion of cells with winter greater than 6 months
+over6 <- raster::calc(stk$duration_utm, function(x) x < 181)
 
-death <- raster::calc(org.crop, function(x) x >= 0)
-names(death) <- names(org.crop)
-rasterVis::levelplot(death)
-for(i in 1:4){
-  a <- (length(death[[i]][death[[i]]==F])/29168764)*100  
-  cat(paste(names(death[[i]]), "% = ", a, "\n"))
-}
+p.over6 <- (length(over6[over6==T])/n.cells)*100
+## 51.30 % of cells
 
-sDay_best <- org.crop[[3:4]]
+### below the survival threshold
+fix.null <- raster::calc(stk$sDay_fixed_null_utm, function(x) x <= 0)
+p.fix.null <- (length(fix.null[fix.null == T])/n.cells) *100
+## 0
 
+fix.inf <- raster::calc(stk$sDay_fixed_inf_utm, function(x) x <= 0)
+p.fix.inf <- (length(fix.inf[fix.inf == T])/n.cells) *100
+## 4.820619
 
+best.null <- raster::calc(stk$sDay_best_null_utm, function(x) x <= 0)
+p.best.null <- (length(best.inf[best.null == T])/n.cells) *100
+## 0.5076172
 
-stk.op <- projectRaster(stk.o, stk)
+best.inf <- raster::calc(stk$sDay_best_inf_utm, function(x) x <= 0)
+p.best.inf <- (length(best.inf[best.inf == T])/n.cells) *100
+## 4.74147
 
-
-stk.full <- stack(stk, stk.op)
-mean.stk <- cellStats(stk.full, mean)
-qu.stk <- quantile(stk.full, 
-                   probs = c(.05, .95))
-sd.stk <- cellStats(stk.full, sd)
-## to get the median it looks like we'll have to aggrate
-stk.20 <- raster::aggregate(stk.full, 20)
-med.ag <- cellStats(stk.20, median)
-min.stk <- minValue(stk.full)
-max.stk <- maxValue(stk.full)
+## stack for visualization
+surv.stk <- raster::stack(fix.null, fix.inf, best.null, best.inf)
+names(surv.stk) <- c("fixed null", "fixed inf", "best null", "best inf")
+rasterVis::levelplot(surv.stk)
 
 
-Res.df <- cbind( med.ag, mean.stk, sd.stk, qu.stk, min.stk, max.stk)
-write.csv(Res.df, file.path(win.res, "RasterSummaryTable.csv"))
+## examine for the best available temperature layers
+best.avail <- raster(file.path(win.dat, "Mylu_bestavailTF_NA.tif"))
+best.avail <- mask(crop(best.avail, mylu.dist), mylu.dist)
+lower.than.fix <- raster::calc(best.avail, function(x) x < 4)
+lower.than.tlc <- raster::calc(best.avail, function(x) x < 2)
 
-#### Die/ No Die ####
-sFat.fixed <- stack(list.files(prod.utm, "sFat_", full.names = T)[3:4])
-rasterVis::levelplot(sFat.fixed)
-
-## calculating precent that dies
-fixed.bi <- raster::calc(sFat.fixed$sFat_inf_utm, function(x) x<=0)
-rasterVis::levelplot(fixed.bi)
-(length(fixed.bi[fixed.bi==F])/length(fixed.bi[is.na(fixed.bi)]))*100
-## 0.9288195 die
-
-fixed.bi <- raster::calc(sFat.fixed$sFat_inf_utm, function(x) x>0)
-rasterVis::levelplot(fixed.bi)
-length(fixed.bi[fixed.bi=F])/length(fixed.bi[!is.na(fixed.bi)]) * 100
-###
-###
-sFat.best <- stack(list.files(prod.utm, "sFat_Best", full.names = T))
-rasterVis::levelplot(sFat.best)
-## calcing precent die
-best.bi <- raster::calc(sFat.best$sFat_Best_inf_utm, function(x) x<=0)
-rasterVis::levelplot(best.bi)
-(length(best.bi[best.bi==F])/length(best.bi[is.na(best.bi)]))*100
-## 1.019079
-
-
-
-idea <- stack(fixed.bi,best.bi);names(idea) <- c("fix", "best")
-
-idea.f <- Which(fixed.bi, cell=T)
-idea.b <- Which(best.bi, cell = T)
-
-win.f <- raster::extract(dur.rast, idea.f)
-win.b <- raster::extract(dur.rast, idea.b)
-
-min(win.f)
-min(win.b)
-
+p.lfix <- (length(lower.than.fix[lower.than.fix == T])/n.cells)*100
+## 32.64112
+p.ltlc <- (length(lower.than.tlc[lower.than.tlc == T])/n.cells)*100
+## 6.440322
+t.stk <- stack(lower.than.fix, lower.than.tlc); names(t.stk) <- c("lower than 4", "lower than 2")
+rasterVis::levelplot(t.stk)
 
