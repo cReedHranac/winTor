@@ -51,7 +51,7 @@ mylu.utm <- st_transform(mylu.dist, 2955)
 ## small clean
 rm(North.America, mylu.dist);gc()
 
-## create utm projections and crop to the mylu distribution for all the prods
+## Directory for all products created in the data exploration script
 prod.utm <- file.path(win.res, "prodUTM")
 
 
@@ -115,11 +115,6 @@ masterPlotter <- function(x,
                       aes(x= Easting, y = Northing, z = winter),
                       breaks = break.string,
                       na.fill = -9999)+
-    #handling the NA 
-    stat_subset(data = x.df, 
-                aes(x= Easting, y = Northing, subset = is.na(winter)),
-                geom = "raster",
-                fill = "#ffffff") +
     
     #oooohhhhh pretty colors
     scale_fill_gradientn(legend.key,
@@ -231,12 +226,8 @@ pairedPlotting <- function(x,
     geom_contour_fill(data = x.df,
                       aes(x= Easting, y = Northing, z = Value),
                       breaks = break.string,
-                      na.fill = -9999)+
-    #handling the NA 
-    stat_subset(data = x.df, 
-                aes(x= Easting, y = Northing, subset = is.na(Value)),
-                geom = "raster",
-                fill = "#ffffff")+
+                      na.fill = -9999) +
+      
     
     #oooohhhhh pretty colors
     scale_fill_gradientn(legend.key,
@@ -244,6 +235,7 @@ pairedPlotting <- function(x,
                          limits=  c(min(break.string),
                                     max(break.string))) +
     
+  
     ##North American political boundries
     geom_sf(data = north.america,
             aes(group = "Name_1"),
@@ -253,11 +245,13 @@ pairedPlotting <- function(x,
             aes(group = "SP_ID"),
             colour = "dodgerblue4",
             fill = NA)   +
+    
     #Lables
     geom_text_contour(data = x.df, 
                       aes(x= Easting, y = Northing, z = Value),
                       stroke = 0.2, min.size = text.min,
                       rotate = F, check_overlap = T)+
+
     theme_bw()+
     theme(#legend.position = "bottom",
           legend.text=element_text(size=7),
@@ -289,52 +283,34 @@ pairedPlotting <- function(x,
 }
 
 increasedExpendaturePlot <- function(x,
-                                      parent.data = plotStk, 
                                       res.agg = 20,
                                       north.america =NA.utm,
-                                      canada.focus = NULL,
                                       dist.map = mylu.utm,
-                                      text.min = 35,
+                                      text.min = 50,
                                       legend.key = "Fill this in",
                                       save.name = NULL,
                                       device.out = NULL,
                                       ...){
   
-  ## Subset out the paired layers
-  target.data <- parent.data[[grep(pattern = x, 
-                                   names(parent.data))]]
   
   ## Create DataFrame (aggragation is mainly for the dev period)
   if(!is.null(res.agg)){ #aggratetion bits
-    x.ag <- raster::aggregate(target.data, res.agg)
+    x.ag <- raster::aggregate(x, res.agg)
   }
   else{
-    x.ag <- target.data}
-  ## Canada focus flag
-  if(!is.null(canada.focus)){
-    x.ag <- crop(x.ag, extent(canada.focus))
-    dist.crop <- st_crop(dist.map, extent(canada.focus))
-    north.america <- st_crop(north.america, dist.crop)
-    
-  }
-  else{
-    ## Crop background to distribution
-    dist.crop <- dist.map
-    north.america <- st_crop(north.america, dist.crop)
-  }
+    x.ag <- x}
+  ## Crop background to distribution
+  dist.crop <- dist.map
+  north.america <- st_crop(north.america, dist.crop)
   
   ## Convert to df
   x.pts <- cbind(xyFromCell(x.ag, 1:ncell(x.ag)), values(x.ag)) #to points
   x.df <- data.frame(x.pts)
   #Note infected and null are generally in that order 
-  colnames(x.df) <- c("Easting", "Northing", "Infected", "Uninfected")
-  
-  x.df <- x.df %>%
-    mutate(precIncrease = (Infected/Uninfected)*100)
+  colnames(x.df) <- c("Easting", "Northing", "precIncrease")
   
   ## create breaks
-  break.string <- seq(floor(min(x.df$precIncrease, na.rm = T)),
-                      ceiling(max(x.df$precIncrease, na.rm = T)),
+  break.string <- seq(0,225,
                       by = 25)
   colourCount = length(break.string)
   getPalette = colorRampPalette(RColorBrewer::brewer.pal(colourCount, "Spectral"))
@@ -345,17 +321,13 @@ increasedExpendaturePlot <- function(x,
                       aes(x= Easting, y = Northing, z = precIncrease),
                       breaks = break.string,
                       na.fill = -9999)+
-    #handling the NA 
-    stat_subset(data = x.df, 
-                aes(x= Easting, y = Northing, subset = is.na(precIncrease)),
-                geom = "raster",
-                fill = "#ffffff")+
+    
     
     scale_fill_gradientn(legend.key,
                          colors = rev(getPalette(colourCount)),
                          limits=  c(min(break.string),
                                     max(break.string))) +
-    ##North American political boundries
+    ##North American political boundaries
     geom_sf(data = north.america,
             aes(group = "Name_1"),
             color="grey20",
@@ -406,7 +378,8 @@ increasedExpendaturePlot <- function(x,
 #### predicted duration of winter  ####
 
 ## prediction raster
-dur.rast <- raster(file.path(prod.utm, "durationC_utm.tif"))
+dur.rast <- raster(file.path(prod.utm, "duration_utm.tif"))
+proj4string(dur.rast) <- crs(mylu.utm)
 
 ## color set
 winterColors <- colorRampPalette(c("#e0ecf4", "#9ebcda","#8856a7"))
@@ -414,8 +387,10 @@ winterColors <- colorRampPalette(c("#e0ecf4", "#9ebcda","#8856a7"))
 ## plot and write
 dur.plot <- masterPlotter(x = dur.rast, break.size = 30, c.string = winterColors(5),
                           use.dist = F,legend.key = "Predicted\nDuration\nWinter\n(Days)",text.min = 50,
-                          save.name = "winDuration_Mean_MYLU",
+                          save.name = "winDuration",
                           device.out = "png", width = 6, unit = "in")
+
+## clean
 rm(dur.rast,winterColors,dur.plot);gc()
 
 #### predicted mass and fat for M. lucifugus ####
@@ -518,10 +493,10 @@ surv <- pairedPlotting(x = "sDay_fixed", parent.data = sDay.fixed, vis.break = c
                        # ,save.name = "survDays_fixed", device.out = "png", width = 8, height = 4,
                        # unit = "in")
 
-fat.stk <- stack(list.files(prod.utm, "fat", full.names = T)[3:4])
+inc.fix <- raster(file.path(prod.utm, "percInc_fixed_utm.tif"))
 
-a <- increasedExpendaturePlot(x <- "fat", parent.data = fat.stk, res.agg = 20,
-                              text.min = 50, north.america = NA.utm, canada.focus = NULL,
+a <- increasedExpendaturePlot(x = inc.fix, res.agg = 20,
+                              text.min = 40, north.america = NA.utm,
                               legend.key = "Precent\nIncrease\nin Fat\nExpended")
                               # save.name = "precIncrease_fixed", device.out = "png",
                               # width = 6, units = "in")
@@ -538,7 +513,7 @@ ggsave(file.path(win.res, "fig", "fixedSurvival_super.png"),
        width = 7.5,
        height = 7.5,
        units = "in")
-rm(sDay.fixed, surv, fat.stk, a, fixed.Survival);gc()
+rm(sDay.fixed, surv, inc.best, a, fixed.Survival);gc()
 #### Hibernation survival at best conditions ####
 ## best temperature condtions
 sDay.best <- stack(list.files(prod.utm, "sDay_best", full.names = T))
@@ -550,11 +525,11 @@ surv.b <- pairedPlotting(x = "sDay_best", parent.data = sDay.best, vis.break = c
                        # unit = "in")
 
 
-fat.best <- stack(list.files(prod.utm, "fat", full.names = T)[1:2])
+inc.best <- inc.fix <- raster(file.path(prod.utm, "percInc_best_utm.tif"))
 
-b <- increasedExpendaturePlot(x <- "fat_BEST",parent.data = fat.best, res.agg = 20,
-                              text.min = 50, north.america = NA.utm,
-                              canada.focus = NULL, legend.key = "Precent\nIncrease\nin Fat\nExpended")
+b <- increasedExpendaturePlot(x = inc.best, res.agg = 20,
+                              text.min = 45, north.america = NA.utm,
+                              legend.key = "Precent\nIncrease\nin Fat\nExpended")
                               # save.name = "precIncrease_best",
                               # device.out = "png",
                               # width = 6, 
@@ -571,7 +546,7 @@ ggsave(file.path(win.res, "fig", "bestSurvival_super.png"),
        width = 7.5,
        height = 7.5,
        units = "in")
-rm(sDay.best, fat.best, surv.b, best.Survival); gc()
+rm(sDay.best, inc.best, surv.b, best.Survival); gc()
 #### SI Figures ####
 #### location x Data type ####
 dur.raw <- fread(file.path(win.dat,"durationDataReferenced.csv"))
@@ -623,6 +598,7 @@ ggsave(filename = file.path(win.res, "fig", "dataLocations.png"),
        dpi = 300)
 
 #### Sensitivity figure ####
+library(batwintor)
 mylu.mod <- fread(file.path(win.dat, "myluDynamicModel.csv"))
 time.v <- seq(1,240,by=14)
 
@@ -663,12 +639,12 @@ null.plot <- ggplot() +
     theme_bw() +
     facet_grid(~Temp)
 
-# ggsave(filename = file.path(win.res, "fig", "SI_sensitivityFig.png"),
-#        null.plot, device = "png",
-#        height = 4.5,
-#        width = 7,
-#        units = "in",
-#        dpi = 300)
+ggsave(filename = file.path(win.res, "fig", "SI_sensitivityFig.png"),
+       null.plot, device = "png",
+       height = 4.5,
+       width = 7,
+       units = "in",
+       dpi = 300)
 
 #### Clean up script items ####
 env.post <- ls()
