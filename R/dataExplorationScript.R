@@ -9,7 +9,7 @@ library(data.table); library(metR); library(gridExtra)
 rasterOptions(memfrac = .3); rasterOptions(maxmemory = 1e+08) ## you'll need this
 
 
-#### Data transformation ###
+#### Data transformation ####
 ## read in all of the raw product layers, crop to the mylu species extent and transform to the UTM
 
 ## set up the cropping items 
@@ -36,58 +36,70 @@ mylu.dist <- readOGR(file.path(win.dat, "shapeFiles"),
 
 proj4string(mylu.dist) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
 
-# ### Raster items
-# items <- c("duration_p.tif", "mass_p.tif", 
-#            "myluFatReq_fixed_fat.null.tif","myluFatReq_fixed_fat.inf.tif",
-#            "myluFatReq_best_fat.null.tif", "myluFatReq_best_fat.inf.tif", 
-#            list.files(win.res, "survivalDays"))
-# 
-# i.stk <- stack(file.path(win.res, items))
-# 
-# ## crop to the species extent
-#   ## done now mainly to save computational power
-# gc()
-# 
-# ic <- mask(crop(i.stk, mylu.dist), mylu.dist)
-# 
-# ## create the fat layer
-# ic$fat <-  -2.83901 + 0.59675*ic$mass_p
-# 
-# ## create the survival layers for fat and day
-# ic$sfat_fixed_null <- ic$fat - ic$myluFatReq_fixed_fat.null
-# ic$sfat_fixed_inf <- ic$fat - ic$myluFatReq_fixed_fat.inf
-# ic$sfat_best_null <- ic$fat - ic$myluFatReq_Best_fat.null
-# ic$sfat_best_inf <- ic$fat - ic$myluFatReq_Best_fat.inf
-# 
-# ## Create the percent increase layers
-# ic$percInc_fixed <- (ic$myluFatReq_fixed_fat.inf/ic$myluFatReq_fixed_fat.null)*100
-# ic$percInc_best <- (ic$myluFatReq_Best_fat.inf/ic$myluFatReq_Best_fat.null)*100
-# 
-# names(ic) <- c("duration", "mass",
-#                "fatReq_fixed_null", "fatReq_fixed_inf", "fatReq_best_null", "fatReq_best_inf",
-#                "sDay_best_inf", "sDay_best_null", "sDay_fixed_inf", "sDay_fixed_null",
-#                "fat",
-#                "sfat_fixed_null", "sfat_fixed_inf",
-#                "sfat_best_null","sfat_best_inf",
-#                "percInc_fixed", "percInc_best")
-# 
-# 
-# ## Tansform and write out
-# ## out location
-# prod.utm <- file.path(win.res, "prodUTM")
-# ic.l <- unstack(ic)
-# ## loop to project and write
-# 
-# for( i in 1:nlayers(ic)){
-#   a<- projectRaster(from = ic.l[[i]],
-#                 crs = CRS("+init=epsg:2955"),
-#                 filename = file.path(prod.utm, paste0(names(ic.l[[i]]), "_utm.tif")),
-#                 overwrite = T)
-#   cat("layer ", names(ic.l[[i]]), " complete at: ", date(), "\n" )
-#   rm(a);gc()
-# }
-# 
-# rm(i.stk, ic, ic.l, items);gc()
+### Raster items
+items <- c("duration_p.tif", "mass_p.tif",
+           "myluFatReq_fixed_fat.null.tif","myluFatReq_fixed_fat.inf.tif",
+           "myluFatReq_best_fat.null.tif", "myluFatReq_best_fat.inf.tif",
+           list.files(win.res, "survivalDays"))
+
+i.stk <- stack(file.path(win.res, items))
+
+## clean items with unreal values
+  ##duration
+dur.cells <- calc(i.stk$duration_p, function(x) x < 0)
+rasterVis::levelplot(dur.cells)
+i.stk$duration_p[dur.cells==T] <- 0
+rm(dur.cells)
+
+## crop to the species extent
+  ## done now mainly to save computational power
+gc()
+
+ic <- mask(crop(i.stk, mylu.dist), mylu.dist)
+
+## create the fat layer
+ic$fat <-  -2.83901 + 0.59675*ic$mass_p
+## clean items with unreal values
+  ## fat (due to extrapolation)
+fat.cells <- calc(ic$fat, function(x) x < 0)
+rasterVis::levelplot(fat.cells)
+ic$fat[fat.cells==T] <- 0
+rm(fat.cells)
+
+## create the survival layers for fat and day
+ic$sfat_fixed_null <- ic$fat - ic$myluFatReq_fixed_fat.null
+ic$sfat_fixed_inf <- ic$fat - ic$myluFatReq_fixed_fat.inf
+ic$sfat_best_null <- ic$fat - ic$myluFatReq_Best_fat.null
+ic$sfat_best_inf <- ic$fat - ic$myluFatReq_Best_fat.inf
+
+## Create the percent increase layers
+ic$percInc_fixed <- ((ic$myluFatReq_fixed_fat.inf/ic$myluFatReq_fixed_fat.null)*100)-100
+ic$percInc_best <- ((ic$myluFatReq_Best_fat.inf/ic$myluFatReq_Best_fat.null)*100)-100
+
+names(ic) <- c("duration", "mass",
+               "fatReq_fixed_null", "fatReq_fixed_inf", "fatReq_best_null", "fatReq_best_inf",
+               "sDay_best_inf", "sDay_best_null", "sDay_fixed_inf", "sDay_fixed_null",
+               "fat",
+               "sfat_fixed_null", "sfat_fixed_inf",
+               "sfat_best_null","sfat_best_inf",
+               "percInc_fixed", "percInc_best")
+
+
+## Tansform and write out
+## out location
+ic.l <- unstack(ic)
+## loop to project and write
+
+for( i in 1:nlayers(ic)){
+  a<- projectRaster(from = ic.l[[i]],
+                crs = CRS("+init=epsg:2955"),
+                filename = file.path(prod.utm, paste0(names(ic.l[[i]]), "_utm.tif")),
+                overwrite = T)
+  cat("layer ", names(ic.l[[i]]), " complete at: ", date(), "\n" )
+  rm(a);gc()
+}
+
+rm(i.stk, ic, ic.l, items);gc()
 ## write out
 
 
@@ -101,7 +113,6 @@ items <- c("duration_utm.tif", "mass_utm.tif", "fat_utm.tif",
            "sDay_best_null_utm.tif", "sDay_best_inf_utm.tif",
            "percInc_fixed_utm.tif", "percInc_best_utm.tif")
 
-prod.utm <- file.path(win.res, "prodUTM")
 stk <- raster::stack(file.path(prod.utm, items))
 
 ## summary items <- aggregation stack for median
@@ -146,7 +157,7 @@ p.fix.inf <- (length(fix.inf[fix.inf == T])/n.cells) *100
 ## 4.820619
 
 best.null <- raster::calc(stk$sDay_best_null_utm, function(x) x <= 0)
-p.best.null <- (length(best.inf[best.null == T])/n.cells) *100
+p.best.null <- (length(best.null[best.null == T])/n.cells) *100
 ## 0.5076172
 
 best.inf <- raster::calc(stk$sDay_best_inf_utm, function(x) x <= 0)
@@ -157,10 +168,11 @@ p.best.inf <- (length(best.inf[best.inf == T])/n.cells) *100
 surv.stk <- raster::stack(fix.null, fix.inf, best.null, best.inf)
 names(surv.stk) <- c("fixed null", "fixed inf", "best null", "best inf")
 rasterVis::levelplot(surv.stk)
-
+## write plot out from window for convince (SI figure)
 
 ## examine for the best available temperature layers
 best.avail <- raster(file.path(win.dat, "Mylu_bestavailTF_NA.tif"))
+
 best.avail <- mask(crop(best.avail, mylu.dist), mylu.dist)
 lower.than.fix <- raster::calc(best.avail, function(x) x < 4)
 lower.than.tlc <- raster::calc(best.avail, function(x) x < 2)
@@ -171,4 +183,9 @@ p.ltlc <- (length(lower.than.tlc[lower.than.tlc == T])/n.cells)*100
 ## 6.440322
 t.stk <- stack(lower.than.fix, lower.than.tlc); names(t.stk) <- c("lower than 4", "lower than 2")
 rasterVis::levelplot(t.stk)
+## write plot out from window for convince (SI figure)
 
+#### Clean up script items ####
+env.post <- ls()
+to.remove <- env.post[env.post %!in% env.prior]
+rm(list=to.remove); rm(env.post, to.remove)
