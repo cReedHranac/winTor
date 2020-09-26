@@ -135,7 +135,7 @@ masterPlotter <- function(x,
                       rotate = F, check_overlap = T)+
     
     theme_bw()+
-    theme(legend.position = "bottom",
+    theme(legend.position = c(.1,.4),
           legend.text=element_text(size=7),
           legend.title=element_text(size=9),
           axis.title = element_blank(),
@@ -347,7 +347,7 @@ increasedExpendaturePlot <- function(x,
     theme_bw()+
     scale_x_continuous(limits =  c(extent(dist.crop)[1],extent(dist.crop)[2]))+
     scale_y_continuous(limits = c(extent(dist.crop)[3],extent(dist.crop)[4]))+
-    theme(#legend.position = "bottom",
+    theme(#legend.position = c(.1,.4),
           legend.text=element_text(size=7),
           legend.title=element_text(size=9),
           axis.title = element_blank())
@@ -376,7 +376,7 @@ increasedExpendaturePlot <- function(x,
 
 
 #### predicted duration of winter  ####
-
+## duration is becoming part of the figure 2 super figure for the sake of space
 ## prediction raster
 dur.rast <- raster(file.path(prod.utm, "duration_utm.tif"))
 proj4string(dur.rast) <- crs(mylu.utm)
@@ -390,8 +390,7 @@ dur.plot <- masterPlotter(x = dur.rast, break.size = 30, c.string = winterColors
                           save.name = "winDuration",
                           device.out = "png", width = 6, unit = "in")
 
-## clean
-rm(dur.rast,winterColors,dur.plot);gc()
+
 
 #### predicted mass and fat for M. lucifugus ####
 ## 
@@ -438,6 +437,8 @@ state.lean.plot <- ggplot(data = dat.clean) +
   ylab("Lean Mass (g)") + xlab("State") +
   theme_bw()
 
+ggsave(file.path(win.res, "fig", "State_Lean.png"), state.lean.plot,
+       device = "png", width = 4, height= 4, units = "in")
 ## Linear relationship
 fat.mass.plot <- ggplot(dat.clean) + 
   geom_point(aes(x = mass, y = fat, color = state), show.legend = F) + 
@@ -452,22 +453,23 @@ fat.mass.plot <- ggplot(dat.clean) +
   theme_bw()
 ## combine
 library(gridExtra)
-fig3 <- grid.arrange(state.lean.plot, fat.mass.plot,
+fig3 <- grid.arrange(dur.plot, fat.mass.plot,
                      mass.plot, fat.plot,
                      nrow = 2,
-                     heights = c(.4,.6))
+                     heights = c(.5,.5))
 
 fig3.2 <- cowplot::ggdraw(fig3) + 
   theme(plot.background = element_rect(fill=NA, color = NA))
 
-# ggsave(file.path(win.res, "fig", "Mass_Fat_Superfig.png"),
-#        fig3,
-#        device = "png",
-#        width = 7.5,
-#        height = 5.5,
-#        units = "in")
+ggsave(file.path(win.res, "fig", "Mass_Fat_Superfig.png"),
+       fig3,
+       device = "png",
+       width = 7.5,
+       height = 6.5,
+       units = "in")
 rm(mass.p, fat.p, massColors, fatColors, mass.plot, fat.plot, fig3,
    dat.clean, fat.pred, state.lean.plot, fat.mass.plot);gc()
+rm(dur.rast,winterColors,dur.plot);gc()
 
 #### Hibernation survival fixed conditions ####
 ## predicted hibernation survival
@@ -496,8 +498,8 @@ surv <- pairedPlotting(x = "sDay_fixed", parent.data = sDay.fixed, vis.break = c
 inc.fix <- raster(file.path(prod.utm, "percInc_fixed_utm.tif"))
 
 a <- increasedExpendaturePlot(x = inc.fix, res.agg = 20,
-                              text.min = 40, north.america = NA.utm,
-                              legend.key = "Precent\nIncrease\nin Fat\nExpended")
+                              text.min = 45, north.america = NA.utm,
+                              legend.key = "Percent\nIncrease\nin Fat\nExpended")
                               # save.name = "precIncrease_fixed", device.out = "png",
                               # width = 6, units = "in")
 fixed.Survival <- grid.arrange(surv, a,
@@ -529,7 +531,7 @@ inc.best <- inc.fix <- raster(file.path(prod.utm, "percInc_best_utm.tif"))
 
 b <- increasedExpendaturePlot(x = inc.best, res.agg = 20,
                               text.min = 45, north.america = NA.utm,
-                              legend.key = "Precent\nIncrease\nin Fat\nExpended")
+                              legend.key = "Percent\nIncrease\nin Fat\nExpended")
                               # save.name = "precIncrease_best",
                               # device.out = "png",
                               # width = 6, 
