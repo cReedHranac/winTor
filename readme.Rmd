@@ -49,18 +49,21 @@ Since there is a high number of data layers generated throughout this process I 
 
 ```{r}
 set.seed(123)
+
+## base path to the external directory I made for products and such
 # base.path = file.path("C:","Users","chran","Dropbox")
-base.path = file.path("D:","Dropbox")
+base.path = file.path("D:","Dropbox", "winTor_aux")
 
 
-win.dat <- file.path(base.path, "winTor_aux", "data")
-win.res <- file.path(base.path, "winTor_aux","Results")
+win.dat <- file.path(base.path, "data") 
+win.res <- file.path(base.path, "Results")
+prod.utm <- file.path(win.res, "prodUTM")
 
 ## additional operator used throughout the analysis
 ## The %!in% operator 
 '%!in%' <- function(x,y)!('%in%'(x,y))
-
 ```
+
 
 
 ## external data products to download prior to analysis

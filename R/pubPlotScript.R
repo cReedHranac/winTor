@@ -135,7 +135,7 @@ masterPlotter <- function(x,
                       rotate = F, check_overlap = T)+
     
     theme_bw()+
-    theme(legend.position = c(.1,.4),
+    theme(legend.position = "none",
           legend.text=element_text(size=7),
           legend.title=element_text(size=9),
           axis.title = element_blank(),
@@ -465,7 +465,7 @@ ggsave(file.path(win.res, "fig", "Mass_Fat_Superfig.png"),
        fig3,
        device = "png",
        width = 7.5,
-       height = 6.5,
+       height = 5.5,
        units = "in")
 rm(mass.p, fat.p, massColors, fatColors, mass.plot, fat.plot, fig3,
    dat.clean, fat.pred, state.lean.plot, fat.mass.plot);gc()
